@@ -1,6 +1,22 @@
-﻿namespace VetClinicSystem.Helpers
+﻿using Microsoft.AspNetCore.Http;
+
+namespace VetClinicSystem.Helpers
 {
-    public class SessionHelper
+    public static class SessionHelper
     {
+        public static int? GetUserId(HttpContext context)
+        {
+            return context.Session.GetInt32("UserId");
+        }
+
+        public static string? GetUsername(HttpContext context)
+        {
+            return context.Session.GetString("Username");
+        }
+
+        public static int? GetRoleId(HttpContext context)
+        {
+            return context.Session.GetInt32("RoleId");
+        }
     }
 }

@@ -1,6 +1,77 @@
-﻿namespace VetClinicSystem.Services.User
+﻿using VetClinicSystem.Helpers;
+using VetClinicSystem.Models;
+using VetClinicSystem.Repositories.Users;
+
+namespace VetClinicSystem.Services.Users
 {
-    public class UserService
+    public class UserService : IUserService
     {
+        private readonly IUserRepository _userRepository;
+        private readonly VetClinicDbContext _context;
+
+        public UserService(IUserRepository userRepository, VetClinicDbContext context)
+        {
+            _userRepository = userRepository;
+            _context = context;
+        }
+
+        public bool Register(string username, string email, string password, string firstName, string lastName, string contactNumber, string address)
+        {
+            if (_userRepository.GetByUsername(username) != null)
+                return false;
+
+            if (_userRepository.GetByEmail(email) != null)
+                return false;
+
+            var clientRole = _context.Roles.FirstOrDefault(x => x.RoleName == "Client");
+            if (clientRole == null)
+                return false;
+
+            var user = new User
+            {
+                Username = username,
+                Email = email,
+                PasswordHash = PasswordHelper.HashPassword(password),
+                RoleId = clientRole.Id,
+                IsActive = true,
+                DateCreated = DateTime.Now
+            };
+
+            _userRepository.Add(user);
+            _userRepository.Save();
+
+            var petOwner = new PetOwner
+            {
+                UserId = user.Id,
+                FirstName = firstName,
+                LastName = lastName,
+                ContactNumber = contactNumber,
+                Address = address,
+                DateCreated = DateTime.Now
+            };
+
+            _context.PetOwners.Add(petOwner);
+            _context.SaveChanges();
+
+            return true;
+        }
+
+        public User? Login(string username, string password)
+        {
+            var user = _userRepository.GetByUsername(username);
+
+            if (user == null)
+                return null;
+
+            if (!user.IsActive)
+                return null;
+
+            var hashedPassword = PasswordHelper.HashPassword(password);
+
+            if (user.PasswordHash != hashedPassword)
+                return null;
+
+            return user;
+        }
     }
 }
