@@ -5,6 +5,7 @@ namespace VetClinicSystem.Repositories.Pets
     public interface IPetRepository
     {
         List<Pet> GetAll();
+        List<Pet> GetByOwnerId(int ownerId);
         Pet? GetById(int id);
         void Add(Pet pet);
         void Update(Pet pet);

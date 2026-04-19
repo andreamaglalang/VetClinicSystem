@@ -1,15 +1,18 @@
-﻿@model IEnumerable<dynamic>
+﻿@model IEnumerable<VetClinicSystem.Models.Service>
 
-<h2>Index</h2>
+<h2>Services</h2>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Add Service</a>
 </p>
 
-<table class="table">
+<table class="table table-bordered">
     <thead>
         <tr>
-            <th>Id</th>
+            <th>Service Name</th>
+            <th>Description</th>
+            <th>Walk-in Only</th>
+            <th>Requires Appointment</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -17,11 +20,14 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.Id</td>
+                <td>@item.ServiceName</td>
+                <td>@item.Description</td>
+                <td>@item.IsWalkInOnly</td>
+                <td>@item.RequiresAppointment</td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Delete</a>
                 </td>
             </tr>
         }

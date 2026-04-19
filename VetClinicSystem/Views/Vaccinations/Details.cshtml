@@ -1,2 +1,14 @@
-﻿<h2>Details</h2>
+﻿@model VetClinicSystem.Models.VaccinationRecord
+
+<h2>Vaccination Details</h2>
+
+<table class="table table-bordered">
+    <tr><th>Pet Id</th><td>@Model.PetId</td></tr>
+    <tr><th>Vaccine</th><td>@Model.VaccineName</td></tr>
+    <tr><th>Vaccination Date</th><td>@Model.VaccinationDate</td></tr>
+    <tr><th>Next Due Date</th><td>@Model.NextDueDate</td></tr>
+    <tr><th>Notes</th><td>@Model.Notes</td></tr>
+</table>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
 <a asp-action="Index" class="btn btn-secondary">Back</a>

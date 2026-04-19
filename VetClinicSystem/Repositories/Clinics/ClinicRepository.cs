@@ -16,6 +16,11 @@ namespace VetClinicSystem.Repositories.Clinics
             return _context.ClinicInfos.FirstOrDefault();
         }
 
+        public void Add(ClinicInfo clinicInfo)
+        {
+            _context.ClinicInfos.Add(clinicInfo);
+        }
+
         public void Update(ClinicInfo clinicInfo)
         {
             _context.ClinicInfos.Update(clinicInfo);

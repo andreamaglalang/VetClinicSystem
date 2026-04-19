@@ -1,2 +1,18 @@
-﻿<h2>Details</h2>
+﻿@model VetClinicSystem.Models.Pet
+
+<h2>Pet Details</h2>
+
+<table class="table table-bordered">
+    <tr><th>Pet Name</th><td>@Model.PetName</td></tr>
+    <tr><th>Species</th><td>@Model.Species</td></tr>
+    <tr><th>Breed</th><td>@Model.Breed</td></tr>
+    <tr><th>Sex</th><td>@Model.Sex</td></tr>
+    <tr><th>Birth Date</th><td>@Model.BirthDate</td></tr>
+    <tr><th>Age</th><td>@Model.Age</td></tr>
+    <tr><th>Color</th><td>@Model.Color</td></tr>
+    <tr><th>Weight</th><td>@Model.Weight</td></tr>
+    <tr><th>Notes</th><td>@Model.Notes</td></tr>
+</table>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
 <a asp-action="Index" class="btn btn-secondary">Back</a>

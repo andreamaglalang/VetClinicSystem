@@ -4,6 +4,11 @@ namespace VetClinicSystem.Helpers
 {
     public static class SessionHelper
     {
+        public static bool IsLoggedIn(HttpContext context)
+        {
+            return context.Session.GetInt32("UserId") != null;
+        }
+
         public static int? GetUserId(HttpContext context)
         {
             return context.Session.GetInt32("UserId");

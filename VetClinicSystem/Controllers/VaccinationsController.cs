@@ -19,12 +19,18 @@ namespace VetClinicSystem.Controllers
 
         public IActionResult Index()
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             return View(_vaccinationService.GetAll());
         }
 
         [HttpGet]
         public IActionResult Create()
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
             return View();
         }
@@ -32,6 +38,9 @@ namespace VetClinicSystem.Controllers
         [HttpPost]
         public IActionResult Create(VaccinationRecord vaccinationRecord)
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             if (!ModelState.IsValid)
             {
                 ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
@@ -46,6 +55,9 @@ namespace VetClinicSystem.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
 
@@ -56,6 +68,9 @@ namespace VetClinicSystem.Controllers
         [HttpPost]
         public IActionResult Edit(VaccinationRecord vaccinationRecord)
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             if (!ModelState.IsValid)
             {
                 ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
@@ -69,22 +84,33 @@ namespace VetClinicSystem.Controllers
         [HttpGet]
         public IActionResult Details(int id)
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
+
             return View(vaccination);
         }
 
         [HttpGet]
         public IActionResult Delete(int id)
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
+
             return View(vaccination);
         }
 
         [HttpPost, ActionName("Delete")]
         public IActionResult DeleteConfirmed(int id)
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             _vaccinationService.Delete(id);
             return RedirectToAction("Index");
         }

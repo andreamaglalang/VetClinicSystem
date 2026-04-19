@@ -1,5 +1,29 @@
-﻿<h2>Create</h2>
+﻿@model VetClinicSystem.Models.MedicalRecord
+
+<h2>Add Medical Record</h2>
+
 <form method="post">
+    <div class="mb-3">
+        <label asp-for="PetId"></label>
+        <select asp-for="PetId" asp-items="ViewBag.Pets" class="form-control"></select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Diagnosis"></label>
+        <input asp-for="Diagnosis" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Treatment"></label>
+        <input asp-for="Treatment" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Prescription"></label>
+        <input asp-for="Prescription" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Findings"></label>
+        <textarea asp-for="Findings" class="form-control"></textarea>
+    </div>
+
     <button type="submit" class="btn btn-success">Save</button>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>

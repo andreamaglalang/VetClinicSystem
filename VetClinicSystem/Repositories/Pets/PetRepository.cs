@@ -16,6 +16,13 @@ namespace VetClinicSystem.Repositories.Pets
             return _context.Pets.ToList();
         }
 
+        public List<Pet> GetByOwnerId(int ownerId)
+        {
+            return _context.Pets
+                .Where(x => x.OwnerId == ownerId)
+                .ToList();
+        }
+
         public Pet? GetById(int id)
         {
             return _context.Pets.FirstOrDefault(x => x.Id == id);

@@ -1,15 +1,18 @@
 ﻿using VetClinicSystem.Models;
 using VetClinicSystem.Repositories.Pets;
+using VetClinicSystem.Repositories.Users;
 
 namespace VetClinicSystem.Services.Pets
 {
     public class PetService : IPetService
     {
         private readonly IPetRepository _petRepository;
+        private readonly IUserRepository _userRepository;
 
-        public PetService(IPetRepository petRepository)
+        public PetService(IPetRepository petRepository, IUserRepository userRepository)
         {
             _petRepository = petRepository;
+            _userRepository = userRepository;
         }
 
         public List<Pet> GetAll()
@@ -17,13 +20,33 @@ namespace VetClinicSystem.Services.Pets
             return _petRepository.GetAll();
         }
 
+        public List<Pet> GetByUser(int userId)
+        {
+            var petOwner = _userRepository.GetPetOwnerByUserId(userId);
+
+            if (petOwner == null)
+                return new List<Pet>();
+
+            return _petRepository.GetByOwnerId(petOwner.Id);
+        }
+
         public Pet? GetById(int id)
         {
             return _petRepository.GetById(id);
         }
 
-        public void Add(Pet pet)
+        public void Add(Pet pet, int userId)
         {
+            var petOwner = _userRepository.GetPetOwnerByUserId(userId);
+
+            if (petOwner == null)
+                throw new Exception("Pet owner record not found for this user.");
+
+            pet.OwnerId = petOwner.Id;
+
+            if (pet.DateCreated == default)
+                pet.DateCreated = DateTime.Now;
+
             _petRepository.Add(pet);
             _petRepository.Save();
         }

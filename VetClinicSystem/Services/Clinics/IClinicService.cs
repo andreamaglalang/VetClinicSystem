@@ -5,6 +5,6 @@ namespace VetClinicSystem.Services.Clinics
     public interface IClinicService
     {
         ClinicInfo? GetClinicInfo();
-        void UpdateClinicInfo(ClinicInfo clinicInfo);
+        void SaveClinicInfo(ClinicInfo clinicInfo);
     }
 }

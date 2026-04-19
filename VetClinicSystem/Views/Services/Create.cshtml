@@ -1,5 +1,25 @@
-﻿<h2>Create</h2>
+﻿@model VetClinicSystem.Models.Service
+
+<h2>Add Service</h2>
+
 <form method="post">
+    <div class="mb-3">
+        <label asp-for="ServiceName"></label>
+        <input asp-for="ServiceName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Description"></label>
+        <input asp-for="Description" class="form-control" />
+    </div>
+    <div class="form-check mb-2">
+        <input asp-for="IsWalkInOnly" class="form-check-input" />
+        <label asp-for="IsWalkInOnly" class="form-check-label"></label>
+    </div>
+    <div class="form-check mb-3">
+        <input asp-for="RequiresAppointment" class="form-check-input" />
+        <label asp-for="RequiresAppointment" class="form-check-label"></label>
+    </div>
+
     <button type="submit" class="btn btn-success">Save</button>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>

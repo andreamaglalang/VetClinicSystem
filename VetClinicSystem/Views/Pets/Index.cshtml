@@ -1,27 +1,51 @@
-﻿@model IEnumerable<dynamic>
+﻿@model IEnumerable<VetClinicSystem.Models.Pet>
 
-<h2>Index</h2>
+@{
+    ViewData["Title"] = "Pets";
+}
+
+<h2>Pets</h2>
+
+@if (TempData["Success"] != null)
+{
+        <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+        <div class="alert alert-danger">@TempData["Error"]</div>
+}
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Add Pet</a>
 </p>
 
-<table class="table">
+<table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th>Id</th>
+            <th>Pet Name</th>
+            <th>Species</th>
+            <th>Breed</th>
+            <th>Sex</th>
+            <th>Age</th>
+            <th>Weight</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var pet in Model)
         {
             <tr>
-                <td>@item.Id</td>
+                <td>@pet.PetName</td>
+                <td>@pet.Species</td>
+                <td>@pet.Breed</td>
+                <td>@pet.Sex</td>
+                <td>@pet.Age</td>
+                <td>@pet.Weight</td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-action="Details" asp-route-id="@pet.Id" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Edit" asp-route-id="@pet.Id" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@pet.Id" class="btn btn-danger btn-sm">Delete</a>
                 </td>
             </tr>
         }

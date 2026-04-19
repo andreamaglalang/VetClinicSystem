@@ -16,5 +16,21 @@ namespace VetClinicSystem.Services.Notifications
         {
             return _notificationRepository.GetUnread();
         }
+
+        public List<StaffNotification> GetAll()
+        {
+            return _notificationRepository.GetAll();
+        }
+
+        public void MarkAsRead(int id)
+        {
+            var item = _notificationRepository.GetAll().FirstOrDefault(x => x.Id == id);
+            if (item != null)
+            {
+                item.IsRead = true;
+                _notificationRepository.Update(item);
+                _notificationRepository.Save();
+            }
+        }
     }
 }

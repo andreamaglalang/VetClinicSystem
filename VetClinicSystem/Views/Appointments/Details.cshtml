@@ -1,2 +1,15 @@
-﻿<h2>Details</h2>
+﻿@model VetClinicSystem.Models.Appointment
+
+<h2>Appointment Details</h2>
+
+<table class="table table-bordered">
+    <tr><th>Pet Id</th><td>@Model.PetId</td></tr>
+    <tr><th>Service Id</th><td>@Model.ServiceId</td></tr>
+    <tr><th>Date</th><td>@Model.AppointmentDate</td></tr>
+    <tr><th>Time</th><td>@Model.AppointmentTime</td></tr>
+    <tr><th>Reason</th><td>@Model.ReasonForVisit</td></tr>
+    <tr><th>Client Notes</th><td>@Model.ClientNotes</td></tr>
+</table>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
 <a asp-action="Index" class="btn btn-secondary">Back</a>

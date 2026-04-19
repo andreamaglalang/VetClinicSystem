@@ -1,4 +1,5 @@
-﻿@model ErrorViewModel
+﻿@model VetClinicSystem.Models.ErrorViewModel
+
 @{
     ViewData["Title"] = "Error";
 }
@@ -8,7 +9,7 @@
 
 @if (Model.ShowRequestId)
 {
-    <p>
+    <p> 
         <strong>Request ID:</strong> <code>@Model.RequestId</code>
     </p>
 }

@@ -1,5 +1,30 @@
-﻿<h2>Edit</h2>
+﻿@model VetClinicSystem.Models.VaccinationRecord
+
+<h2>Edit Vaccination</h2>
+
 <form method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="mb-3">
+        <label asp-for="PetId"></label>
+        <select asp-for="PetId" asp-items="ViewBag.Pets" class="form-control"></select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="VaccineName"></label>
+        <input asp-for="VaccineName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="VaccinationDate"></label>
+        <input asp-for="VaccinationDate" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="NextDueDate"></label>
+        <input asp-for="NextDueDate" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Notes"></label>
+        <textarea asp-for="Notes" class="form-control"></textarea>
+    </div>
+
     <button type="submit" class="btn btn-success">Update</button>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>

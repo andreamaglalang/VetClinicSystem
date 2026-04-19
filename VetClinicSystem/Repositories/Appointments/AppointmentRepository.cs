@@ -17,12 +17,27 @@ namespace VetClinicSystem.Repositories.Appointments
             return _context.Appointments
                 .Include(x => x.Pet)
                 .Include(x => x.Service)
+                .Include(x => x.Status)
+                .ToList();
+        }
+
+        public List<Appointment> GetByOwnerId(int ownerId)
+        {
+            return _context.Appointments
+                .Include(x => x.Pet)
+                .Include(x => x.Service)
+                .Include(x => x.Status)
+                .Where(x => x.Pet.OwnerId == ownerId)
                 .ToList();
         }
 
         public Appointment? GetById(int id)
         {
-            return _context.Appointments.FirstOrDefault(x => x.Id == id);
+            return _context.Appointments
+                .Include(x => x.Pet)
+                .Include(x => x.Service)
+                .Include(x => x.Status)
+                .FirstOrDefault(x => x.Id == id);
         }
 
         public void Add(Appointment appointment)

@@ -17,7 +17,18 @@ namespace VetClinicSystem.Controllers
         {
             if (HttpContext.Session.GetInt32("UserId") != null)
             {
-                return RedirectToAction("Index", "Dashboard");
+                var roleId = HttpContext.Session.GetInt32("RoleId");
+
+                if (roleId == 1)
+                    return RedirectToAction("Admin", "Dashboard");
+
+                if (roleId == 2)
+                    return RedirectToAction("Staff", "Dashboard");
+
+                if (roleId == 3)
+                    return RedirectToAction("Client", "Dashboard");
+
+                return RedirectToAction("Login", "Account");
             }
 
             return View();
@@ -38,7 +49,16 @@ namespace VetClinicSystem.Controllers
             HttpContext.Session.SetString("Username", user.Username);
             HttpContext.Session.SetInt32("RoleId", user.RoleId);
 
-            return RedirectToAction("Index", "Dashboard");
+            if (user.RoleId == 1)
+                return RedirectToAction("Admin", "Dashboard");
+
+            if (user.RoleId == 2)
+                return RedirectToAction("Staff", "Dashboard");
+
+            if (user.RoleId == 3)
+                return RedirectToAction("Client", "Dashboard");
+
+            return RedirectToAction("Login", "Account");
         }
 
         [HttpGet]

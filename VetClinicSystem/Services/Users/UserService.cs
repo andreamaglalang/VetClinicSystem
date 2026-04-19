@@ -17,15 +17,11 @@ namespace VetClinicSystem.Services.Users
 
         public bool Register(string username, string email, string password, string firstName, string lastName, string contactNumber, string address)
         {
-            if (_userRepository.GetByUsername(username) != null)
-                return false;
-
-            if (_userRepository.GetByEmail(email) != null)
-                return false;
+            if (_userRepository.GetByUsername(username) != null) return false;
+            if (_userRepository.GetByEmail(email) != null) return false;
 
             var clientRole = _context.Roles.FirstOrDefault(x => x.RoleName == "Client");
-            if (clientRole == null)
-                return false;
+            if (clientRole == null) return false;
 
             var user = new User
             {
@@ -59,19 +55,18 @@ namespace VetClinicSystem.Services.Users
         public User? Login(string username, string password)
         {
             var user = _userRepository.GetByUsername(username);
+            if (user == null) return null;
+            if (!user.IsActive) return null;
 
-            if (user == null)
-                return null;
-
-            if (!user.IsActive)
-                return null;
-
-            var hashedPassword = PasswordHelper.HashPassword(password);
-
-            if (user.PasswordHash != hashedPassword)
-                return null;
+            var hashed = PasswordHelper.HashPassword(password);
+            if (user.PasswordHash != hashed) return null;
 
             return user;
+        }
+
+        public List<User> GetAll()
+        {
+            return _userRepository.GetAll();
         }
     }
 }

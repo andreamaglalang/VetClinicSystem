@@ -2,19 +2,22 @@
 
 <h2>Clinic Information</h2>
 
-@if (Model != null)
+@if (Model == null)
 {
-        <p><strong>Clinic Name:</strong> @Model.ClinicName</p>
-        <p><strong>Address:</strong> @Model.Address</p>
-        <p><strong>Contact Number:</strong> @Model.ContactNumber</p>
-        <p><strong>Email:</strong> @Model.Email</p>
-        <p><strong>Operating Hours:</strong> @Model.OperatingHours</p>
-        <p><strong>Facebook:</strong> @Model.FacebookPage</p>
-        <p><strong>About:</strong> @Model.AboutText</p>
-
-        <a asp-action="Edit" class="btn btn-primary">Edit</a>
+        <div class="alert alert-warning">No clinic information yet.</div>
+        <a asp-action="Edit" class="btn btn-primary">Add Clinic Info</a>
 }
 else
 {
-        <p>No clinic information found.</p>
+        <table class="table table-bordered">
+            <tr><th>Clinic Name</th><td>@Model.ClinicName</td></tr>
+            <tr><th>Address</th><td>@Model.Address</td></tr>
+            <tr><th>Contact Number</th><td>@Model.ContactNumber</td></tr>
+            <tr><th>Email</th><td>@Model.Email</td></tr>
+            <tr><th>Operating Hours</th><td>@Model.OperatingHours</td></tr>
+            <tr><th>Facebook Page</th><td>@Model.FacebookPage</td></tr>
+            <tr><th>About</th><td>@Model.AboutText</td></tr>
+        </table>
+
+        <a asp-action="Edit" class="btn btn-primary">Edit</a>
 }

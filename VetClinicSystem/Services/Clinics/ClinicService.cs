@@ -17,9 +17,15 @@ namespace VetClinicSystem.Services.Clinics
             return _clinicRepository.GetClinicInfo();
         }
 
-        public void UpdateClinicInfo(ClinicInfo clinicInfo)
+        public void SaveClinicInfo(ClinicInfo clinicInfo)
         {
-            _clinicRepository.Update(clinicInfo);
+            var existing = _clinicRepository.GetClinicInfo();
+
+            if (existing == null)
+                _clinicRepository.Add(clinicInfo);
+            else
+                _clinicRepository.Update(clinicInfo);
+
             _clinicRepository.Save();
         }
     }

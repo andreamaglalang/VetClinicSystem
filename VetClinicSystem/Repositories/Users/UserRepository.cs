@@ -26,9 +26,24 @@ namespace VetClinicSystem.Repositories.Users
             return _context.Users.FirstOrDefault(x => x.Id == id);
         }
 
+        public PetOwner? GetPetOwnerByUserId(int userId)
+        {
+            return _context.PetOwners.FirstOrDefault(x => x.UserId == userId);
+        }
+
+        public List<User> GetAll()
+        {
+            return _context.Users.ToList();
+        }
+
         public void Add(User user)
         {
             _context.Users.Add(user);
+        }
+
+        public void Update(User user)
+        {
+            _context.Users.Update(user);
         }
 
         public void Save()

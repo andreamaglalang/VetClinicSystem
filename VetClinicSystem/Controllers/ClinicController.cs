@@ -15,6 +15,9 @@ namespace VetClinicSystem.Controllers
 
         public IActionResult Index()
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             var clinic = _clinicService.GetClinicInfo();
             return View(clinic);
         }
@@ -22,17 +25,23 @@ namespace VetClinicSystem.Controllers
         [HttpGet]
         public IActionResult Edit()
         {
-            var clinic = _clinicService.GetClinicInfo();
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
+            var clinic = _clinicService.GetClinicInfo() ?? new ClinicInfo();
             return View(clinic);
         }
 
         [HttpPost]
         public IActionResult Edit(ClinicInfo clinicInfo)
         {
+            if (HttpContext.Session.GetInt32("UserId") == null)
+                return RedirectToAction("Login", "Account");
+
             if (!ModelState.IsValid)
                 return View(clinicInfo);
 
-            _clinicService.UpdateClinicInfo(clinicInfo);
+            _clinicService.SaveClinicInfo(clinicInfo);
             return RedirectToAction("Index");
         }
     }

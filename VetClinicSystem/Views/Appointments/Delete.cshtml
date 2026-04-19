@@ -1,5 +1,16 @@
-﻿<h2>Delete</h2>
+﻿@model VetClinicSystem.Models.Appointment
+
+<h2>Delete Appointment</h2>
+
+<div class="alert alert-danger">Are you sure you want to delete this appointment?</div>
+
+<table class="table table-bordered">
+    <tr><th>Date</th><td>@Model.AppointmentDate</td></tr>
+    <tr><th>Time</th><td>@Model.AppointmentTime</td></tr>
+</table>
+
 <form method="post">
+    <input type="hidden" asp-for="Id" />
     <button type="submit" class="btn btn-danger">Delete</button>
-    <a asp-action="Index" class="btn btn-secondary">Back</a>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>
