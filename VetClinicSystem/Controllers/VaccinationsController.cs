@@ -19,76 +19,160 @@ namespace VetClinicSystem.Controllers
 
         public IActionResult Index()
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            return View(_vaccinationService.GetAll());
+            var records = _vaccinationService.GetAll();
+
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                records = records.Where(v => myPetIds.Contains(v.PetId)).ToList();
+            }
+
+            return View(records);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
+            if (roleId == 3)
+                ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName");
+            else
+                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
+
             return View();
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(VaccinationRecord vaccinationRecord)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
+
+            ModelState.Remove("Pet");
+            ModelState.Remove("CreatedByUser");
+
+            if (roleId == 3)
+            {
+                var myPets = _petService.GetByUser(userId.Value);
+                if (!myPets.Any(p => p.Id == vaccinationRecord.PetId))
+                    return Unauthorized();
+            }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
+                if (roleId == 3)
+                    ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", vaccinationRecord.PetId);
+                else
+                    ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
+
+                TempData["Error"] = "Please complete all required vaccination fields.";
                 return View(vaccinationRecord);
             }
 
-            vaccinationRecord.CreatedByUserId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            vaccinationRecord.CreatedByUserId = userId.Value;
             _vaccinationService.Add(vaccinationRecord);
+
+            TempData["Success"] = "Vaccination record added successfully.";
             return RedirectToAction("Index");
         }
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
 
-            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccination.PetId);
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(vaccination.PetId))
+                    return Unauthorized();
+
+                ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", vaccination.PetId);
+            }
+            else
+            {
+                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccination.PetId);
+            }
+
             return View(vaccination);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(VaccinationRecord vaccinationRecord)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
+
+            ModelState.Remove("Pet");
+            ModelState.Remove("CreatedByUser");
+
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(vaccinationRecord.PetId))
+                    return Unauthorized();
+            }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
+                if (roleId == 3)
+                    ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", vaccinationRecord.PetId);
+                else
+                    ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
+
+                TempData["Error"] = "Please complete all required vaccination fields.";
                 return View(vaccinationRecord);
             }
 
             _vaccinationService.Update(vaccinationRecord);
+            TempData["Success"] = "Vaccination record updated successfully.";
             return RedirectToAction("Index");
         }
 
         [HttpGet]
         public IActionResult Details(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
+
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(vaccination.PetId))
+                    return Unauthorized();
+            }
 
             return View(vaccination);
         }
@@ -96,22 +180,47 @@ namespace VetClinicSystem.Controllers
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
 
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(vaccination.PetId))
+                    return Unauthorized();
+            }
+
             return View(vaccination);
         }
 
         [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
+            var vaccination = _vaccinationService.GetById(id);
+            if (vaccination == null) return NotFound();
+
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(vaccination.PetId))
+                    return Unauthorized();
+            }
+
             _vaccinationService.Delete(id);
+            TempData["Success"] = "Vaccination record deleted successfully.";
             return RedirectToAction("Index");
         }
     }

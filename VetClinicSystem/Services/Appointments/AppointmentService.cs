@@ -37,6 +37,36 @@ namespace VetClinicSystem.Services.Appointments
             return _appointmentRepository.GetByOwnerId(petOwner.Id);
         }
 
+        public List<Appointment> Search(string? search)
+        {
+            return _appointmentRepository.Search(search);
+        }
+
+        public List<Appointment> SearchByUser(int userId, string? search)
+        {
+            var petOwner = _userRepository.GetPetOwnerByUserId(userId);
+
+            if (petOwner == null)
+                return new List<Appointment>();
+
+            return _appointmentRepository.SearchByOwnerId(petOwner.Id, search);
+        }
+
+        public List<Appointment> Filter(string? search, int? statusId, DateOnly? appointmentDate)
+        {
+            return _appointmentRepository.Filter(search, statusId, appointmentDate);
+        }
+
+        public List<Appointment> FilterByUser(int userId, string? search, int? statusId, DateOnly? appointmentDate)
+        {
+            var petOwner = _userRepository.GetPetOwnerByUserId(userId);
+
+            if (petOwner == null)
+                return new List<Appointment>();
+
+            return _appointmentRepository.FilterByOwnerId(petOwner.Id, search, statusId, appointmentDate);
+        }
+
         public Appointment? GetById(int id)
         {
             return _appointmentRepository.GetById(id);

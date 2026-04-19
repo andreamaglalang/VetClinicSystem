@@ -13,12 +13,17 @@ namespace VetClinicSystem.Repositories.Notifications
 
         public List<StaffNotification> GetUnread()
         {
-            return _context.StaffNotifications.Where(x => !x.IsRead).ToList();
+            return _context.StaffNotifications
+                .Where(x => !x.IsRead)
+                .OrderByDescending(x => x.DateCreated)
+                .ToList();
         }
 
         public List<StaffNotification> GetAll()
         {
-            return _context.StaffNotifications.ToList();
+            return _context.StaffNotifications
+                .OrderByDescending(x => x.DateCreated)
+                .ToList();
         }
 
         public void Add(StaffNotification notification)

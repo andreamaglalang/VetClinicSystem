@@ -2,27 +2,80 @@
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<h2>Admin Dashboard</h2>
+<h2 class="mb-4">Admin Dashboard</h2>
 
 <div class="row">
-    <div class="col-md-4">
-        <div class="card p-3">
-            <h4>Total Pets</h4>
-            <p>@ViewBag.TotalPets</p>
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5>Total Pets</h5>
+                <h2>@ViewBag.TotalPets</h2>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card p-3">
-            <h4>Total Appointments</h4>
-            <p>@ViewBag.TotalAppointments</p>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5>Total Appointments</h5>
+                <h2>@ViewBag.TotalAppointments</h2>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card p-3">
-            <h4>Unread Notifications</h4>
-            <p>@ViewBag.UnreadNotifications</p>
+    <div class="col-md-3">
+        <div class="card text-dark bg-warning mb-3">
+            <div class="card-body">
+                <h5>Total Users</h5>
+                <h2>@ViewBag.TotalUsers</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5>Unread Notifications</h5>
+                <h2>@ViewBag.UnreadNotifications</h2>
+            </div>
         </div>
     </div>
 </div>
+
+<hr />
+
+<h4>Appointments Overview</h4>
+
+<canvas id="appointmentsChart" height="100"></canvas>
+
+@section Scripts {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <script>
+            var labels = @Html.Raw(ViewBag.ChartLabels);
+            var data = @Html.Raw(ViewBag.ChartData);
+
+            var ctx = document.getElementById('appointmentsChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Appointments per Day',
+                        data: data,
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        </script>
+}

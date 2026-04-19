@@ -24,11 +24,12 @@ namespace VetClinicSystem.Services.Notifications
 
         public void MarkAsRead(int id)
         {
-            var item = _notificationRepository.GetAll().FirstOrDefault(x => x.Id == id);
-            if (item != null)
+            var notification = _notificationRepository.GetAll().FirstOrDefault(x => x.Id == id);
+
+            if (notification != null)
             {
-                item.IsRead = true;
-                _notificationRepository.Update(item);
+                notification.IsRead = true;
+                _notificationRepository.Update(notification);
                 _notificationRepository.Save();
             }
         }

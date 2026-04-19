@@ -31,6 +31,78 @@ namespace VetClinicSystem.Repositories.Appointments
                 .ToList();
         }
 
+        public List<Appointment> Search(string? search)
+        {
+            return Filter(search, null, null);
+        }
+
+        public List<Appointment> SearchByOwnerId(int ownerId, string? search)
+        {
+            return FilterByOwnerId(ownerId, search, null, null);
+        }
+
+        public List<Appointment> Filter(string? search, int? statusId, DateOnly? appointmentDate)
+        {
+            var query = _context.Appointments
+                .Include(x => x.Pet)
+                .Include(x => x.Service)
+                .Include(x => x.Status)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(x =>
+                    x.Pet.PetName.Contains(search) ||
+                    x.Service.ServiceName.Contains(search) ||
+                    x.ReasonForVisit.Contains(search));
+            }
+
+            if (statusId.HasValue && statusId.Value > 0)
+            {
+                query = query.Where(x => x.StatusId == statusId.Value);
+            }
+
+            if (appointmentDate.HasValue)
+            {
+                query = query.Where(x => x.AppointmentDate == appointmentDate.Value);
+            }
+
+            return query.ToList();
+        }
+
+        public List<Appointment> FilterByOwnerId(int ownerId, string? search, int? statusId, DateOnly? appointmentDate)
+        {
+            var query = _context.Appointments
+                .Include(x => x.Pet)
+                .Include(x => x.Service)
+                .Include(x => x.Status)
+                .Where(x => x.Pet.OwnerId == ownerId);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(x =>
+                    x.Pet.PetName.Contains(search) ||
+                    x.Service.ServiceName.Contains(search) ||
+                    x.ReasonForVisit.Contains(search));
+            }
+
+            if (statusId.HasValue && statusId.Value > 0)
+            {
+                query = query.Where(x => x.StatusId == statusId.Value);
+            }
+
+            if (appointmentDate.HasValue)
+            {
+                query = query.Where(x => x.AppointmentDate == appointmentDate.Value);
+            }
+
+            return query.ToList();
+        }
+
         public Appointment? GetById(int id)
         {
             return _context.Appointments

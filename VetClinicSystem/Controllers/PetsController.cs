@@ -13,7 +13,7 @@ namespace VetClinicSystem.Controllers
             _petService = petService;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string? search)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
             var roleId = HttpContext.Session.GetInt32("RoleId");
@@ -21,10 +21,12 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            if (roleId == 3)
-                return View(_petService.GetByUser(userId.Value));
+            ViewBag.Search = search;
 
-            return View(_petService.GetAll());
+            if (roleId == 3)
+                return View(_petService.SearchByUser(userId.Value, search));
+
+            return View(_petService.Search(search));
         }
 
         [HttpGet]
@@ -70,11 +72,21 @@ namespace VetClinicSystem.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var pet = _petService.GetById(id);
             if (pet == null) return NotFound();
+
+            if (roleId == 3)
+            {
+                var myPets = _petService.GetByUser(userId.Value);
+                if (!myPets.Any(p => p.Id == id))
+                    return Unauthorized();
+            }
 
             return View(pet);
         }
@@ -83,11 +95,21 @@ namespace VetClinicSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(Pet pet)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             ModelState.Remove("Owner");
             ModelState.Remove("OwnerId");
+
+            if (roleId == 3)
+            {
+                var myPets = _petService.GetByUser(userId.Value);
+                if (!myPets.Any(p => p.Id == pet.Id))
+                    return Unauthorized();
+            }
 
             if (!ModelState.IsValid)
             {
@@ -111,11 +133,21 @@ namespace VetClinicSystem.Controllers
         [HttpGet]
         public IActionResult Details(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var pet = _petService.GetById(id);
             if (pet == null) return NotFound();
+
+            if (roleId == 3)
+            {
+                var myPets = _petService.GetByUser(userId.Value);
+                if (!myPets.Any(p => p.Id == id))
+                    return Unauthorized();
+            }
 
             return View(pet);
         }
@@ -123,11 +155,21 @@ namespace VetClinicSystem.Controllers
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var pet = _petService.GetById(id);
             if (pet == null) return NotFound();
+
+            if (roleId == 3)
+            {
+                var myPets = _petService.GetByUser(userId.Value);
+                if (!myPets.Any(p => p.Id == id))
+                    return Unauthorized();
+            }
 
             return View(pet);
         }
@@ -136,8 +178,18 @@ namespace VetClinicSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
+
+            if (roleId == 3)
+            {
+                var myPets = _petService.GetByUser(userId.Value);
+                if (!myPets.Any(p => p.Id == id))
+                    return Unauthorized();
+            }
 
             try
             {

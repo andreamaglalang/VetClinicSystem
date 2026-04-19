@@ -23,7 +23,7 @@ namespace VetClinicSystem.Controllers
             _serviceManager = serviceManager;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string? search, int? statusId, DateOnly? appointmentDate)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
             var roleId = HttpContext.Session.GetInt32("RoleId");
@@ -31,10 +31,23 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            if (roleId == 3)
-                return View(_appointmentService.GetByUser(userId.Value));
+            ViewBag.Search = search;
+            ViewBag.StatusId = statusId;
+            ViewBag.AppointmentDate = appointmentDate;
 
-            return View(_appointmentService.GetAll());
+            ViewBag.Statuses = new SelectList(new[]
+            {
+        new { Id = 0, Name = "All Statuses" },
+        new { Id = 1, Name = "Pending" },
+        new { Id = 2, Name = "Approved" },
+        new { Id = 3, Name = "Rejected" },
+        new { Id = 4, Name = "Completed" }
+    }, "Id", "Name", statusId ?? 0);
+
+            if (roleId == 3)
+                return View(_appointmentService.FilterByUser(userId.Value, search, statusId, appointmentDate));
+
+            return View(_appointmentService.Filter(search, statusId, appointmentDate));
         }
 
         [HttpGet]
@@ -93,6 +106,13 @@ namespace VetClinicSystem.Controllers
                 return View(appointment);
             }
 
+            if (roleId == 3)
+            {
+                var myPets = _petService.GetByUser(userId.Value);
+                if (!myPets.Any(p => p.Id == appointment.PetId))
+                    return Unauthorized();
+            }
+
             try
             {
                 appointment.CreatedByUserId = userId.Value;
@@ -121,10 +141,17 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Login", "Account");
 
             var appointment = _appointmentService.GetById(id);
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
+
+            if (roleId == 3)
+            {
+                var myAppointments = _appointmentService.GetByUser(userId.Value);
+                if (!myAppointments.Any(a => a.Id == id))
+                    return Unauthorized();
+            }
 
             LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
-
             return View(appointment);
         }
 
@@ -145,6 +172,17 @@ namespace VetClinicSystem.Controllers
             ModelState.Remove("Status");
             ModelState.Remove("CreatedByUserId");
             ModelState.Remove("LastUpdated");
+
+            if (roleId == 3)
+            {
+                var myAppointments = _appointmentService.GetByUser(userId.Value);
+                if (!myAppointments.Any(a => a.Id == appointment.Id))
+                    return Unauthorized();
+
+                var myPets = _petService.GetByUser(userId.Value);
+                if (!myPets.Any(p => p.Id == appointment.PetId))
+                    return Unauthorized();
+            }
 
             if (!ModelState.IsValid)
             {
@@ -173,12 +211,21 @@ namespace VetClinicSystem.Controllers
         public IActionResult Details(int id)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
 
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var appointment = _appointmentService.GetById(id);
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
+
+            if (roleId == 3)
+            {
+                var myAppointments = _appointmentService.GetByUser(userId.Value);
+                if (!myAppointments.Any(a => a.Id == id))
+                    return Unauthorized();
+            }
 
             return View(appointment);
         }
@@ -187,12 +234,21 @@ namespace VetClinicSystem.Controllers
         public IActionResult Delete(int id)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
 
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var appointment = _appointmentService.GetById(id);
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
+
+            if (roleId == 3)
+            {
+                var myAppointments = _appointmentService.GetByUser(userId.Value);
+                if (!myAppointments.Any(a => a.Id == id))
+                    return Unauthorized();
+            }
 
             return View(appointment);
         }
@@ -202,9 +258,17 @@ namespace VetClinicSystem.Controllers
         public IActionResult DeleteConfirmed(int id)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
 
             if (userId == null)
                 return RedirectToAction("Login", "Account");
+
+            if (roleId == 3)
+            {
+                var myAppointments = _appointmentService.GetByUser(userId.Value);
+                if (!myAppointments.Any(a => a.Id == id))
+                    return Unauthorized();
+            }
 
             try
             {
@@ -219,6 +283,58 @@ namespace VetClinicSystem.Controllers
             return RedirectToAction("Index");
         }
 
+        public IActionResult Approve(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (roleId != 1 && roleId != 2)
+                return Unauthorized();
+
+            var appointment = _appointmentService.GetById(id);
+            if (appointment == null)
+                return NotFound();
+
+            if (HasProperty(appointment, "StatusId"))
+                SetIntPropertyValue(appointment, "StatusId", 2);
+
+            if (HasProperty(appointment, "AppointmentStatusId"))
+                SetIntPropertyValue(appointment, "AppointmentStatusId", 2);
+
+            _appointmentService.Update(appointment);
+            TempData["Success"] = "Appointment approved.";
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Reject(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (roleId != 1 && roleId != 2)
+                return Unauthorized();
+
+            var appointment = _appointmentService.GetById(id);
+            if (appointment == null)
+                return NotFound();
+
+            if (HasProperty(appointment, "StatusId"))
+                SetIntPropertyValue(appointment, "StatusId", 3);
+
+            if (HasProperty(appointment, "AppointmentStatusId"))
+                SetIntPropertyValue(appointment, "AppointmentStatusId", 3);
+
+            _appointmentService.Update(appointment);
+            TempData["Success"] = "Appointment rejected.";
+            return RedirectToAction("Index");
+        }
+
         private void LoadDropdowns(int userId, int? roleId, int? selectedPetId = null, int? selectedServiceId = null)
         {
             if (roleId == 3)
@@ -227,6 +343,18 @@ namespace VetClinicSystem.Controllers
                 ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", selectedPetId);
 
             ViewBag.Services = new SelectList(_serviceManager.GetAll(), "Id", "ServiceName", selectedServiceId);
+        }
+
+        private bool HasProperty(object obj, string propertyName)
+        {
+            return obj.GetType().GetProperty(propertyName) != null;
+        }
+
+        private void SetIntPropertyValue(object obj, string propertyName, int value)
+        {
+            var prop = obj.GetType().GetProperty(propertyName);
+            if (prop != null && prop.CanWrite)
+                prop.SetValue(obj, value);
         }
     }
 }

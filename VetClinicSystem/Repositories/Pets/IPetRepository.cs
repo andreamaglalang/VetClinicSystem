@@ -6,6 +6,8 @@ namespace VetClinicSystem.Repositories.Pets
     {
         List<Pet> GetAll();
         List<Pet> GetByOwnerId(int ownerId);
+        List<Pet> Search(string? search);
+        List<Pet> SearchByOwnerId(int ownerId, string? search);
         Pet? GetById(int id);
         void Add(Pet pet);
         void Update(Pet pet);

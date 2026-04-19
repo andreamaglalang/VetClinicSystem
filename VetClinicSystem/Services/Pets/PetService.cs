@@ -30,6 +30,21 @@ namespace VetClinicSystem.Services.Pets
             return _petRepository.GetByOwnerId(petOwner.Id);
         }
 
+        public List<Pet> Search(string? search)
+        {
+            return _petRepository.Search(search);
+        }
+
+        public List<Pet> SearchByUser(int userId, string? search)
+        {
+            var petOwner = _userRepository.GetPetOwnerByUserId(userId);
+
+            if (petOwner == null)
+                return new List<Pet>();
+
+            return _petRepository.SearchByOwnerId(petOwner.Id, search);
+        }
+
         public Pet? GetById(int id)
         {
             return _petRepository.GetById(id);

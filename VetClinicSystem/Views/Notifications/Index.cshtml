@@ -1,0 +1,55 @@
+﻿@model List<VetClinicSystem.Models.StaffNotification>
+
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<h2>Notifications</h2>
+
+@if (TempData["Success"] != null)
+{
+        <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (!Model.Any())
+{
+        <div class="alert alert-info">No notifications found.</div>
+}
+else
+{
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Message</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                    <tr>
+                        <td>@item.Message</td>
+                        <td>@item.DateCreated</td>
+                        <td>
+                        @if (item.IsRead)
+                        {
+                                    <span class="badge bg-success">Read</span>
+                        }
+                        else
+                        {
+                                    <span class="badge bg-warning text-dark">Unread</span>
+                        }
+                        </td>
+                        <td>
+                        @if (!item.IsRead)
+                        {
+                                    <a asp-action="MarkAsRead" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Mark as Read</a>
+                        }
+                        </td>
+                    </tr>
+            }
+            </tbody>
+        </table>
+}

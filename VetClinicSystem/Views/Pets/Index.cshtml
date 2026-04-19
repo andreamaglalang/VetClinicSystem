@@ -16,6 +16,18 @@
         <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
+<form method="get" asp-action="Index" class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search by pet name, species, or breed" />
+        </div>
+        <div class="col-md-6">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a asp-action="Index" class="btn btn-secondary">Clear</a>
+        </div>
+    </div>
+</form>
+
 <p>
     <a asp-action="Create" class="btn btn-primary">Add Pet</a>
 </p>

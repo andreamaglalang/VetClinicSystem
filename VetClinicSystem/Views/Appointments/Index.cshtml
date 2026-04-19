@@ -1,6 +1,41 @@
 ﻿@model IEnumerable<VetClinicSystem.Models.Appointment>
 
+@{
+    ViewData["Title"] = "Appointments";
+}
+
 <h2>Appointments</h2>
+
+@if (TempData["Success"] != null)
+{
+        <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+        <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form method="get" asp-action="Index" class="mb-3">
+    <div class="row g-2">
+        <div class="col-md-4">
+            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search by pet, service, or reason" />
+        </div>
+
+        <div class="col-md-3">
+            <select name="statusId" asp-items="ViewBag.Statuses" class="form-control"></select>
+        </div>
+
+        <div class="col-md-3">
+            <input type="date" name="appointmentDate" value="@ViewBag.AppointmentDate" class="form-control" />
+        </div>
+
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a asp-action="Index" class="btn btn-secondary">Clear</a>
+        </div>
+    </div>
+</form>
 
 <p>
     <a asp-action="Create" class="btn btn-primary">Create Appointment</a>
@@ -14,6 +49,7 @@
             <th>Date</th>
             <th>Time</th>
             <th>Reason</th>
+            <th>Status</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -26,10 +62,17 @@
                 <td>@item.AppointmentDate</td>
                 <td>@item.AppointmentTime</td>
                 <td>@item.ReasonForVisit</td>
+                <td>@item.Status?.StatusName</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Details</a>
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit</a>
                     <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Delete</a>
+
+                    @if (Context.Session.GetInt32("RoleId") == 1 || Context.Session.GetInt32("RoleId") == 2)
+                    {
+                            <a asp-action="Approve" asp-route-id="@item.Id" class="btn btn-success btn-sm">Approve</a>
+                            <a asp-action="Reject" asp-route-id="@item.Id" class="btn btn-secondary btn-sm">Reject</a>
+                    }
                 </td>
             </tr>
         }

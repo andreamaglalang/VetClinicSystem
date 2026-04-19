@@ -23,6 +23,40 @@ namespace VetClinicSystem.Repositories.Pets
                 .ToList();
         }
 
+        public List<Pet> Search(string? search)
+        {
+            var query = _context.Pets.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(x =>
+                    x.PetName.Contains(search) ||
+                    x.Species.Contains(search) ||
+                    x.Breed.Contains(search));
+            }
+
+            return query.ToList();
+        }
+
+        public List<Pet> SearchByOwnerId(int ownerId, string? search)
+        {
+            var query = _context.Pets.Where(x => x.OwnerId == ownerId);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(x =>
+                    x.PetName.Contains(search) ||
+                    x.Species.Contains(search) ||
+                    x.Breed.Contains(search));
+            }
+
+            return query.ToList();
+        }
+
         public Pet? GetById(int id)
         {
             return _context.Pets.FirstOrDefault(x => x.Id == id);

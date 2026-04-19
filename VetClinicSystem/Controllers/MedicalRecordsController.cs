@@ -19,76 +19,160 @@ namespace VetClinicSystem.Controllers
 
         public IActionResult Index()
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            return View(_medicalRecordService.GetAll());
+            var records = _medicalRecordService.GetAll();
+
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                records = records.Where(r => myPetIds.Contains(r.PetId)).ToList();
+            }
+
+            return View(records);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
+            if (roleId == 3)
+                ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName");
+            else
+                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
+
             return View();
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(MedicalRecord medicalRecord)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
+
+            ModelState.Remove("Pet");
+            ModelState.Remove("CreatedByUser");
+
+            if (roleId == 3)
+            {
+                var myPets = _petService.GetByUser(userId.Value);
+                if (!myPets.Any(p => p.Id == medicalRecord.PetId))
+                    return Unauthorized();
+            }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
+                if (roleId == 3)
+                    ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", medicalRecord.PetId);
+                else
+                    ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
+
+                TempData["Error"] = "Please complete all required medical record fields.";
                 return View(medicalRecord);
             }
 
-            medicalRecord.CreatedByUserId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            medicalRecord.CreatedByUserId = userId.Value;
             _medicalRecordService.Add(medicalRecord);
+
+            TempData["Success"] = "Medical record added successfully.";
             return RedirectToAction("Index");
         }
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var record = _medicalRecordService.GetById(id);
             if (record == null) return NotFound();
 
-            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", record.PetId);
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(record.PetId))
+                    return Unauthorized();
+
+                ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", record.PetId);
+            }
+            else
+            {
+                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", record.PetId);
+            }
+
             return View(record);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(MedicalRecord medicalRecord)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
+
+            ModelState.Remove("Pet");
+            ModelState.Remove("CreatedByUser");
+
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(medicalRecord.PetId))
+                    return Unauthorized();
+            }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
+                if (roleId == 3)
+                    ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", medicalRecord.PetId);
+                else
+                    ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
+
+                TempData["Error"] = "Please complete all required medical record fields.";
                 return View(medicalRecord);
             }
 
             _medicalRecordService.Update(medicalRecord);
+            TempData["Success"] = "Medical record updated successfully.";
             return RedirectToAction("Index");
         }
 
         [HttpGet]
         public IActionResult Details(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var record = _medicalRecordService.GetById(id);
             if (record == null) return NotFound();
+
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(record.PetId))
+                    return Unauthorized();
+            }
 
             return View(record);
         }
@@ -96,22 +180,47 @@ namespace VetClinicSystem.Controllers
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
             var record = _medicalRecordService.GetById(id);
             if (record == null) return NotFound();
 
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(record.PetId))
+                    return Unauthorized();
+            }
+
             return View(record);
         }
 
         [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            if (HttpContext.Session.GetInt32("UserId") == null)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
                 return RedirectToAction("Login", "Account");
 
+            var record = _medicalRecordService.GetById(id);
+            if (record == null) return NotFound();
+
+            if (roleId == 3)
+            {
+                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+                if (!myPetIds.Contains(record.PetId))
+                    return Unauthorized();
+            }
+
             _medicalRecordService.Delete(id);
+            TempData["Success"] = "Medical record deleted successfully.";
             return RedirectToAction("Index");
         }
     }

@@ -2,20 +2,24 @@
     ViewData["Title"] = "Client Dashboard";
 }
 
-<h2>Client Dashboard</h2>
+<h2 class="mb-4">Client Dashboard</h2>
 
 <div class="row">
     <div class="col-md-6">
-        <div class="card p-3">
-            <h4>Total Pets</h4>
-            <p>@ViewBag.TotalPets</p>
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5>Total Pets</h5>
+                <h2>@ViewBag.TotalPets</h2>
+            </div>
         </div>
     </div>
 
     <div class="col-md-6">
-        <div class="card p-3">
-            <h4>Total Appointments</h4>
-            <p>@ViewBag.TotalAppointments</p>
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5>Total Appointments</h5>
+                <h2>@ViewBag.TotalAppointments</h2>
+            </div>
         </div>
     </div>
 </div>
