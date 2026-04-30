@@ -23,6 +23,35 @@ namespace VetClinicSystem.Repositories.Pets
                 .ToList();
         }
 
+        public List<Pet> GetPaged(int page, int pageSize)
+        {
+            return _context.Pets
+                .OrderByDescending(x => x.DateCreated)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+        }
+
+        public List<Pet> GetPagedByOwnerId(int ownerId, int page, int pageSize)
+        {
+            return _context.Pets
+                .Where(x => x.OwnerId == ownerId)
+                .OrderByDescending(x => x.DateCreated)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+        }
+
+        public int GetTotalCount()
+        {
+            return _context.Pets.Count();
+        }
+
+        public int GetTotalCountByOwnerId(int ownerId)
+        {
+            return _context.Pets.Count(x => x.OwnerId == ownerId);
+        }
+
         public List<Pet> Search(string? search)
         {
             var query = _context.Pets.AsQueryable();
@@ -32,9 +61,9 @@ namespace VetClinicSystem.Repositories.Pets
                 search = search.Trim();
 
                 query = query.Where(x =>
-                    x.PetName.Contains(search) ||
-                    x.Species.Contains(search) ||
-                    x.Breed.Contains(search));
+                    (x.PetName != null && x.PetName.Contains(search)) ||
+                    (x.Species != null && x.Species.Contains(search)) ||
+                    (x.Breed != null && x.Breed.Contains(search)));
             }
 
             return query.ToList();
@@ -49,9 +78,9 @@ namespace VetClinicSystem.Repositories.Pets
                 search = search.Trim();
 
                 query = query.Where(x =>
-                    x.PetName.Contains(search) ||
-                    x.Species.Contains(search) ||
-                    x.Breed.Contains(search));
+                    (x.PetName != null && x.PetName.Contains(search)) ||
+                    (x.Species != null && x.Species.Contains(search)) ||
+                    (x.Breed != null && x.Breed.Contains(search)));
             }
 
             return query.ToList();

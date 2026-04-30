@@ -1,5 +1,6 @@
 ﻿@{
-    var notificationCount = Context.Items["NotificationCount"] ?? 0;
+    var username = Context.Session.GetString("Username");
+    var roleId = Context.Session.GetInt32("RoleId");
 }
 
 <!DOCTYPE html>
@@ -8,124 +9,103 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - VetClinicSystem</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
+
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-light border-bottom mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Account" asp-action="Login">VetClinicSystem</a>
-
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav me-auto">
-                        @if (Context.Session.GetInt32("UserId") != null)
-                        {
-                            var roleId = Context.Session.GetInt32("RoleId");
-
-                            if (roleId == 1)
-                            {
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="Admin">Dashboard</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Pets" asp-action="Index">Pets</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Appointments" asp-action="Index">Appointments</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="MedicalRecords" asp-action="Index">Medical Records</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Vaccinations" asp-action="Index">Vaccinations</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Services" asp-action="Index">Services</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Clinic" asp-action="Index">Clinic</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Notifications" asp-action="Index">
-                                                Notifications (@notificationCount)
-                                            </a>
-                                        </li>
-                            }
-
-                            if (roleId == 2)
-                            {
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="Staff">Dashboard</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Appointments" asp-action="Index">Appointments</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="MedicalRecords" asp-action="Index">Medical Records</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Vaccinations" asp-action="Index">Vaccinations</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Notifications" asp-action="Index">
-                                                Notifications (@notificationCount)
-                                            </a>
-                                        </li>
-                            }
-
-                            if (roleId == 3)
-                            {
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="Client">Dashboard</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Pets" asp-action="Index">My Pets</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Appointments" asp-action="Index">My Appointments</a>
-                                        </li>
-                            }
-                        }
-                    </ul>
-
-                    <ul class="navbar-nav">
-                        @if (Context.Session.GetInt32("UserId") == null)
-                        {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
-                                </li>
-                        }
-                        else
-                        {
-                                <li class="nav-item">
-                                    <span class="nav-link text-dark">Hello, @Context.Session.GetString("Username")</span>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-danger" asp-controller="Account" asp-action="Logout">Logout</a>
-                                </li>
-                        }
-                    </ul>
+    <header class="main-header">
+        <div class="top-clinic-bar d-flex justify-content-between align-items-center">
+            <div class="top-logo">
+                <span class="brand-icon"></span>
+                <div>
+                    <strong>Thrive</strong>
+                    <small>Animal Specialist & Grooming Hub</small>
                 </div>
             </div>
+
+            
+
+            <div class="top-socials">
+                <a href="https://www.facebook.com/share/1KmWxCrZmF/" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="mailto:thriveanimalspecialist@gmail.com"><i class="fa-solid fa-envelope"></i></a>
+                <a href="https://maps.app.goo.gl/Kht4unZvM7oVFW25A?g_st=ac" target="_blank"><i class="fa-solid fa-map-location-dot"></i></a>
+            </div>
+        </div>
+
+        <nav class="main-landing-nav">
+            @if (roleId == 1)
+            {
+                    <a asp-controller="Dashboard" asp-action="Admin">Dashboard</a>
+                    <a asp-controller="Pets" asp-action="Index">Pets</a>
+                    <a asp-controller="Appointments" asp-action="Index">Appointments</a>
+                    <a asp-controller="MedicalRecords" asp-action="Index">Medical Records</a>
+                    <a asp-controller="Vaccinations" asp-action="Index">Vaccinations</a>
+                    <a asp-controller="Services" asp-action="Index">Services</a>
+                    <a asp-controller="Clinic" asp-action="Index">Clinic</a>
+                    <a asp-controller="Notifications" asp-action="Index">Notifications</a>
+                    <a asp-controller="Account" asp-action="Logout">Logout</a>
+            }
+            else if (roleId == 2)
+            {
+                    <a asp-controller="Dashboard" asp-action="Staff">Dashboard</a>
+                    <a asp-controller="Pets" asp-action="Index">Pets</a>
+                    <a asp-controller="Appointments" asp-action="Index">Appointments</a>
+                    <a asp-controller="MedicalRecords" asp-action="Index">Medical Records</a>
+                    <a asp-controller="Vaccinations" asp-action="Index">Vaccinations</a>
+                    <a asp-controller="Services" asp-action="Index">Services</a>
+                    <a asp-controller="Notifications" asp-action="Index">Notifications</a>
+                    <a asp-controller="Account" asp-action="Logout">Logout</a>
+            }
+            else if (roleId == 3)
+            {
+                    <a asp-controller="Dashboard" asp-action="Client">Dashboard</a>
+                    <a asp-controller="Pets" asp-action="Index">My Pets</a>
+                    <a asp-controller="Appointments" asp-action="Index">My Appointments</a>
+                    <a asp-controller="MedicalRecords" asp-action="Index">Medical Records</a>
+                    <a asp-controller="Vaccinations" asp-action="Index">Vaccinations</a>
+                    <a asp-controller="Clinic" asp-action="Index">Clinic</a>
+                    <a asp-controller="Account" asp-action="Logout">Logout</a>
+            }
+            else
+            {
+                    <a asp-controller="Home" asp-action="Index">Home</a>
+                    <a href="/#services">Services</a>
+                    <a href="/#gallery">Gallery</a>
+                    <a href="/#contact">Contact</a>
+                    <a asp-controller="Account" asp-action="Login">Login</a>
+                    <a asp-controller="Account" asp-action="Register">Register</a>
+            }
         </nav>
     </header>
 
-    <div class="container">
-        <main role="main" class="pb-3">
+    <main class="page-shell">
+    @if (roleId == null)
+    {
+        <div class="container-fluid px-0">
             @RenderBody()
-        </main>
-    </div>
+        </div>
+    }
+    else
+    {
+        <div class="app-container">
+            @RenderBody()
+        </div>
+    }
+</main>
 
+    <footer class="vet-footer">
+        <div class="container-fluid text-center">
+            <p>© 2026 VetClinicSystem. Caring for pets with comfort and compassion.</p>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

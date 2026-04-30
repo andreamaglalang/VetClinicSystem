@@ -28,7 +28,7 @@ namespace VetClinicSystem.Controllers
                 if (roleId == 3)
                     return RedirectToAction("Client", "Dashboard");
 
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Index", "Home");
             }
 
             return View();
@@ -58,7 +58,7 @@ namespace VetClinicSystem.Controllers
             if (user.RoleId == 3)
                 return RedirectToAction("Client", "Dashboard");
 
-            return RedirectToAction("Login", "Account");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
@@ -68,7 +68,14 @@ namespace VetClinicSystem.Controllers
         }
 
         [HttpPost]
-        public IActionResult Register(string username, string email, string password, string firstName, string lastName, string contactNumber, string address)
+        public IActionResult Register(
+            string username,
+            string email,
+            string password,
+            string firstName,
+            string lastName,
+            string contactNumber,
+            string address)
         {
             var success = _userService.Register(username, email, password, firstName, lastName, contactNumber, address);
 
@@ -85,7 +92,7 @@ namespace VetClinicSystem.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectToAction("Index", "Home");
         }
     }
 }

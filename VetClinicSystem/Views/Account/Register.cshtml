@@ -2,49 +2,75 @@
     ViewData["Title"] = "Register";
 }
 
-<h2>Register</h2>
+<div class="auth-page">
+    <div class="auth-shell register-shell">
+        <div class="auth-form-panel register-panel">
+            <p class="auth-kicker">Create account</p>
+            <h2>Register</h2>
+            <p class="auth-subtitle">Create your client account to manage pets and appointments.</p>
 
-@if (ViewBag.Error != null)
-{
-        <div class="alert alert-danger">@ViewBag.Error</div>
-}
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">@ViewBag.Error</div>
+            }
 
-<form method="post">
-    <div class="mb-3">
-        <label>Username</label>
-        <input type="text" name="username" class="form-control" />
+            <form method="post">
+                <div class="auth-grid">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control auth-input" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control auth-input" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control auth-input" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="firstName" class="form-control auth-input" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="lastName" class="form-control auth-input" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contact Number</label>
+                        <input type="text" name="contactNumber" class="form-control auth-input" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Address</label>
+                    <input type="text" name="address" class="form-control auth-input" />
+                </div>
+
+                <button type="submit" class="btn btn-vet-primary auth-main-btn">Register</button>
+
+                <p class="auth-bottom-text">
+                    Already have an account?
+                    <a asp-action="Login">Back to Login</a>
+                </p>
+            </form>
+        </div>
+
+        <div class="auth-visual-panel">
+            <div class="auth-blob"></div>
+            <div class="auth-logo-card">
+                <i class="fa-solid fa-user-plus"></i>
+                <h3>Join Thrive</h3>
+                <p>Book appointments, record pet details, and track vaccination history.</p>
+            </div>
+            <div class="auth-floating-icon icon-one"><i class="fa-solid fa-cat"></i></div>
+            <div class="auth-floating-icon icon-two"><i class="fa-solid fa-paw"></i></div>
+            <div class="auth-floating-icon icon-three"><i class="fa-solid fa-notes-medical"></i></div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label>Email</label>
-        <input type="email" name="email" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Password</label>
-        <input type="password" name="password" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>First Name</label>
-        <input type="text" name="firstName" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Last Name</label>
-        <input type="text" name="lastName" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Contact Number</label>
-        <input type="text" name="contactNumber" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Address</label>
-        <input type="text" name="address" class="form-control" />
-    </div>
-
-    <button type="submit" class="btn btn-success">Register</button>
-    <a asp-action="Login" class="btn btn-secondary">Back to Login</a>
-</form>
+</div>

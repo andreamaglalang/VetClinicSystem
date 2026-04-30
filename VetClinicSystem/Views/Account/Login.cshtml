@@ -2,29 +2,53 @@
     ViewData["Title"] = "Login";
 }
 
-<h2>Login</h2>
+<div class="auth-page">
+    <div class="auth-shell">
+        <div class="auth-form-panel">
+            <p class="auth-kicker">Welcome back</p>
+            <h2>Sign in</h2>
+            <p class="auth-subtitle">Access your Thrive Animal Specialist & Grooming Hub account.</p>
 
-@if (TempData["Success"] != null)
-{
-        <div class="alert alert-success">@TempData["Success"]</div>
-}
+            @if (TempData["Success"] != null)
+            {
+                    <div class="alert alert-success">@TempData["Success"]</div>
+            }
 
-@if (ViewBag.Error != null)
-{
-        <div class="alert alert-danger">@ViewBag.Error</div>
-}
+            @if (ViewBag.Error != null)
+            {
+                    <div class="alert alert-danger">@ViewBag.Error</div>
+            }
 
-<form method="post">
-    <div class="mb-3">
-        <label>Username</label>
-        <input type="text" name="username" class="form-control" />
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control auth-input" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control auth-input" />
+                </div>
+
+                <button type="submit" class="btn btn-vet-primary auth-main-btn">Login</button>
+
+                <p class="auth-bottom-text">
+                    Don’t have an account?
+                    <a asp-action="Register">Register</a>
+                </p>
+            </form>
+        </div>
+
+        <div class="auth-visual-panel">
+            <div class="auth-blob"></div>
+            <div class="auth-logo-card">
+                <i class="fa-solid fa-paw"></i>
+                <h3>Thrive Animal Specialist</h3>
+                <p>Professional pet care, grooming, records, and appointments in one system.</p>
+            </div>
+            <div class="auth-floating-icon icon-one"><i class="fa-solid fa-dog"></i></div>
+            <div class="auth-floating-icon icon-two"><i class="fa-solid fa-stethoscope"></i></div>
+            <div class="auth-floating-icon icon-three"><i class="fa-solid fa-syringe"></i></div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label>Password</label>
-        <input type="password" name="password" class="form-control" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Login</button>
-    <a asp-action="Register" class="btn btn-secondary">Register</a>
-</form>
+</div>

@@ -1,8 +1,470 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<section class="vet-hero" id="home">
+    <div class="vet-hero-content full-width">
+        <p class="vet-kicker">Thrive Animal Specialist & Grooming Hub</p>
+        <h1>Professional and compassionate care for your pets</h1>
+        <p>
+            Particular. Professional. Passionate about pets.
+        </p>
+
+        <div class="vet-hero-buttons">
+            <a asp-controller="Account" asp-action="Register" class="btn btn-vet-primary">Register Now</a>
+            <a href="#services" class="btn btn-vet-outline">View Services</a>
+        </div>
+    </div>
+</section>
+
+<section class="vet-section" id="services">
+    <div class="section-heading">
+        <h2>Services</h2>
+        <p>
+            Elective Surgery and Home Service require an appointment.
+            Other services are walk-in only.
+        </p>
+    </div>
+
+    <div class="vet-carousel">
+        <button type="button" class="carousel-arrow left" onclick="moveServiceSlide(-1)">❮</button>
+
+        <div class="carousel-window">
+            <div class="carousel-track" id="serviceCarouselTrack">
+                <div class="gallery-card active">
+                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
+                    <h4>Consultation</h4>
+                    <p>Walk-in service for general pet health concerns.</p>
+                </div>
+
+                <div class="gallery-card">
+                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
+                    <h4>Vaccination</h4>
+                    <p>Digital vaccination records and overdue alerts.</p>
+                </div>
+
+                <div class="gallery-card">
+                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
+                    <h4>Grooming</h4>
+                    <p>Professional grooming care for your pets.</p>
+                </div>
+
+                <div class="gallery-card">
+                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
+                    <h4>Elective Surgery</h4>
+                    <p>Appointment required. Pre-op blood test is walk-in first.</p>
+                </div>
+
+                <div class="gallery-card">
+                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
+                    <h4>Home Service</h4>
+                    <p>Appointment required for home service requests.</p>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="carousel-arrow right" onclick="moveServiceSlide(1)">❯</button>
+    </div>
+
+    <div class="carousel-dots" id="serviceCarouselDots">
+        <button type="button" class="dot active" onclick="goToServiceSlide(0)"></button>
+        <button type="button" class="dot" onclick="goToServiceSlide(1)"></button>
+        <button type="button" class="dot" onclick="goToServiceSlide(2)"></button>
+        <button type="button" class="dot" onclick="goToServiceSlide(3)"></button>
+        <button type="button" class="dot" onclick="goToServiceSlide(4)"></button>
+    </div>
+</section>
+
+<section class="vet-section vet-price-section" id="prices">
+    <div class="section-heading">
+        <h2>Service Pricing</h2>
+        <p>Prices are hidden on the website based on the clinic’s preference.</p>
+    </div>
+
+    <div class="price-layout">
+        <div class="price-photo">
+            
+        </div>
+
+        <div class="price-table-card">
+            <h3>Price Disclaimer</h3>
+            <p>
+                Prices are subject to change without prior notice. We reserve the right
+                to modify service and product rates at any time. For updated pricing,
+                please contact us directly.
+            </p>
+
+            <a href="#contact" class="btn btn-vet-primary">Contact Clinic</a>
+        </div>
+    </div>
+</section>
+
+<section class="vet-section" id="specialists">
+    <div class="section-heading">
+        <h2>Our Specialists</h2>
+        <p>Meet the caring team behind your pet’s health and comfort.</p>
+    </div>
+
+    <div class="specialist-slider-clean">
+        <div class="specialist-layout-clean">
+            <div class="specialist-list">
+                <button class="specialist-name active" onclick="goSpecialist(0)">
+                    <span><i class="fa-solid fa-user-doctor"></i></span>
+                    <div>
+                        <strong>Veterinarian</strong>
+                        <small>Animal Specialist</small>
+                    </div>
+                </button>
+
+                <button class="specialist-name" onclick="goSpecialist(1)">
+                    <span><i class="fa-solid fa-user-tie"></i></span>
+                    <div>
+                        <strong>Clinic Staff</strong>
+                        <small>Appointment Support</small>
+                    </div>
+                </button>
+
+                <button class="specialist-name" onclick="goSpecialist(2)">
+                    <span><i class="fa-solid fa-scissors"></i></span>
+                    <div>
+                        <strong>Pet Groomer</strong>
+                        <small>Grooming Care</small>
+                    </div>
+                </button>
+
+                <button class="specialist-name" onclick="goSpecialist(3)">
+                    <span><i class="fa-solid fa-hospital-user"></i></span>
+                    <div>
+                        <strong>Surgery Team</strong>
+                        <small>Elective Surgery</small>
+                    </div>
+                </button>
+            </div>
+
+            <div class="specialist-content-area">
+                <button type="button" class="specialist-side-arrow specialist-left" onclick="moveSpecialist(-1)">❮</button>
+
+                <div class="specialist-main-photo" id="specialistPhoto">
+                </div>
+
+                <div class="specialist-bio">
+                    <h3 id="specialistName">Veterinarian</h3>
+                    <h5 id="specialistRole">Animal Specialist</h5>
+                    <p id="specialistDescription">
+                        Provides consultation, pet health checks, diagnosis, and treatment guidance.
+                    </p>
+
+                    <h6>Focus:</h6>
+                    <ul id="specialistSkills">
+                        <li>General consultation</li>
+                        <li>Pet medical records</li>
+                        <li>Vaccination guidance</li>
+                    </ul>
+
+                    <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Set Appointment</a>
+                </div>
+
+                <button type="button" class="specialist-side-arrow specialist-right" onclick="moveSpecialist(1)">❯</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="vet-section" id="instructions">
+    <div class="section-heading">
+        <h2>Surgery Instructions</h2>
+        <p>Important reminders before elective surgery.</p>
+    </div>
+
+    <div class="review-grid">
+        <div class="review-card">
+            <h4>Before Scheduling</h4>
+            <p>Walk in for pre-op blood test screening first.</p>
+            <p>If the pet is fit for surgery, the procedure may be scheduled within the same week or within 1 week.</p>
+        </div>
+
+        <div class="review-card">
+            <h4>Preparation</h4>
+            <p>Bath at least 1 day before surgery.</p>
+            <p>Food fasting: 8–12 hours.</p>
+            <p>Water fasting: 5 hours.</p>
+        </div>
+    </div>
+</section>
+
+<section class="vet-section gallery-section" id="gallery">
+    <div class="section-heading text-center">
+        <h2>Photo Gallery</h2>
+        <p>Sample clinic and pet care moments.</p>
+    </div>
+
+    <div class="gallery-carousel">
+        <button type="button" class="gallery-arrow gallery-left" onclick="moveGallery(-1)">❮</button>
+
+        <div class="gallery-frame">
+            <div class="gallery-track" id="galleryTrack">
+    <div class="photo-card active">
+        <img src="~/images/gallery/gallery-1.png" asp-append-version="true" alt="Clinic gallery photo 1" />
+    </div>
+
+    <div class="photo-card">
+        <img src="~/images/gallery/gallery-2.png" asp-append-version="true" alt="Clinic gallery photo 2" />
+    </div>
+
+    <div class="photo-card">
+        <img src="~/images/gallery/gallery-3.png" asp-append-version="true" alt="Clinic gallery photo 3" />
+    </div>
+
+    <div class="photo-card">
+        <img src="~/images/gallery/gallery-4.png" asp-append-version="true" alt="Clinic gallery photo 4" />
+    </div>
+
+    <div class="photo-card">
+        <img src="~/images/gallery/gallery-5.png" asp-append-version="true" alt="Clinic gallery photo 5" />
+    </div>
+
+    <div class="photo-card">
+        <img src="~/images/gallery/gallery-6.jpg" asp-append-version="true" alt="Clinic gallery photo 6" />
+    </div>
+
+    <div class="photo-card">
+        <img src="~/images/gallery/gallery-7.jpg" asp-append-version="true" alt="Clinic gallery photo 6" />
+    </div>
+
+    <div class="photo-card">
+        <img src="~/images/gallery/gallery-8.png" asp-append-version="true" alt="Clinic gallery photo 6" />
+    </div>
 </div>
+        </div>
+
+        <button type="button" class="gallery-arrow gallery-right" onclick="moveGallery(1)">❯</button>
+    </div>
+
+    <div class="carousel-dots" id="galleryDots">
+        <button class="dot active" onclick="goGallery(0)"></button>
+        <button class="dot" onclick="goGallery(1)"></button>
+        <button class="dot" onclick="goGallery(2)"></button>
+        <button class="dot" onclick="goGallery(3)"></button>
+        <button class="dot" onclick="goGallery(4)"></button>
+        <button class="dot" onclick="goGallery(5)"></button>
+    </div>
+</section>
+
+<section class="vet-section" id="booking">
+    <div class="section-heading">
+        <h2>Booking Information</h2>
+    </div>
+
+    <div class="review-grid">
+        <div class="review-card">
+            <h4>Appointment Required</h4>
+            <p>Elective Surgery</p>
+            <p>Home Service</p>
+        </div>
+
+        <div class="review-card">
+            <h4>Walk-in Only</h4>
+            <p>Other clinic services are walk-in only.</p>
+            <p>Cancellation or reschedule notice should be made 1 day before.</p>
+        </div>
+    </div>
+</section>
+
+<section class="vet-section contact-area" id="contact">
+    <div class="contact-card">
+        <h2>Contacts</h2>
+        <p><strong>Thrive Animal Specialist & Grooming Hub</strong></p>
+        <p><i class="fa-solid fa-location-dot"></i> 258, Unit 4, Sto. Rosario St., Brgy. San Jose, Angeles City, Pampanga</p>
+        <p><i class="fa-solid fa-phone"></i> 09696440381</p>
+        <p><i class="fa-solid fa-envelope"></i> thriveanimalspecialist@gmail.com</p>
+        <p><i class="fa-solid fa-clock"></i> Monday: 9am–5pm</p>
+        <p><i class="fa-solid fa-clock"></i> Wednesday–Sunday: 9am–7pm</p>
+        <p><i class="fa-solid fa-calendar-xmark"></i> Tuesday: Closed</p>
+
+        <a href="https://maps.app.goo.gl/Kht4unZvM7oVFW25A?g_st=ac" target="_blank" class="btn btn-vet-outline">Open Google Maps</a>
+        <a href="https://www.facebook.com/share/1KmWxCrZmF/" target="_blank" class="btn btn-vet-primary">Visit Facebook</a>
+
+        <div class="map-box">Clinic Location</div>
+    </div>
+
+    <div class="contact-card">
+        <h2>Leave a Request</h2>
+
+        <form>
+            <input class="form-control mb-3" placeholder="Owner name" />
+            <input class="form-control mb-3" placeholder="Contact number" />
+            <input class="form-control mb-3" placeholder="Email address" />
+            <input class="form-control mb-3" placeholder="Pet name" />
+
+            <select class="form-control mb-3">
+                <option>Select service</option>
+                <option>Elective Surgery</option>
+                <option>Home Service</option>
+                <option>Consultation</option>
+                <option>Vaccination</option>
+                <option>Grooming</option>
+            </select>
+
+            <textarea class="form-control mb-3" rows="4" placeholder="Message"></textarea>
+
+            <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Book Appointment</a>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+let serviceSlideIndex = 0;
+
+function updateServiceCarousel() {
+    const track = document.getElementById("serviceCarouselTrack");
+    const cards = document.querySelectorAll("#serviceCarouselTrack .gallery-card");
+    const dots = document.querySelectorAll("#serviceCarouselDots .dot");
+
+    if (!track || cards.length === 0) return;
+
+    const cardWidth = cards[0].offsetWidth + 22;
+    track.style.transform = "translateX(" + (-serviceSlideIndex * cardWidth) + "px)";
+
+    cards.forEach(card => card.classList.remove("active"));
+    dots.forEach(dot => dot.classList.remove("active"));
+
+    cards[serviceSlideIndex].classList.add("active");
+    dots[serviceSlideIndex].classList.add("active");
+}
+
+function moveServiceSlide(direction) {
+    const total = document.querySelectorAll("#serviceCarouselTrack .gallery-card").length;
+
+    serviceSlideIndex += direction;
+
+    if (serviceSlideIndex < 0) serviceSlideIndex = total - 1;
+    if (serviceSlideIndex >= total) serviceSlideIndex = 0;
+
+    updateServiceCarousel();
+}
+
+function goToServiceSlide(index) {
+    serviceSlideIndex = index;
+    updateServiceCarousel();
+}
+
+let galleryIndex = 0;
+
+function updateGallery() {
+    const track = document.getElementById("galleryTrack");
+    const cards = document.querySelectorAll("#galleryTrack .photo-card");
+    const dots = document.querySelectorAll("#galleryDots .dot");
+
+    if (!track || cards.length === 0) return;
+
+    const cardWidth = cards[0].offsetWidth + 24;
+    const frameWidth = track.parentElement.offsetWidth;
+    const centerOffset = (frameWidth - cards[0].offsetWidth) / 2;
+
+    track.style.transform = "translateX(" + (centerOffset - galleryIndex * cardWidth) + "px)";
+
+    cards.forEach(card => card.classList.remove("active"));
+    dots.forEach(dot => dot.classList.remove("active"));
+
+    cards[galleryIndex].classList.add("active");
+    dots[galleryIndex].classList.add("active");
+}
+
+function moveGallery(step) {
+    const total = document.querySelectorAll("#galleryTrack .photo-card").length;
+
+    galleryIndex += step;
+
+    if (galleryIndex < 0) galleryIndex = total - 1;
+    if (galleryIndex >= total) galleryIndex = 0;
+
+    updateGallery();
+}
+
+function goGallery(index) {
+    galleryIndex = index;
+    updateGallery();
+}
+
+let specialistIndex = 0;
+
+const specialists = [
+    {
+        name: "Veterinarian",
+        role: "Animal Specialist",
+        photo: '',
+        description: "Provides consultation, pet health checks, diagnosis, and treatment guidance.",
+        skills: ["General consultation", "Pet medical records", "Vaccination guidance"]
+    },
+    {
+        name: "Clinic Staff",
+        role: "Appointment Support",
+        photo: '',
+        description: "Assists clients with appointments, reminders, confirmations, and follow-up messages.",
+        skills: ["Manual appointment approval", "Client assistance", "Website notifications"]
+    },
+    {
+        name: "Pet Groomer",
+        role: "Grooming Care",
+        photo: '',
+        description: "Provides grooming care to help pets stay clean, comfortable, and healthy.",
+        skills: ["Bathing", "Grooming", "Pet comfort care"]
+    },
+    {
+        name: "Surgery Team",
+        role: "Elective Surgery",
+        photo: '',
+        description: "Handles elective surgery scheduling after pre-op blood test screening.",
+        skills: ["Surgery preparation", "Pre-op reminders", "Post-visit follow-up"]
+    }
+];
+
+function updateSpecialist() {
+    const item = specialists[specialistIndex];
+
+    document.getElementById("specialistPhoto").innerHTML = item.photo;
+    document.getElementById("specialistName").textContent = item.name;
+    document.getElementById("specialistRole").textContent = item.role;
+    document.getElementById("specialistDescription").textContent = item.description;
+
+    const skillsList = document.getElementById("specialistSkills");
+    skillsList.innerHTML = "";
+
+    item.skills.forEach(skill => {
+        const li = document.createElement("li");
+        li.textContent = skill;
+        skillsList.appendChild(li);
+    });
+
+    const buttons = document.querySelectorAll(".specialist-name");
+    buttons.forEach(button => button.classList.remove("active"));
+    buttons[specialistIndex].classList.add("active");
+}
+
+function moveSpecialist(step) {
+    specialistIndex += step;
+
+    if (specialistIndex < 0) specialistIndex = specialists.length - 1;
+    if (specialistIndex >= specialists.length) specialistIndex = 0;
+
+    updateSpecialist();
+}
+
+function goSpecialist(index) {
+    specialistIndex = index;
+    updateSpecialist();
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    updateServiceCarousel();
+    updateGallery();
+    updateSpecialist();
+});
+
+window.addEventListener("resize", function () {
+    updateServiceCarousel();
+    updateGallery();
+});
+</script>
+}
