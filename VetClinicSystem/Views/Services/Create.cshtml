@@ -3,6 +3,8 @@
 <h2>Add Service</h2>
 
 <form method="post">
+    @Html.AntiForgeryToken()
+
     <div class="mb-3">
         <label asp-for="ServiceName"></label>
         <input asp-for="ServiceName" class="form-control" />

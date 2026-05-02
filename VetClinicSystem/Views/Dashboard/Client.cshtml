@@ -1,25 +1,197 @@
-﻿@{
+@{
     ViewData["Title"] = "Client Dashboard";
+    var today = DateTime.Today;
+    var firstDay = new DateTime(today.Year, today.Month, 1);
+    var startOffset = ((int)firstDay.DayOfWeek + 6) % 7;
+    var daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+    var currentUser = ViewBag.CurrentUser as VetClinicSystem.Models.User;
+    var petOwner = ViewBag.PetOwner as VetClinicSystem.Models.PetOwner;
+    var displayName = petOwner != null
+        ? $"{petOwner.FirstName} {petOwner.LastName}".Trim()
+        : (currentUser?.Username ?? "Pet Parent");
+    var displayEmail = currentUser?.Email ?? "No email provided";
+    var appointments = ViewBag.ClientAppointments as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var monthAppointmentDays = appointments
+        .Where(x => DateTime.TryParse((string)x.date, out var date) && date.Year == today.Year && date.Month == today.Month)
+        .Select(x => (int)x.day)
+        .Distinct()
+        .ToList();
+    var appointmentJson = System.Text.Json.JsonSerializer.Serialize(appointments);
 }
 
-<h2 class="mb-4">Client Dashboard</h2>
-
-<div class="row">
-    <div class="col-md-6">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <h5>Total Pets</h5>
-                <h2>@ViewBag.TotalPets</h2>
+<section class="med-dashboard">
+    <div class="med-main-panel">
+        <div class="med-topbar">
+            <div>
+                <h1>Hello, @displayName!</h1>
+                <span>@today.ToString("dd MMMM yyyy, dddd")</span>
             </div>
+            <label class="med-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="dashboardSearch" placeholder="Search dashboard" />
+            </label>
         </div>
+
+        <div class="med-hero-grid">
+            <article class="med-welcome-card">
+                <div>
+                    <p>Welcome back...</p>
+                    <h2>Your pets are in caring hands.</h2>
+                    <a asp-controller="Appointments" asp-action="Create" class="med-icon-link" title="Book appointment">
+                        <i class="fa-solid fa-plus"></i>
+                    </a>
+                </div>
+            </article>
+
+            <article class="med-results-card">
+                <span>Latest results</span>
+                <h2>Care summary</h2>
+                <div class="result-row">
+                    <span>Pets</span>
+                    <div><b style="width: 72%"></b></div>
+                    <strong>@ViewBag.TotalPets</strong>
+                </div>
+                <div class="result-row">
+                    <span>Visits</span>
+                    <div><b style="width: 58%"></b></div>
+                    <strong>@ViewBag.TotalAppointments</strong>
+                </div>
+                <div class="result-row">
+                    <span>Health</span>
+                    <div><b style="width: 86%"></b></div>
+                    <strong>Good</strong>
+                </div>
+            </article>
+        </div>
+
+        <div class="med-action-row">
+            <a asp-controller="Pets" asp-action="Index" class="med-action-card" data-dashboard-item="pets my pets registered">
+                <span><i class="fa-solid fa-paw"></i></span>
+                <div><strong>My Pets</strong><small>@ViewBag.TotalPets registered</small></div>
+                <i class="fa-solid fa-plus"></i>
+            </a>
+            <a asp-controller="Appointments" asp-action="Index" class="med-action-card" data-dashboard-item="appointments scheduled visit">
+                <span><i class="fa-regular fa-calendar-check"></i></span>
+                <div><strong>Appointments</strong><small>@ViewBag.TotalAppointments scheduled</small></div>
+                <i class="fa-solid fa-plus"></i>
+            </a>
+            <a asp-controller="Vaccinations" asp-action="Index" class="med-action-card" data-dashboard-item="vaccines vaccination records">
+                <span><i class="fa-solid fa-syringe"></i></span>
+                <div><strong>Vaccines</strong><small>Review records</small></div>
+                <i class="fa-solid fa-plus"></i>
+            </a>
+        </div>
+
+        <section class="med-calendar-card">
+            <div class="calendar-head">
+                <h2>@today.ToString("MMMM")</h2>
+                <span>@today.Year</span>
+            </div>
+            <div class="calendar-grid calendar-weekdays">
+                <span>mo</span><span>tu</span><span>we</span><span>th</span><span>fr</span><span>sa</span><span>su</span>
+            </div>
+            <div class="calendar-grid calendar-days">
+                @for (var i = 0; i < startOffset; i++)
+                {
+                    <span class="muted"></span>
+                }
+                @for (var day = 1; day <= daysInMonth; day++)
+                {
+                    var hasAppointment = monthAppointmentDays.Contains(day);
+                    var classes = $"{(day == today.Day ? "today" : "")} {(hasAppointment ? "has-appointment" : "")}".Trim();
+                    if (hasAppointment)
+                    {
+                        <button type="button" class="@classes" data-appointment-day="@day" aria-label="View appointments on @today.ToString("MMMM") @day">@day</button>
+                    }
+                    else
+                    {
+                        <span class="@classes">@day</span>
+                    }
+                }
+            </div>
+            <div class="appointment-popover" id="appointmentPopover" hidden>
+                <button type="button" class="appointment-close" id="appointmentPopoverClose" aria-label="Close appointment details"><i class="fa-solid fa-xmark"></i></button>
+                <span><i class="fa-regular fa-bell"></i></span>
+                <h3 id="appointmentPopoverTitle">Appointment</h3>
+                <p id="appointmentPopoverReason">Routine checkup</p>
+                <strong id="appointmentPopoverDate"></strong>
+                <small id="appointmentPopoverTime"></small>
+            </div>
+        </section>
     </div>
 
-    <div class="col-md-6">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <h5>Total Appointments</h5>
-                <h2>@ViewBag.TotalAppointments</h2>
-            </div>
+    <aside class="med-profile-panel">
+        <div class="profile-avatar"><i class="fa-solid fa-user"></i></div>
+        <h2>@displayName</h2>
+        <p>@displayEmail</p>
+        <div class="profile-stats">
+            <strong>@ViewBag.TotalPets<small>Pets</small></strong>
+            <strong>@ViewBag.TotalAppointments<small>Visits</small></strong>
+            <strong>A+<small>Care</small></strong>
         </div>
-    </div>
-</div>
+        <div class="profile-note">
+            <span>@today.ToString("dd/MM/yyyy")</span>
+            <h3>Recent Result</h3>
+            <p>Your pet care overview is up to date. Review upcoming appointments and vaccination reminders.</p>
+        </div>
+        <div class="reminder-list">
+            <h3>Reminders</h3>
+            <a asp-controller="Appointments" asp-action="Index" data-dashboard-item="appointment follow-up reminders"><i class="fa-regular fa-envelope"></i><span>Appointment follow-up<small>@(monthAppointmentDays.Any() ? $"{today:MMMM} {monthAppointmentDays.First()}" : "No upcoming date")</small></span></a>
+            <a asp-controller="Vaccinations" asp-action="Index" data-dashboard-item="vaccination record schedule"><i class="fa-solid fa-syringe"></i><span>Vaccination record<small>Review schedule</small></span></a>
+            <a asp-controller="MedicalRecords" asp-action="Index" data-dashboard-item="medical records latest notes"><i class="fa-solid fa-file-medical"></i><span>Medical records<small>Latest notes</small></span></a>
+        </div>
+    </aside>
+</section>
+
+@section Scripts {
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const appointments = @Html.Raw(appointmentJson);
+    const popover = document.getElementById("appointmentPopover");
+    const closeButton = document.getElementById("appointmentPopoverClose");
+    const title = document.getElementById("appointmentPopoverTitle");
+    const reason = document.getElementById("appointmentPopoverReason");
+    const date = document.getElementById("appointmentPopoverDate");
+    const time = document.getElementById("appointmentPopoverTime");
+
+    function formatDate(value) {
+        const parsed = new Date(value + "T00:00:00");
+        return parsed.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    }
+
+    document.querySelectorAll("[data-appointment-day]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const day = Number(button.dataset.appointmentDay);
+            const appointment = appointments.find(function (item) { return item.day === day; });
+            if (!appointment || !popover) return;
+
+            title.textContent = appointment.title || "Appointment";
+            reason.textContent = appointment.reason || appointment.pet || "Clinic appointment";
+            date.textContent = formatDate(appointment.date);
+            time.textContent = (appointment.time || "Scheduled") + " • " + (appointment.status || "Scheduled");
+            popover.hidden = false;
+            popover.classList.add("is-visible");
+        });
+    });
+
+    if (closeButton && popover) {
+        closeButton.addEventListener("click", function () {
+            popover.hidden = true;
+            popover.classList.remove("is-visible");
+        });
+    }
+
+    const search = document.getElementById("dashboardSearch");
+    const searchableItems = Array.from(document.querySelectorAll("[data-dashboard-item]"));
+    if (search) {
+        search.addEventListener("input", function () {
+            const query = search.value.trim().toLowerCase();
+            searchableItems.forEach(function (item) {
+                item.classList.toggle("is-filtered-out", query.length > 0 && !item.dataset.dashboardItem.includes(query));
+            });
+        });
+    }
+
+});
+</script>
+}

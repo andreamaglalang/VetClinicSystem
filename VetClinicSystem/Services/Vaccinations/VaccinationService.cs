@@ -24,13 +24,25 @@ namespace VetClinicSystem.Services.Vaccinations
 
         public void Add(VaccinationRecord vaccinationRecord)
         {
+            if (vaccinationRecord.DateCreated == default)
+                vaccinationRecord.DateCreated = DateTime.Now;
+
             _vaccinationRepository.Add(vaccinationRecord);
             _vaccinationRepository.Save();
         }
 
         public void Update(VaccinationRecord vaccinationRecord)
         {
-            _vaccinationRepository.Update(vaccinationRecord);
+            var existingVaccination = _vaccinationRepository.GetById(vaccinationRecord.Id);
+            if (existingVaccination == null)
+                throw new Exception("Vaccination record not found.");
+
+            existingVaccination.PetId = vaccinationRecord.PetId;
+            existingVaccination.VaccineName = vaccinationRecord.VaccineName;
+            existingVaccination.VaccinationDate = vaccinationRecord.VaccinationDate;
+            existingVaccination.NextDueDate = vaccinationRecord.NextDueDate;
+            existingVaccination.Notes = vaccinationRecord.Notes;
+
             _vaccinationRepository.Save();
         }
 

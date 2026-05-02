@@ -55,9 +55,17 @@
                 <td>@pet.Age</td>
                 <td>@pet.Weight</td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@pet.Id" class="btn btn-info btn-sm">Details</a>
-                    <a asp-action="Edit" asp-route-id="@pet.Id" class="btn btn-warning btn-sm">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@pet.Id" class="btn btn-danger btn-sm">Delete</a>
+                    <div class="table-actions">
+                        <a asp-action="Details" asp-route-id="@pet.Id" class="table-action-icon table-action-icon--details" title="Details" aria-label="View pet details">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@pet.Id" class="table-action-icon table-action-icon--edit" title="Edit" aria-label="Edit pet">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@pet.Id" class="table-action-icon table-action-icon--delete" title="Delete" aria-label="Delete pet">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </a>
+                    </div>
                 </td>
             </tr>
         }

@@ -73,8 +73,28 @@ namespace VetClinicSystem.Controllers
             if (userId == null || roleId != 3)
                 return RedirectToAction("Login", "Account");
 
+            var appointments = _appointmentService.GetByUser(userId.Value);
+            var user = _userService.GetById(userId.Value);
+            var petOwner = _userService.GetPetOwnerByUserId(userId.Value);
+
             ViewBag.TotalPets = _petService.GetByUser(userId.Value).Count;
-            ViewBag.TotalAppointments = _appointmentService.GetByUser(userId.Value).Count;
+            ViewBag.TotalAppointments = appointments.Count;
+            ViewBag.CurrentUser = user;
+            ViewBag.PetOwner = petOwner;
+            ViewBag.ClientAppointments = appointments
+                .OrderBy(x => x.AppointmentDate)
+                .ThenBy(x => x.AppointmentTime)
+                .Select(x => new
+                {
+                    date = x.AppointmentDate.ToString("yyyy-MM-dd"),
+                    day = x.AppointmentDate.Day,
+                    title = x.Service?.ServiceName ?? "Appointment",
+                    pet = x.Pet?.PetName ?? "Pet",
+                    time = x.AppointmentTime.ToString("HH:mm"),
+                    status = x.Status?.StatusName ?? "Scheduled",
+                    reason = x.ReasonForVisit ?? "Clinic appointment"
+                })
+                .ToList();
 
             return View();
         }

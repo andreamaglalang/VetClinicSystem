@@ -1,470 +1,718 @@
-﻿@{
+@{
     ViewData["Title"] = "Home";
 }
 
-<section class="vet-hero" id="home">
-    <div class="vet-hero-content full-width">
-        <p class="vet-kicker">Thrive Animal Specialist & Grooming Hub</p>
-        <h1>Professional and compassionate care for your pets</h1>
-        <p>
-            Particular. Professional. Passionate about pets.
-        </p>
+<section class="medivet-hero" id="home">
+    <div class="medivet-container medivet-hero-grid">
+        <div class="medivet-hero-copy">
+            <h1>Professional and compassionate care for your pets</h1>
+            <p>Particular. Professional. Passionate about pets.</p>
+            <div class="medivet-actions">
+                <a asp-controller="Account" asp-action="Register" class="btn btn-vet-primary">Book a Visit</a>
+                <a href="#services" class="btn btn-vet-outline btn-vet-secondary-accent">Our Services</a>
+            </div>
+        </div>
 
-        <div class="vet-hero-buttons">
-            <a asp-controller="Account" asp-action="Register" class="btn btn-vet-primary">Register Now</a>
-            <a href="#services" class="btn btn-vet-outline">View Services</a>
+        <div class="medivet-hero-visual" aria-label="Veterinary clinic dog visual">
+            <img src="~/images/site/dog-cat-doctors.png" asp-append-version="true" alt="Dog and cat dressed as veterinary doctors" />
         </div>
     </div>
 </section>
 
-<section class="vet-section" id="services">
-    <div class="section-heading">
+<section class="medivet-section medivet-wave-top" id="services">
+    <div class="medivet-container">
         <h2>Services</h2>
-        <p>
-            Elective Surgery and Home Service require an appointment.
-            Other services are walk-in only.
-        </p>
+        <div class="medivet-slider-row medivet-service-carousel">
+            <button class="medivet-arrow" type="button" aria-label="Previous service" data-service-prev><i class="fa-solid fa-chevron-left"></i></button>
+
+            <div class="medivet-service-window">
+                <div class="medivet-service-grid" id="serviceCarouselTrack">
+                    <article class="medivet-photo-card medivet-card-active">
+                        <img src="~/images/site/services-1.jfif" asp-append-version="true" alt="Pet consultation service" />
+                        <h3>Consultation</h3>
+                        <p>General health checks, diagnosis guidance, and care recommendations.</p>
+                        <a href="#prices" data-price-jump="consultation">Details</a>
+                    </article>
+                    <article class="medivet-photo-card">
+                        <img src="~/images/site/services-2.jfif" asp-append-version="true" alt="Pet supplies service" />
+                        <h3>Pet Supplies</h3>
+                        <p>Clinic-recommended supplies for everyday pet care and wellness.</p>
+                        <a href="#prices" data-price-jump="supplies">Details</a>
+                    </article>
+                    <article class="medivet-photo-card">
+                        <img src="~/images/site/services-3.jfif" asp-append-version="true" alt="Pet boarding service" />
+                        <h3>Pet Boarding</h3>
+                        <p>Temporary pet care support in a clean and monitored environment.</p>
+                        <a href="#prices" data-price-jump="boarding">Details</a>
+                    </article>
+                    <article class="medivet-photo-card">
+                        <img src="~/images/site/services-4.jfif" asp-append-version="true" alt="Pet grooming service" />
+                        <h3>Pet Grooming</h3>
+                        <p>Bathing, coat care, grooming, and comfort-focused pet handling.</p>
+                        <a href="#prices" data-price-jump="grooming">Details</a>
+                    </article>
+                    <article class="medivet-photo-card">
+                        <img src="~/images/site/services-5.jfif" asp-append-version="true" alt="Basic domestic test service" />
+                        <h3>Basic Domestic Test</h3>
+                        <p>Basic screening support for common domestic pet health concerns.</p>
+                        <a href="#prices" data-price-jump="tests">Details</a>
+                    </article>
+                    <article class="medivet-photo-card">
+                        <img src="~/images/site/services-6.jfif" asp-append-version="true" alt="Vaccination and deworming service" />
+                        <h3>Vaccination and Deworming</h3>
+                        <p>Preventive care to help protect pets from parasites and disease.</p>
+                        <a href="#prices" data-price-jump="vaccination">Details</a>
+                    </article>
+                    <article class="medivet-photo-card">
+                        <img src="~/images/site/services-7.jfif" asp-append-version="true" alt="Confinement service" />
+                        <h3>Confinement</h3>
+                        <p>Clinic observation and care for pets needing close monitoring.</p>
+                        <a href="#prices" data-price-jump="confinement">Details</a>
+                    </article>
+                    <article class="medivet-photo-card">
+                        <img src="~/images/site/services-8.jfif" asp-append-version="true" alt="Surgery service" />
+                        <h3>Surgery</h3>
+                        <p>Scheduled surgical care with pre-operative reminders and guidance.</p>
+                        <a href="#prices" data-price-jump="surgery">Details</a>
+                    </article>
+                </div>
+            </div>
+
+            <button class="medivet-arrow" type="button" aria-label="Next service" data-service-next><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="medivet-dots" id="serviceCarouselDots" aria-label="Service carousel position"></div>
     </div>
+</section>
 
-    <div class="vet-carousel">
-        <button type="button" class="carousel-arrow left" onclick="moveServiceSlide(-1)">❮</button>
+<section class="medivet-section" id="prices">
+    <div class="medivet-container">
+        <h2>Prices</h2>
+        <div class="medivet-tab-row">
+            <button class="medivet-tab-arrow" type="button" aria-label="Previous price category" data-tab-prev><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="medivet-tabs" id="priceTabs">
+                <button class="active" type="button" data-price-tab="consultation">Consultation</button>
+                <button type="button" data-price-tab="supplies">Pet Supplies</button>
+                <button type="button" data-price-tab="boarding">Pet Boarding</button>
+                <button type="button" data-price-tab="grooming">Pet Grooming</button>
+                <button type="button" data-price-tab="tests">Basic Test</button>
+                <button type="button" data-price-tab="vaccination">Vaccination</button>
+                <button type="button" data-price-tab="confinement">Confinement</button>
+                <button type="button" data-price-tab="surgery">Surgery</button>
+            </div>
+            <button class="medivet-tab-arrow" type="button" aria-label="Next price category" data-tab-next><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
 
-        <div class="carousel-window">
-            <div class="carousel-track" id="serviceCarouselTrack">
-                <div class="gallery-card active">
-                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
-                    <h4>Consultation</h4>
-                    <p>Walk-in service for general pet health concerns.</p>
-                </div>
-
-                <div class="gallery-card">
-                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
-                    <h4>Vaccination</h4>
-                    <p>Digital vaccination records and overdue alerts.</p>
-                </div>
-
-                <div class="gallery-card">
-                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
-                    <h4>Grooming</h4>
-                    <p>Professional grooming care for your pets.</p>
-                </div>
-
-                <div class="gallery-card">
-                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
-                    <h4>Elective Surgery</h4>
-                    <p>Appointment required. Pre-op blood test is walk-in first.</p>
-                </div>
-
-                <div class="gallery-card">
-                    <div class="gallery-img"><i class="fa-solid fa-..."></i></div>
-                    <h4>Home Service</h4>
-                    <p>Appointment required for home service requests.</p>
+        <div class="medivet-price-layout">
+            <img class="medivet-price-photo" id="pricePhoto" src="~/images/site/prices-1.jfif" asp-append-version="true" alt="Veterinarian consulting about pet care" />
+            <div class="medivet-price-panel">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Description</th>
+                            <th>Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody id="priceTableBody">
+                        <tr><td>Initial consultation</td><td>General health check</td><td>Contact clinic</td></tr>
+                        <tr><td>Repeat consultation</td><td>Follow-up visit</td><td>Contact clinic</td></tr>
+                        <tr><td>Blood test screening</td><td>Laboratory</td><td>Contact clinic</td></tr>
+                        <tr><td>Health certificate</td><td>Clinic documentation</td><td>Contact clinic</td></tr>
+                    </tbody>
+                </table>
+                <div class="medivet-actions">
+                    <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Book a Visit</a>
+                    <a href="#contact" class="btn btn-vet-outline btn-vet-secondary-accent">Full Price List</a>
                 </div>
             </div>
         </div>
-
-        <button type="button" class="carousel-arrow right" onclick="moveServiceSlide(1)">❯</button>
-    </div>
-
-    <div class="carousel-dots" id="serviceCarouselDots">
-        <button type="button" class="dot active" onclick="goToServiceSlide(0)"></button>
-        <button type="button" class="dot" onclick="goToServiceSlide(1)"></button>
-        <button type="button" class="dot" onclick="goToServiceSlide(2)"></button>
-        <button type="button" class="dot" onclick="goToServiceSlide(3)"></button>
-        <button type="button" class="dot" onclick="goToServiceSlide(4)"></button>
     </div>
 </section>
 
-<section class="vet-section vet-price-section" id="prices">
-    <div class="section-heading">
-        <h2>Service Pricing</h2>
-        <p>Prices are hidden on the website based on the clinic’s preference.</p>
-    </div>
-
-    <div class="price-layout">
-        <div class="price-photo">
-            
-        </div>
-
-        <div class="price-table-card">
-            <h3>Price Disclaimer</h3>
-            <p>
-                Prices are subject to change without prior notice. We reserve the right
-                to modify service and product rates at any time. For updated pricing,
-                please contact us directly.
-            </p>
-
-            <a href="#contact" class="btn btn-vet-primary">Contact Clinic</a>
-        </div>
-    </div>
-</section>
-
-<section class="vet-section" id="specialists">
-    <div class="section-heading">
+<section class="medivet-section" id="specialists">
+    <div class="medivet-container">
         <h2>Our Specialists</h2>
-        <p>Meet the caring team behind your pet’s health and comfort.</p>
-    </div>
+        <div class="medivet-tab-row">
+            <button class="medivet-tab-arrow" type="button" aria-label="Previous specialist category" data-tab-prev><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="medivet-tabs" id="specialistTabs">
+                <button class="active" type="button" data-specialist-tab="0">General Care</button>
+                <button type="button" data-specialist-tab="1">Surgery</button>
+                <button type="button" data-specialist-tab="2">Grooming</button>
+                <button type="button" data-specialist-tab="3">Boarding</button>
+            </div>
+            <button class="medivet-tab-arrow" type="button" aria-label="Next specialist category" data-tab-next><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
 
-    <div class="specialist-slider-clean">
-        <div class="specialist-layout-clean">
-            <div class="specialist-list">
-                <button class="specialist-name active" onclick="goSpecialist(0)">
-                    <span><i class="fa-solid fa-user-doctor"></i></span>
-                    <div>
-                        <strong>Veterinarian</strong>
-                        <small>Animal Specialist</small>
-                    </div>
+        <div class="medivet-specialist-layout">
+            <div class="medivet-doctor-list">
+                <button class="active" type="button" data-specialist-button="0">
+                    <img src="~/images/site/diagnostic-care.jpg" asp-append-version="true" alt="Veterinary specialist" />
+                    <span><strong>Veterinarian</strong><small>Consultation and vaccination</small></span>
                 </button>
-
-                <button class="specialist-name" onclick="goSpecialist(1)">
-                    <span><i class="fa-solid fa-user-tie"></i></span>
-                    <div>
-                        <strong>Clinic Staff</strong>
-                        <small>Appointment Support</small>
-                    </div>
+                <button type="button" data-specialist-button="1">
+                    <img src="~/images/site/vet-ultrasound-dog.jpg" asp-append-version="true" alt="Surgery specialist" />
+                    <span><strong>Surgery Team</strong><small>Scheduled procedures</small></span>
                 </button>
-
-                <button class="specialist-name" onclick="goSpecialist(2)">
-                    <span><i class="fa-solid fa-scissors"></i></span>
-                    <div>
-                        <strong>Pet Groomer</strong>
-                        <small>Grooming Care</small>
-                    </div>
+                <button type="button" data-specialist-button="2">
+                    <img src="~/images/site/pet-grooming.jpg" asp-append-version="true" alt="Dental specialist" />
+                    <span><strong>Grooming Staff</strong><small>Coat and comfort care</small></span>
                 </button>
-
-                <button class="specialist-name" onclick="goSpecialist(3)">
-                    <span><i class="fa-solid fa-hospital-user"></i></span>
-                    <div>
-                        <strong>Surgery Team</strong>
-                        <small>Elective Surgery</small>
-                    </div>
+                <button type="button" data-specialist-button="3">
+                    <img src="~/images/site/cat-exam.jpg" asp-append-version="true" alt="Boarding staff" />
+                    <span><strong>Clinic Staff</strong><small>Boarding and confinement</small></span>
                 </button>
             </div>
 
-            <div class="specialist-content-area">
-                <button type="button" class="specialist-side-arrow specialist-left" onclick="moveSpecialist(-1)">❮</button>
+            <img class="medivet-specialist-photo" id="specialistPhoto" src="~/images/site/diagnostic-care.jpg" asp-append-version="true" alt="Veterinarian with a dog" />
 
-                <div class="specialist-main-photo" id="specialistPhoto">
-                </div>
-
-                <div class="specialist-bio">
-                    <h3 id="specialistName">Veterinarian</h3>
-                    <h5 id="specialistRole">Animal Specialist</h5>
-                    <p id="specialistDescription">
-                        Provides consultation, pet health checks, diagnosis, and treatment guidance.
-                    </p>
-
-                    <h6>Focus:</h6>
-                    <ul id="specialistSkills">
-                        <li>General consultation</li>
-                        <li>Pet medical records</li>
-                        <li>Vaccination guidance</li>
-                    </ul>
-
-                    <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Set Appointment</a>
-                </div>
-
-                <button type="button" class="specialist-side-arrow specialist-right" onclick="moveSpecialist(1)">❯</button>
+            <div class="medivet-specialist-copy">
+                <h3 id="specialistName">Veterinarian</h3>
+                <p id="specialistDescription">Experienced animal care specialist with a focus on prevention, consultation, diagnostics, and long-term pet wellness.</p>
+                <h4>Specialization</h4>
+                <ul id="specialistSkills">
+                    <li>Therapy</li>
+                    <li>Vaccination</li>
+                    <li>Preventive care</li>
+                    <li>Small pet consultation</li>
+                </ul>
+                <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Book a Visit</a>
             </div>
         </div>
     </div>
 </section>
 
-<section class="vet-section" id="instructions">
-    <div class="section-heading">
-        <h2>Surgery Instructions</h2>
-        <p>Important reminders before elective surgery.</p>
-    </div>
-
-    <div class="review-grid">
-        <div class="review-card">
-            <h4>Before Scheduling</h4>
-            <p>Walk in for pre-op blood test screening first.</p>
-            <p>If the pet is fit for surgery, the procedure may be scheduled within the same week or within 1 week.</p>
-        </div>
-
-        <div class="review-card">
-            <h4>Preparation</h4>
-            <p>Bath at least 1 day before surgery.</p>
-            <p>Food fasting: 8–12 hours.</p>
-            <p>Water fasting: 5 hours.</p>
+<section class="medivet-band" id="why">
+    <div class="medivet-container">
+        <h2>Why Choose Us</h2>
+        <div class="medivet-benefits">
+            <article><i class="fa-solid fa-stethoscope"></i><h3>Professionalism</h3><p>Experienced doctors and attentive clinic staff.</p></article>
+            <article><i class="fa-solid fa-heart-pulse"></i><h3>Personal Care</h3><p>Individual approach for every pet and owner.</p></article>
+            <article><i class="fa-solid fa-house-medical"></i><h3>All in One Place</h3><p>Consultation, records, services, and appointments.</p></article>
+            <article><i class="fa-solid fa-microscope"></i><h3>Clinical Excellence</h3><p>Reliable diagnostics and practical treatment planning.</p></article>
         </div>
     </div>
 </section>
 
-<section class="vet-section gallery-section" id="gallery">
-    <div class="section-heading text-center">
+<section class="medivet-section" id="gallery">
+    <div class="medivet-container">
         <h2>Photo Gallery</h2>
-        <p>Sample clinic and pet care moments.</p>
-    </div>
-
-    <div class="gallery-carousel">
-        <button type="button" class="gallery-arrow gallery-left" onclick="moveGallery(-1)">❮</button>
-
-        <div class="gallery-frame">
-            <div class="gallery-track" id="galleryTrack">
-    <div class="photo-card active">
-        <img src="~/images/gallery/gallery-1.png" asp-append-version="true" alt="Clinic gallery photo 1" />
-    </div>
-
-    <div class="photo-card">
-        <img src="~/images/gallery/gallery-2.png" asp-append-version="true" alt="Clinic gallery photo 2" />
-    </div>
-
-    <div class="photo-card">
-        <img src="~/images/gallery/gallery-3.png" asp-append-version="true" alt="Clinic gallery photo 3" />
-    </div>
-
-    <div class="photo-card">
-        <img src="~/images/gallery/gallery-4.png" asp-append-version="true" alt="Clinic gallery photo 4" />
-    </div>
-
-    <div class="photo-card">
-        <img src="~/images/gallery/gallery-5.png" asp-append-version="true" alt="Clinic gallery photo 5" />
-    </div>
-
-    <div class="photo-card">
-        <img src="~/images/gallery/gallery-6.jpg" asp-append-version="true" alt="Clinic gallery photo 6" />
-    </div>
-
-    <div class="photo-card">
-        <img src="~/images/gallery/gallery-7.jpg" asp-append-version="true" alt="Clinic gallery photo 6" />
-    </div>
-
-    <div class="photo-card">
-        <img src="~/images/gallery/gallery-8.png" asp-append-version="true" alt="Clinic gallery photo 6" />
-    </div>
-</div>
+        <div class="medivet-gallery-strip">
+            <button class="medivet-arrow" type="button" aria-label="Previous gallery image" data-gallery-prev><i class="fa-solid fa-chevron-left"></i></button>
+            <img data-gallery-image src="~/images/site/gallery-1.png" asp-append-version="true" alt="Clinic gallery photo 1" />
+            <img data-gallery-image src="~/images/site/gallery-2.png" asp-append-version="true" alt="Clinic gallery photo 2" />
+            <img data-gallery-image src="~/images/site/gallery-3.png" asp-append-version="true" alt="Clinic gallery photo 3" />
+            <img data-gallery-image src="~/images/site/gallery-4.png" asp-append-version="true" alt="Clinic gallery photo 4" />
+            <img data-gallery-image src="~/images/site/gallery-5.png" asp-append-version="true" alt="Clinic gallery photo 5" />
+            <button class="medivet-arrow" type="button" aria-label="Next gallery image" data-gallery-next><i class="fa-solid fa-chevron-right"></i></button>
         </div>
-
-        <button type="button" class="gallery-arrow gallery-right" onclick="moveGallery(1)">❯</button>
-    </div>
-
-    <div class="carousel-dots" id="galleryDots">
-        <button class="dot active" onclick="goGallery(0)"></button>
-        <button class="dot" onclick="goGallery(1)"></button>
-        <button class="dot" onclick="goGallery(2)"></button>
-        <button class="dot" onclick="goGallery(3)"></button>
-        <button class="dot" onclick="goGallery(4)"></button>
-        <button class="dot" onclick="goGallery(5)"></button>
+        <div class="medivet-dots" id="galleryDots" aria-label="Gallery position"></div>
     </div>
 </section>
 
-<section class="vet-section" id="booking">
-    <div class="section-heading">
-        <h2>Booking Information</h2>
-    </div>
-
-    <div class="review-grid">
-        <div class="review-card">
-            <h4>Appointment Required</h4>
-            <p>Elective Surgery</p>
-            <p>Home Service</p>
-        </div>
-
-        <div class="review-card">
-            <h4>Walk-in Only</h4>
-            <p>Other clinic services are walk-in only.</p>
-            <p>Cancellation or reschedule notice should be made 1 day before.</p>
+<section class="medivet-band" id="reviews">
+    <div class="medivet-container">
+        <h2>Reviews</h2>
+        <div class="medivet-review-grid">
+            <article>
+                <div><i class="fa-solid fa-paw"></i><strong>Morris, cat owner</strong><span>14.05.2026</span></div>
+                <p>Very caring veterinary team. The doctor explained everything clearly and helped us choose the next steps.</p>
+            </article>
+            <article>
+                <div><i class="fa-solid fa-bone"></i><strong>Alex, dog owner</strong><span>02.04.2026</span></div>
+                <p>Friendly service and attentive staff. We felt calm and confident during the visit.</p>
+            </article>
         </div>
     </div>
 </section>
 
-<section class="vet-section contact-area" id="contact">
-    <div class="contact-card">
-        <h2>Contacts</h2>
-        <p><strong>Thrive Animal Specialist & Grooming Hub</strong></p>
-        <p><i class="fa-solid fa-location-dot"></i> 258, Unit 4, Sto. Rosario St., Brgy. San Jose, Angeles City, Pampanga</p>
-        <p><i class="fa-solid fa-phone"></i> 09696440381</p>
-        <p><i class="fa-solid fa-envelope"></i> thriveanimalspecialist@gmail.com</p>
-        <p><i class="fa-solid fa-clock"></i> Monday: 9am–5pm</p>
-        <p><i class="fa-solid fa-clock"></i> Wednesday–Sunday: 9am–7pm</p>
-        <p><i class="fa-solid fa-calendar-xmark"></i> Tuesday: Closed</p>
-
-        <a href="https://maps.app.goo.gl/Kht4unZvM7oVFW25A?g_st=ac" target="_blank" class="btn btn-vet-outline">Open Google Maps</a>
-        <a href="https://www.facebook.com/share/1KmWxCrZmF/" target="_blank" class="btn btn-vet-primary">Visit Facebook</a>
-
-        <div class="map-box">Clinic Location</div>
+<section class="medivet-section" id="articles">
+    <div class="medivet-container">
+        <h2>Useful Articles</h2>
+        <div class="medivet-tab-row">
+            <button class="medivet-tab-arrow" type="button" aria-label="Previous article category" data-tab-prev><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="medivet-tabs" id="articleTabs">
+                <button class="active" type="button" data-article-tab="therapy">Therapy</button>
+                <button type="button" data-article-tab="care">Care</button>
+                <button type="button" data-article-tab="nutrition">Nutrition</button>
+                <button type="button" data-article-tab="vaccination">Vaccination</button>
+                <button type="button" data-article-tab="behavior">Behavior</button>
+            </div>
+            <button class="medivet-tab-arrow" type="button" aria-label="Next article category" data-tab-next><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="medivet-article-grid" id="articleGrid">
+            <article>
+                <img src="~/images/site/article-1.jfif" asp-append-version="true" alt="When to book a consultation" />
+                <h3>When to book a consultation</h3>
+            </article>
+            <article class="featured">
+                <h3>What to do when symptoms appear</h3>
+                <p>Early consultation helps your pet recover faster.</p>
+                <a href="#contact">Read Article</a>
+            </article>
+            <article>
+                <img src="~/images/site/article-2.jfif" asp-append-version="true" alt="Preparing for a clinic visit" />
+                <h3>Preparing for a clinic visit</h3>
+            </article>
+        </div>
     </div>
+</section>
 
-    <div class="contact-card">
-        <h2>Leave a Request</h2>
+<section class="medivet-section" id="contact">
+    <div class="medivet-container medivet-contact-grid">
+        <div class="medivet-contact-card">
+            <h2>Contacts</h2>
+            <p><i class="fa-solid fa-location-dot"></i> 258, Unit 4, Sto. Rosario St., Brgy. San Jose, Angeles City, Pampanga</p>
+            <p><i class="fa-solid fa-phone"></i> 0969-644-0381</p>
+            <p><i class="fa-solid fa-envelope"></i> thriveanimalspecialist@gmail.com</p>
+            <p><i class="fa-solid fa-clock"></i> Monday: 9am-5pm</p>
+            <p><i class="fa-solid fa-clock"></i> Wednesday-Sunday: 9am-7pm</p>
+            <p><i class="fa-solid fa-calendar-xmark"></i> Tuesday: Closed</p>
+            <div class="medivet-map">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <span>Clinic location map</span>
+            </div>
+            <div class="medivet-contact-links">
+                <a href="https://maps.app.goo.gl/Kht4unZvM7oVFW25A?g_st=ac" target="_blank" rel="noopener" class="btn btn-vet-primary">Open Google Maps</a>
+                <a href="https://www.facebook.com/share/1KmWxCrZmF/" target="_blank" rel="noopener" class="btn btn-vet-outline btn-vet-secondary-accent">Visit Facebook</a>
+            </div>
+        </div>
 
-        <form>
-            <input class="form-control mb-3" placeholder="Owner name" />
-            <input class="form-control mb-3" placeholder="Contact number" />
-            <input class="form-control mb-3" placeholder="Email address" />
-            <input class="form-control mb-3" placeholder="Pet name" />
-
-            <select class="form-control mb-3">
-                <option>Select service</option>
-                <option>Elective Surgery</option>
-                <option>Home Service</option>
-                <option>Consultation</option>
-                <option>Vaccination</option>
-                <option>Grooming</option>
-            </select>
-
-            <textarea class="form-control mb-3" rows="4" placeholder="Message"></textarea>
-
-            <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Book Appointment</a>
-        </form>
+        <div class="medivet-request-card">
+            <div>
+                <h2>Leave a Request</h2>
+                <p>We will contact you as soon as possible.</p>
+                <form>
+                    <div class="medivet-form-row">
+                        <input class="form-control" placeholder="Your name" />
+                        <input class="form-control" placeholder="Phone" />
+                    </div>
+                    <select class="form-control">
+                        <option>Select service</option>
+                        <option>Consultation</option>
+                        <option>Pet Supplies</option>
+                        <option>Pet Boarding</option>
+                        <option>Pet Grooming</option>
+                        <option>Basic Domestic Test</option>
+                        <option>Vaccination and Deworming</option>
+                        <option>Confinement</option>
+                        <option>Surgery</option>
+                    </select>
+                    <textarea class="form-control" rows="5" placeholder="Comment"></textarea>
+                    <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Book a Visit</a>
+                </form>
+            </div>
+            <img src="~/images/site/request-cat.png" asp-append-version="true" alt="Cat raising one paw" />
+        </div>
     </div>
 </section>
 
 @section Scripts {
 <script>
-let serviceSlideIndex = 0;
-
-function updateServiceCarousel() {
-    const track = document.getElementById("serviceCarouselTrack");
-    const cards = document.querySelectorAll("#serviceCarouselTrack .gallery-card");
-    const dots = document.querySelectorAll("#serviceCarouselDots .dot");
-
-    if (!track || cards.length === 0) return;
-
-    const cardWidth = cards[0].offsetWidth + 22;
-    track.style.transform = "translateX(" + (-serviceSlideIndex * cardWidth) + "px)";
-
-    cards.forEach(card => card.classList.remove("active"));
-    dots.forEach(dot => dot.classList.remove("active"));
-
-    cards[serviceSlideIndex].classList.add("active");
-    dots[serviceSlideIndex].classList.add("active");
-}
-
-function moveServiceSlide(direction) {
-    const total = document.querySelectorAll("#serviceCarouselTrack .gallery-card").length;
-
-    serviceSlideIndex += direction;
-
-    if (serviceSlideIndex < 0) serviceSlideIndex = total - 1;
-    if (serviceSlideIndex >= total) serviceSlideIndex = 0;
-
-    updateServiceCarousel();
-}
-
-function goToServiceSlide(index) {
-    serviceSlideIndex = index;
-    updateServiceCarousel();
-}
-
-let galleryIndex = 0;
-
-function updateGallery() {
-    const track = document.getElementById("galleryTrack");
-    const cards = document.querySelectorAll("#galleryTrack .photo-card");
-    const dots = document.querySelectorAll("#galleryDots .dot");
-
-    if (!track || cards.length === 0) return;
-
-    const cardWidth = cards[0].offsetWidth + 24;
-    const frameWidth = track.parentElement.offsetWidth;
-    const centerOffset = (frameWidth - cards[0].offsetWidth) / 2;
-
-    track.style.transform = "translateX(" + (centerOffset - galleryIndex * cardWidth) + "px)";
-
-    cards.forEach(card => card.classList.remove("active"));
-    dots.forEach(dot => dot.classList.remove("active"));
-
-    cards[galleryIndex].classList.add("active");
-    dots[galleryIndex].classList.add("active");
-}
-
-function moveGallery(step) {
-    const total = document.querySelectorAll("#galleryTrack .photo-card").length;
-
-    galleryIndex += step;
-
-    if (galleryIndex < 0) galleryIndex = total - 1;
-    if (galleryIndex >= total) galleryIndex = 0;
-
-    updateGallery();
-}
-
-function goGallery(index) {
-    galleryIndex = index;
-    updateGallery();
-}
-
-let specialistIndex = 0;
-
-const specialists = [
-    {
-        name: "Veterinarian",
-        role: "Animal Specialist",
-        photo: '',
-        description: "Provides consultation, pet health checks, diagnosis, and treatment guidance.",
-        skills: ["General consultation", "Pet medical records", "Vaccination guidance"]
-    },
-    {
-        name: "Clinic Staff",
-        role: "Appointment Support",
-        photo: '',
-        description: "Assists clients with appointments, reminders, confirmations, and follow-up messages.",
-        skills: ["Manual appointment approval", "Client assistance", "Website notifications"]
-    },
-    {
-        name: "Pet Groomer",
-        role: "Grooming Care",
-        photo: '',
-        description: "Provides grooming care to help pets stay clean, comfortable, and healthy.",
-        skills: ["Bathing", "Grooming", "Pet comfort care"]
-    },
-    {
-        name: "Surgery Team",
-        role: "Elective Surgery",
-        photo: '',
-        description: "Handles elective surgery scheduling after pre-op blood test screening.",
-        skills: ["Surgery preparation", "Pre-op reminders", "Post-visit follow-up"]
-    }
-];
-
-function updateSpecialist() {
-    const item = specialists[specialistIndex];
-
-    document.getElementById("specialistPhoto").innerHTML = item.photo;
-    document.getElementById("specialistName").textContent = item.name;
-    document.getElementById("specialistRole").textContent = item.role;
-    document.getElementById("specialistDescription").textContent = item.description;
-
-    const skillsList = document.getElementById("specialistSkills");
-    skillsList.innerHTML = "";
-
-    item.skills.forEach(skill => {
-        const li = document.createElement("li");
-        li.textContent = skill;
-        skillsList.appendChild(li);
-    });
-
-    const buttons = document.querySelectorAll(".specialist-name");
-    buttons.forEach(button => button.classList.remove("active"));
-    buttons[specialistIndex].classList.add("active");
-}
-
-function moveSpecialist(step) {
-    specialistIndex += step;
-
-    if (specialistIndex < 0) specialistIndex = specialists.length - 1;
-    if (specialistIndex >= specialists.length) specialistIndex = 0;
-
-    updateSpecialist();
-}
-
-function goSpecialist(index) {
-    specialistIndex = index;
-    updateSpecialist();
-}
-
 document.addEventListener("DOMContentLoaded", function () {
-    updateServiceCarousel();
-    updateGallery();
-    updateSpecialist();
-});
+    const imageBase = "/images/site/";
 
-window.addEventListener("resize", function () {
-    updateServiceCarousel();
-    updateGallery();
+    const priceData = {
+        consultation: {
+            photo: "prices-1.jfif",
+            rows: [
+                ["Initial consultation", "General health check", "Contact clinic"],
+                ["Repeat consultation", "Follow-up visit", "Contact clinic"],
+                ["Health certificate", "Clinic documentation", "Contact clinic"],
+                ["Medical advice", "Care planning", "Contact clinic"]
+            ]
+        },
+        supplies: {
+            photo: "prices-1.jfif",
+            rows: [
+                ["Pet food and basics", "Daily care supplies", "Contact clinic"],
+                ["Hygiene supplies", "Bath and coat care", "Contact clinic"],
+                ["Clinic-recommended items", "Wellness support", "Contact clinic"]
+            ]
+        },
+        boarding: {
+            photo: "prices-1.jfif",
+            rows: [
+                ["Day boarding", "Short stay care", "Contact clinic"],
+                ["Overnight boarding", "Monitored pet stay", "Contact clinic"],
+                ["Boarding add-ons", "Food or care requests", "Contact clinic"]
+            ]
+        },
+        grooming: {
+            photo: "prices-1.jfif",
+            rows: [
+                ["Basic grooming", "Bath and drying", "Contact clinic"],
+                ["Full grooming", "Coat, hygiene, and trim", "Contact clinic"],
+                ["Nail trim", "Comfort care", "Contact clinic"]
+            ]
+        },
+        tests: {
+            photo: "prices-1.jfif",
+            rows: [
+                ["Basic domestic test", "Initial screening", "Contact clinic"],
+                ["Blood test screening", "Laboratory support", "Contact clinic"],
+                ["Diagnostic review", "Doctor interpretation", "Contact clinic"]
+            ]
+        },
+        vaccination: {
+            photo: "prices-1.jfif",
+            rows: [
+                ["Vaccination", "Preventive care", "Contact clinic"],
+                ["Deworming", "Parasite prevention", "Contact clinic"],
+                ["Vaccination record", "Digital record update", "Contact clinic"]
+            ]
+        },
+        confinement: {
+            photo: "prices-1.jfif",
+            rows: [
+                ["Confinement", "Clinic observation", "Contact clinic"],
+                ["Monitoring", "Ongoing status checks", "Contact clinic"],
+                ["Medication support", "As prescribed", "Contact clinic"]
+            ]
+        },
+        surgery: {
+            photo: "prices-1.jfif",
+            rows: [
+                ["Surgery consultation", "Pre-procedure assessment", "Contact clinic"],
+                ["Elective surgery", "Scheduled procedure", "Contact clinic"],
+                ["Post-surgery guidance", "Recovery reminders", "Contact clinic"]
+            ]
+        }
+    };
+
+    const specialistData = [
+        {
+            name: "Veterinarian",
+            description: "Provides consultations, vaccinations, deworming, basic testing, and care planning for pets.",
+            photo: "diagnostic-care.jpg",
+            skills: ["Consultation", "Vaccination and deworming", "Basic domestic test", "Preventive care"]
+        },
+        {
+            name: "Surgery Team",
+            description: "Handles scheduled surgery cases with preparation guidance and recovery reminders.",
+            photo: "vet-ultrasound-dog.jpg",
+            skills: ["Surgery assessment", "Pre-operative preparation", "Procedure support", "Post-visit guidance"]
+        },
+        {
+            name: "Grooming Staff",
+            description: "Supports pet comfort through grooming, coat care, bathing, and hygiene services.",
+            photo: "pet-grooming.jpg",
+            skills: ["Pet grooming", "Bathing", "Coat care", "Nail and hygiene care"]
+        },
+        {
+            name: "Clinic Staff",
+            description: "Coordinates pet boarding, confinement support, client requests, and clinic communication.",
+            photo: "cat-exam.jpg",
+            skills: ["Pet boarding", "Confinement support", "Pet supplies", "Client assistance"]
+        }
+    ];
+
+    const galleryData = [
+        { src: "gallery-1.png", alt: "Clinic gallery photo 1" },
+        { src: "gallery-2.png", alt: "Clinic gallery photo 2" },
+        { src: "gallery-3.png", alt: "Clinic gallery photo 3" },
+        { src: "gallery-4.png", alt: "Clinic gallery photo 4" },
+        { src: "gallery-5.png", alt: "Clinic gallery photo 5" },
+        { src: "gallery-6.jpg", alt: "Clinic gallery photo 6" },
+        { src: "gallery-7.jpg", alt: "Clinic gallery photo 7" },
+        { src: "gallery-8.png", alt: "Clinic gallery photo 8" },
+        { src: "gallery-9.png", alt: "Clinic gallery photo 9" },
+        { src: "gallery-10.png", alt: "Clinic gallery photo 10" },
+        { src: "gallery-11.png", alt: "Clinic gallery photo 11" },
+        { src: "gallery-12.png", alt: "Clinic gallery photo 12" }
+    ];
+
+    const articleData = {
+        therapy: [
+            { title: "When to book a consultation", image: "article-1.jfif" },
+            { title: "What to do when symptoms appear", featured: true, text: "Early consultation helps your pet recover faster." },
+            { title: "Preparing for a clinic visit", image: "article-2.jfif" }
+        ],
+        care: [
+            { title: "How to welcome a puppy home", image: "article-3.jfif" },
+            { title: "Daily care checklist", featured: true, text: "Small routines help pets stay comfortable and healthy." },
+            { title: "Grooming signs to watch", image: "article-4.jfif" }
+        ],
+        nutrition: [
+            { title: "Choosing everyday pet food", image: "article-5.jfif" },
+            { title: "Feeding reminders", featured: true, text: "Consistent meals and clean water support long-term wellness." },
+            { title: "When appetite changes", image: "article-6.jfif" }
+        ],
+        vaccination: [
+            { title: "Vaccination visit preparation", image: "article-7.jfif" },
+            { title: "Deworming reminders", featured: true, text: "Preventive care helps protect pets from common risks." },
+            { title: "Keeping pet records updated", image: "article-8.jfif" }
+        ],
+        behavior: [
+            { title: "Helping anxious pets settle", image: "article-9.jfif" },
+            { title: "Boarding comfort tips", featured: true, text: "Familiar routines can make temporary stays easier." },
+            { title: "Signs your pet needs attention", image: "article-10.jfif" }
+        ]
+    };
+
+    function setActiveButton(buttons, activeButton) {
+        buttons.forEach(function (button) {
+            button.classList.toggle("active", button === activeButton);
+        });
+    }
+
+    function setupServiceCarousel() {
+        const track = document.getElementById("serviceCarouselTrack");
+        const dots = document.getElementById("serviceCarouselDots");
+        const previousButton = document.querySelector("[data-service-prev]");
+        const nextButton = document.querySelector("[data-service-next]");
+
+        if (!track || !dots || !previousButton || !nextButton) return;
+
+        const cards = Array.from(track.querySelectorAll(".medivet-photo-card"));
+        let currentIndex = 0;
+
+        function renderDots() {
+            dots.innerHTML = "";
+            cards.forEach(function (_, index) {
+                const dot = document.createElement("button");
+                dot.type = "button";
+                dot.className = index === currentIndex ? "active" : "";
+                dot.setAttribute("aria-label", "Show service " + (index + 1));
+                dot.addEventListener("click", function () {
+                    currentIndex = index;
+                    updateCarousel();
+                });
+                dots.appendChild(dot);
+            });
+        }
+
+        function updateCarousel() {
+            track.style.transform = "";
+
+            cards.forEach(function (_, offset) {
+                track.appendChild(cards[(currentIndex + offset) % cards.length]);
+            });
+
+            cards.forEach(function (card, index) {
+                card.classList.toggle("medivet-card-active", index === currentIndex);
+            });
+
+            Array.from(dots.children).forEach(function (dot, index) {
+                dot.classList.toggle("active", index === currentIndex);
+            });
+        }
+
+        previousButton.addEventListener("click", function () {
+            currentIndex = currentIndex <= 0 ? cards.length - 1 : currentIndex - 1;
+            updateCarousel();
+        });
+
+        nextButton.addEventListener("click", function () {
+            currentIndex = (currentIndex + 1) % cards.length;
+            updateCarousel();
+        });
+
+        window.addEventListener("resize", function () {
+            renderDots();
+            updateCarousel();
+        });
+
+        renderDots();
+        updateCarousel();
+    }
+
+    function setupPriceTabs() {
+        const buttons = Array.from(document.querySelectorAll("[data-price-tab]"));
+        const jumpLinks = Array.from(document.querySelectorAll("[data-price-jump]"));
+        const pricesSection = document.getElementById("prices");
+        const photo = document.getElementById("pricePhoto");
+        const body = document.getElementById("priceTableBody");
+
+        if (!buttons.length || !photo || !body) return;
+
+        function render(key, activeButton) {
+            const data = priceData[key];
+            if (!data) return;
+
+            setActiveButton(buttons, activeButton);
+            photo.src = imageBase + data.photo;
+            body.innerHTML = data.rows.map(function (row) {
+                return "<tr><td>" + row[0] + "</td><td>" + row[1] + "</td><td>" + row[2] + "</td></tr>";
+            }).join("");
+        }
+
+        function activatePrice(key) {
+            const button = buttons.find(function (item) {
+                return item.dataset.priceTab === key;
+            });
+
+            if (!button) return;
+
+            render(key, button);
+            button.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        }
+
+        buttons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                render(button.dataset.priceTab, button);
+            });
+        });
+
+        jumpLinks.forEach(function (link) {
+            link.addEventListener("click", function (event) {
+                event.preventDefault();
+                activatePrice(link.dataset.priceJump);
+                pricesSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        });
+    }
+
+    function setupSpecialists() {
+        const tabButtons = Array.from(document.querySelectorAll("[data-specialist-tab]"));
+        const listButtons = Array.from(document.querySelectorAll("[data-specialist-button]"));
+        const photo = document.getElementById("specialistPhoto");
+        const name = document.getElementById("specialistName");
+        const description = document.getElementById("specialistDescription");
+        const skills = document.getElementById("specialistSkills");
+
+        if (!tabButtons.length || !listButtons.length || !photo || !name || !description || !skills) return;
+
+        function render(index) {
+            const data = specialistData[index];
+            if (!data) return;
+
+            setActiveButton(tabButtons, tabButtons[index]);
+            setActiveButton(listButtons, listButtons[index]);
+            photo.src = imageBase + data.photo;
+            name.textContent = data.name;
+            description.textContent = data.description;
+            skills.innerHTML = data.skills.map(function (skill) {
+                return "<li>" + skill + "</li>";
+            }).join("");
+        }
+
+        tabButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                render(Number(button.dataset.specialistTab));
+            });
+        });
+
+        listButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                render(Number(button.dataset.specialistButton));
+            });
+        });
+    }
+
+    function setupGallery() {
+        const images = Array.from(document.querySelectorAll("[data-gallery-image]"));
+        const dots = document.getElementById("galleryDots");
+        const previousButton = document.querySelector("[data-gallery-prev]");
+        const nextButton = document.querySelector("[data-gallery-next]");
+
+        if (!images.length || !dots || !previousButton || !nextButton) return;
+
+        let currentIndex = 0;
+
+        function renderDots() {
+            dots.innerHTML = "";
+            galleryData.forEach(function (_, index) {
+                const dot = document.createElement("button");
+                dot.type = "button";
+                dot.className = index === currentIndex ? "active" : "";
+                dot.setAttribute("aria-label", "Show gallery image " + (index + 1));
+                dot.addEventListener("click", function () {
+                    currentIndex = index;
+                    render();
+                });
+                dots.appendChild(dot);
+            });
+        }
+
+        function render() {
+            images.forEach(function (image, offset) {
+                const data = galleryData[(currentIndex + offset) % galleryData.length];
+                image.src = imageBase + data.src;
+                image.alt = data.alt;
+            });
+
+            Array.from(dots.children).forEach(function (dot, index) {
+                dot.classList.toggle("active", index === currentIndex);
+            });
+        }
+
+        previousButton.addEventListener("click", function () {
+            currentIndex = currentIndex === 0 ? galleryData.length - 1 : currentIndex - 1;
+            render();
+        });
+
+        nextButton.addEventListener("click", function () {
+            currentIndex = (currentIndex + 1) % galleryData.length;
+            render();
+        });
+
+        renderDots();
+        render();
+    }
+
+    function setupArticles() {
+        const buttons = Array.from(document.querySelectorAll("[data-article-tab]"));
+        const grid = document.getElementById("articleGrid");
+
+        if (!buttons.length || !grid) return;
+
+        function render(key, activeButton) {
+            const data = articleData[key];
+            if (!data) return;
+
+            setActiveButton(buttons, activeButton);
+            grid.innerHTML = data.map(function (article) {
+                if (article.featured) {
+                    return "<article class=\"featured\"><h3>" + article.title + "</h3><p>" + article.text + "</p><a href=\"#contact\">Read Article</a></article>";
+                }
+
+                return "<article><img src=\"" + imageBase + article.image + "\" alt=\"" + article.title + "\" /><h3>" + article.title + "</h3></article>";
+            }).join("");
+        }
+
+        buttons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                render(button.dataset.articleTab, button);
+            });
+        });
+    }
+
+    function setupTabArrows() {
+        const rows = Array.from(document.querySelectorAll(".medivet-tab-row"));
+
+        rows.forEach(function (row) {
+            const tabs = Array.from(row.querySelectorAll(".medivet-tabs button"));
+            const previousButton = row.querySelector("[data-tab-prev]");
+            const nextButton = row.querySelector("[data-tab-next]");
+
+            if (!tabs.length || !previousButton || !nextButton) return;
+
+            function move(direction) {
+                const activeIndex = Math.max(0, tabs.findIndex(function (tab) {
+                    return tab.classList.contains("active");
+                }));
+                const nextIndex = (activeIndex + direction + tabs.length) % tabs.length;
+
+                tabs[nextIndex].click();
+                tabs[nextIndex].scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+            }
+
+            previousButton.addEventListener("click", function () {
+                move(-1);
+            });
+
+            nextButton.addEventListener("click", function () {
+                move(1);
+            });
+        });
+    }
+
+    setupServiceCarousel();
+    setupPriceTabs();
+    setupSpecialists();
+    setupGallery();
+    setupArticles();
+    setupTabArrows();
 });
 </script>
 }

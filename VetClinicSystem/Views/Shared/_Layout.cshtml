@@ -1,6 +1,9 @@
 ﻿@{
     var username = Context.Session.GetString("Username");
     var roleId = Context.Session.GetInt32("RoleId");
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var isClientDashboard = currentController == "Dashboard" && currentAction == "Client";
 }
 
 <!DOCTYPE html>
@@ -18,8 +21,13 @@
 </head>
 
 <body>
+    <div class="medivet-side-circles" aria-hidden="true">
+        <span class="medivet-side-circle medivet-side-circle-blue"></span>
+        <span class="medivet-side-circle medivet-side-circle-yellow"></span>
+    </div>
+
     <header class="main-header">
-        <div class="top-clinic-bar d-flex justify-content-between align-items-center">
+        <div class="top-clinic-bar">
             <div class="top-logo">
                 <span class="brand-icon"></span>
                 <div>
@@ -28,7 +36,14 @@
                 </div>
             </div>
 
-            
+            @if (roleId == null)
+            {
+                <div class="top-info">
+                    <span><i class="fa-solid fa-location-dot"></i> Angeles City, Pampanga</span>
+                    <span><i class="fa-solid fa-clock"></i> Mon 9AM-5PM, Wed-Sun 9AM-7PM</span>
+                    <span><i class="fa-solid fa-phone"></i> 0969-644-0381</span>
+                </div>
+            }
 
             <div class="top-socials">
                 <a href="https://www.facebook.com/share/1KmWxCrZmF/" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
@@ -58,6 +73,7 @@
                     <a asp-controller="MedicalRecords" asp-action="Index">Medical Records</a>
                     <a asp-controller="Vaccinations" asp-action="Index">Vaccinations</a>
                     <a asp-controller="Services" asp-action="Index">Services</a>
+                    <a asp-controller="Clinic" asp-action="Index">Clinic</a>
                     <a asp-controller="Notifications" asp-action="Index">Notifications</a>
                     <a asp-controller="Account" asp-action="Logout">Logout</a>
             }
@@ -75,6 +91,9 @@
             {
                     <a asp-controller="Home" asp-action="Index">Home</a>
                     <a href="/#services">Services</a>
+                    <a href="/#prices">Prices</a>
+                    <a href="/#specialists">Specialists</a>
+                    <a href="/#articles">Articles</a>
                     <a href="/#gallery">Gallery</a>
                     <a href="/#contact">Contact</a>
                     <a asp-controller="Account" asp-action="Login">Login</a>
@@ -92,7 +111,7 @@
     }
     else
     {
-        <div class="app-container">
+        <div class="app-container @(isClientDashboard ? "app-container--client-dashboard" : "app-container--standard")">
             @RenderBody()
         </div>
     }
@@ -106,6 +125,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

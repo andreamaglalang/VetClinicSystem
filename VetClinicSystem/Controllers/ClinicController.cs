@@ -28,15 +28,22 @@ namespace VetClinicSystem.Controllers
             if (HttpContext.Session.GetInt32("UserId") == null)
                 return RedirectToAction("Login", "Account");
 
+            if (HttpContext.Session.GetInt32("RoleId") != 1)
+                return RedirectToAction("Index");
+
             var clinic = _clinicService.GetClinicInfo() ?? new ClinicInfo();
             return View(clinic);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(ClinicInfo clinicInfo)
         {
             if (HttpContext.Session.GetInt32("UserId") == null)
                 return RedirectToAction("Login", "Account");
+
+            if (HttpContext.Session.GetInt32("RoleId") != 1)
+                return RedirectToAction("Index");
 
             if (!ModelState.IsValid)
                 return View(clinicInfo);

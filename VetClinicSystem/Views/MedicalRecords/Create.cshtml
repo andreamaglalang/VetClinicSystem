@@ -3,6 +3,8 @@
 <h2>Add Medical Record</h2>
 
 <form method="post">
+    @Html.AntiForgeryToken()
+
     <div class="mb-3">
         <label asp-for="PetId"></label>
         <select asp-for="PetId" asp-items="ViewBag.Pets" class="form-control"></select>

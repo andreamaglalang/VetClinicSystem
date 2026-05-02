@@ -31,6 +31,7 @@ namespace VetClinicSystem.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(Service service)
         {
             if (HttpContext.Session.GetInt32("UserId") == null)
@@ -56,6 +57,7 @@ namespace VetClinicSystem.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(Service service)
         {
             if (HttpContext.Session.GetInt32("UserId") == null)
@@ -93,6 +95,7 @@ namespace VetClinicSystem.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
             if (HttpContext.Session.GetInt32("UserId") == null)

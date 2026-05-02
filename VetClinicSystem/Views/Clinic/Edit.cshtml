@@ -3,43 +3,56 @@
 <h2>Edit Clinic Information</h2>
 
 <form method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
     <input type="hidden" asp-for="Id" />
 
     <div class="mb-3">
         <label asp-for="ClinicName"></label>
         <input asp-for="ClinicName" class="form-control" />
+        <span asp-validation-for="ClinicName" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Address"></label>
         <input asp-for="Address" class="form-control" />
+        <span asp-validation-for="Address" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="ContactNumber"></label>
         <input asp-for="ContactNumber" class="form-control" />
+        <span asp-validation-for="ContactNumber" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Email"></label>
         <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="OperatingHours"></label>
         <input asp-for="OperatingHours" class="form-control" />
+        <span asp-validation-for="OperatingHours" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="FacebookPage"></label>
         <input asp-for="FacebookPage" class="form-control" />
+        <span asp-validation-for="FacebookPage" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="AboutText"></label>
         <textarea asp-for="AboutText" class="form-control"></textarea>
+        <span asp-validation-for="AboutText" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-success">Save</button>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

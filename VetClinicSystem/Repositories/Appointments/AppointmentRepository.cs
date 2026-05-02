@@ -54,9 +54,9 @@ namespace VetClinicSystem.Repositories.Appointments
                 search = search.Trim();
 
                 query = query.Where(x =>
-                    x.Pet.PetName.Contains(search) ||
-                    x.Service.ServiceName.Contains(search) ||
-                    x.ReasonForVisit.Contains(search));
+                    (x.Pet != null && x.Pet.PetName.Contains(search)) ||
+                    (x.Service != null && x.Service.ServiceName.Contains(search)) ||
+                    (x.ReasonForVisit != null && x.ReasonForVisit.Contains(search)));
             }
 
             if (statusId.HasValue && statusId.Value > 0)
@@ -85,9 +85,9 @@ namespace VetClinicSystem.Repositories.Appointments
                 search = search.Trim();
 
                 query = query.Where(x =>
-                    x.Pet.PetName.Contains(search) ||
-                    x.Service.ServiceName.Contains(search) ||
-                    x.ReasonForVisit.Contains(search));
+                    (x.Pet != null && x.Pet.PetName.Contains(search)) ||
+                    (x.Service != null && x.Service.ServiceName.Contains(search)) ||
+                    (x.ReasonForVisit != null && x.ReasonForVisit.Contains(search)));
             }
 
             if (statusId.HasValue && statusId.Value > 0)

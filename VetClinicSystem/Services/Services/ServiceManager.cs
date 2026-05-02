@@ -24,13 +24,26 @@ namespace VetClinicSystem.Services.Services
 
         public void Add(Service service)
         {
+            if (service.DateCreated == default)
+                service.DateCreated = DateTime.Now;
+
+            service.IsActive = true;
+
             _serviceRepository.Add(service);
             _serviceRepository.Save();
         }
 
         public void Update(Service service)
         {
-            _serviceRepository.Update(service);
+            var existingService = _serviceRepository.GetById(service.Id);
+            if (existingService == null)
+                throw new Exception("Service not found.");
+
+            existingService.ServiceName = service.ServiceName;
+            existingService.Description = service.Description;
+            existingService.IsWalkInOnly = service.IsWalkInOnly;
+            existingService.RequiresAppointment = service.RequiresAppointment;
+
             _serviceRepository.Save();
         }
 

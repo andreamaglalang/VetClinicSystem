@@ -68,7 +68,20 @@ namespace VetClinicSystem.Services.Pets
 
         public void Update(Pet pet)
         {
-            _petRepository.Update(pet);
+            var existingPet = _petRepository.GetById(pet.Id);
+            if (existingPet == null)
+                throw new Exception("Pet not found.");
+
+            existingPet.PetName = pet.PetName;
+            existingPet.Species = pet.Species;
+            existingPet.Breed = pet.Breed;
+            existingPet.Sex = pet.Sex;
+            existingPet.BirthDate = pet.BirthDate;
+            existingPet.Age = pet.Age;
+            existingPet.Color = pet.Color;
+            existingPet.Weight = pet.Weight;
+            existingPet.Notes = pet.Notes;
+
             _petRepository.Save();
         }
 

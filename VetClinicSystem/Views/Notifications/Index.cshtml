@@ -17,7 +17,7 @@
 }
 else
 {
-        <table class="table table-bordered table-striped">
+        <table class="table table-bordered table-striped table-notifications">
             <thead>
                 <tr>
                     <th>Message</th>
@@ -35,17 +35,19 @@ else
                         <td>
                         @if (item.IsRead)
                         {
-                                    <span class="badge bg-success">Read</span>
+                                    <span class="status-pill status-pill--success">Read</span>
                         }
                         else
                         {
-                                    <span class="badge bg-warning text-dark">Unread</span>
+                                    <span class="status-pill status-pill--warning">Unread</span>
                         }
                         </td>
                         <td>
                         @if (!item.IsRead)
                         {
-                                    <a asp-action="MarkAsRead" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Mark as Read</a>
+                                    <a asp-action="MarkAsRead" asp-route-id="@item.Id" class="table-action-icon table-action-icon--approve" title="Mark as read" aria-label="Mark notification as read">
+                                        <i class="fa-solid fa-check"></i>
+                                    </a>
                         }
                         </td>
                     </tr>

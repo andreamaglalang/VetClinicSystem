@@ -125,8 +125,23 @@ namespace VetClinicSystem.Services.Appointments
         {
             try
             {
-                appointment.LastUpdated = DateTime.Now;
-                _appointmentRepository.Update(appointment);
+                var existingAppointment = _appointmentRepository.GetById(appointment.Id);
+                if (existingAppointment == null)
+                    throw new Exception("Appointment not found.");
+
+                existingAppointment.PetId = appointment.PetId;
+                existingAppointment.ServiceId = appointment.ServiceId;
+                existingAppointment.AppointmentDate = appointment.AppointmentDate;
+                existingAppointment.AppointmentTime = appointment.AppointmentTime;
+                existingAppointment.ReasonForVisit = appointment.ReasonForVisit;
+                existingAppointment.ClientNotes = appointment.ClientNotes;
+                existingAppointment.StaffNotes = appointment.StaffNotes;
+                existingAppointment.IsWalkIn = appointment.IsWalkIn;
+
+                if (appointment.StatusId > 0)
+                    existingAppointment.StatusId = appointment.StatusId;
+
+                existingAppointment.LastUpdated = DateTime.Now;
                 _appointmentRepository.Save();
             }
             catch (DbUpdateException ex)

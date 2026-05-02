@@ -68,5 +68,15 @@ namespace VetClinicSystem.Services.Users
         {
             return _userRepository.GetAll();
         }
+
+        public User? GetById(int id)
+        {
+            return _userRepository.GetById(id);
+        }
+
+        public PetOwner? GetPetOwnerByUserId(int userId)
+        {
+            return _userRepository.GetPetOwnerByUserId(userId);
+        }
     }
 }
