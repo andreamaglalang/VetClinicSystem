@@ -97,20 +97,19 @@ function setupTablePagination() {
 
             buttons.innerHTML = "";
 
-            const previous = makeButton("Previous", Math.max(1, currentPage - 1), { label: "Previous page" });
+            const previous = makeButton("\u2039", Math.max(1, currentPage - 1), { label: "Previous page" });
+            previous.classList.add("table-pagination__arrow");
             previous.disabled = currentPage === 1;
             buttons.appendChild(previous);
 
-            for (let page = 1; page <= pageCount; page += 1) {
-                const pageButton = makeButton(String(page), page, { label: "Page " + page });
-                if (page === currentPage) {
-                    pageButton.classList.add("is-active");
-                    pageButton.setAttribute("aria-current", "page");
-                }
-                buttons.appendChild(pageButton);
-            }
+            const pageStatus = document.createElement("span");
+            pageStatus.className = "table-pagination__page-status";
+            pageStatus.textContent = currentPage + " OF " + pageCount;
+            pageStatus.setAttribute("aria-current", "page");
+            buttons.appendChild(pageStatus);
 
-            const next = makeButton("Next", Math.min(pageCount, currentPage + 1), { label: "Next page" });
+            const next = makeButton("\u203A", Math.min(pageCount, currentPage + 1), { label: "Next page" });
+            next.classList.add("table-pagination__arrow");
             next.disabled = currentPage === pageCount;
             buttons.appendChild(next);
 

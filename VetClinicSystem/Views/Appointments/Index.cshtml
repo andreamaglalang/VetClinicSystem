@@ -49,6 +49,7 @@
             <th>Date</th>
             <th>Time</th>
             <th>Reason</th>
+            <th>Booking Type</th>
             <th>Status</th>
             <th>Actions</th>
         </tr>
@@ -71,6 +72,7 @@
                 <td>@item.AppointmentDate</td>
                 <td>@item.AppointmentTime</td>
                 <td>@item.ReasonForVisit</td>
+                <td>@(item.IsGuestBooking ? "Guest" : "Client")</td>
                 <td><span class="status-pill @statusClass">@statusName</span></td>
                 <td>
                     <div class="table-actions">

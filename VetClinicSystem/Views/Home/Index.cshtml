@@ -8,7 +8,7 @@
             <h1>Professional and compassionate care for your pets</h1>
             <p>Particular. Professional. Passionate about pets.</p>
             <div class="medivet-actions">
-                <a asp-controller="Account" asp-action="Register" class="btn btn-vet-primary">Book a Visit</a>
+                <a asp-controller="Appointments" asp-action="GuestCreate" class="btn btn-vet-primary">Book Surgery</a>
                 <a href="#services" class="btn btn-vet-outline btn-vet-secondary-accent">Our Services</a>
             </div>
         </div>
@@ -30,49 +30,49 @@
                     <article class="medivet-photo-card medivet-card-active">
                         <img src="~/images/site/services-1.jfif" asp-append-version="true" alt="Pet consultation service" />
                         <h3>Consultation</h3>
-                        <p>General health checks, diagnosis guidance, and care recommendations.</p>
+                        <p>General health checks, diagnosis guidance, and care recommendations. Walk-in only.</p>
                         <a href="#prices" data-price-jump="consultation">Details</a>
                     </article>
                     <article class="medivet-photo-card">
                         <img src="~/images/site/services-2.jfif" asp-append-version="true" alt="Pet supplies service" />
                         <h3>Pet Supplies</h3>
-                        <p>Clinic-recommended supplies for everyday pet care and wellness.</p>
+                        <p>Clinic-recommended supplies for everyday pet care and wellness. Walk-in only.</p>
                         <a href="#prices" data-price-jump="supplies">Details</a>
                     </article>
                     <article class="medivet-photo-card">
                         <img src="~/images/site/services-3.jfif" asp-append-version="true" alt="Pet boarding service" />
                         <h3>Pet Boarding</h3>
-                        <p>Temporary pet care support in a clean and monitored environment.</p>
+                        <p>Temporary pet care support in a clean and monitored environment. Walk-in only.</p>
                         <a href="#prices" data-price-jump="boarding">Details</a>
                     </article>
                     <article class="medivet-photo-card">
                         <img src="~/images/site/services-4.jfif" asp-append-version="true" alt="Pet grooming service" />
                         <h3>Pet Grooming</h3>
-                        <p>Bathing, coat care, grooming, and comfort-focused pet handling.</p>
+                        <p>Bathing, coat care, grooming, and comfort-focused pet handling. Walk-in only.</p>
                         <a href="#prices" data-price-jump="grooming">Details</a>
                     </article>
                     <article class="medivet-photo-card">
                         <img src="~/images/site/services-5.jfif" asp-append-version="true" alt="Basic domestic test service" />
                         <h3>Basic Domestic Test</h3>
-                        <p>Basic screening support for common domestic pet health concerns.</p>
+                        <p>Basic screening support for common domestic pet health concerns. Walk-in only.</p>
                         <a href="#prices" data-price-jump="tests">Details</a>
                     </article>
                     <article class="medivet-photo-card">
                         <img src="~/images/site/services-6.jfif" asp-append-version="true" alt="Vaccination and deworming service" />
                         <h3>Vaccination and Deworming</h3>
-                        <p>Preventive care to help protect pets from parasites and disease.</p>
+                        <p>Preventive care to help protect pets from parasites and disease. Walk-in only.</p>
                         <a href="#prices" data-price-jump="vaccination">Details</a>
                     </article>
                     <article class="medivet-photo-card">
                         <img src="~/images/site/services-7.jfif" asp-append-version="true" alt="Confinement service" />
                         <h3>Confinement</h3>
-                        <p>Clinic observation and care for pets needing close monitoring.</p>
+                        <p>Clinic observation and care for pets needing close monitoring. Walk-in only.</p>
                         <a href="#prices" data-price-jump="confinement">Details</a>
                     </article>
                     <article class="medivet-photo-card">
                         <img src="~/images/site/services-8.jfif" asp-append-version="true" alt="Surgery service" />
                         <h3>Surgery</h3>
-                        <p>Scheduled surgical care with pre-operative reminders and guidance.</p>
+                        <p>Pre-op blood test screening is walk-in only. If fit, surgery should be scheduled within 1 week.</p>
                         <a href="#prices" data-price-jump="surgery">Details</a>
                     </article>
                 </div>
@@ -120,8 +120,11 @@
                         <tr><td>Health certificate</td><td>Clinic documentation</td><td>Contact clinic</td></tr>
                     </tbody>
                 </table>
+                <p class="medivet-price-disclaimer">
+                    Prices are subject to change without prior notice. We reserve the right to modify service and product rates at any time. For updated pricing, please contact us directly.
+                </p>
                 <div class="medivet-actions">
-                    <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Book a Visit</a>
+                    <a asp-controller="Appointments" asp-action="GuestCreate" class="btn btn-vet-primary">Book Surgery</a>
                     <a href="#contact" class="btn btn-vet-outline btn-vet-secondary-accent">Full Price List</a>
                 </div>
             </div>
@@ -175,7 +178,7 @@
                     <li>Preventive care</li>
                     <li>Small pet consultation</li>
                 </ul>
-                <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Book a Visit</a>
+                <a asp-controller="Appointments" asp-action="GuestCreate" class="btn btn-vet-primary">Book Surgery</a>
             </div>
         </div>
     </div>
@@ -187,7 +190,7 @@
         <div class="medivet-benefits">
             <article><i class="fa-solid fa-stethoscope"></i><h3>Professionalism</h3><p>Experienced doctors and attentive clinic staff.</p></article>
             <article><i class="fa-solid fa-heart-pulse"></i><h3>Personal Care</h3><p>Individual approach for every pet and owner.</p></article>
-            <article><i class="fa-solid fa-house-medical"></i><h3>All in One Place</h3><p>Consultation, records, services, and appointments.</p></article>
+            <article><i class="fa-solid fa-house-medical"></i><h3>All in One Place</h3><p>Walk-in services, surgery appointments, and pet records.</p></article>
             <article><i class="fa-solid fa-microscope"></i><h3>Clinical Excellence</h3><p>Reliable diagnostics and practical treatment planning.</p></article>
         </div>
     </div>
@@ -298,7 +301,7 @@
                         <option>Surgery</option>
                     </select>
                     <textarea class="form-control" rows="5" placeholder="Comment"></textarea>
-                    <a asp-controller="Appointments" asp-action="Create" class="btn btn-vet-primary">Book a Visit</a>
+                    <a asp-controller="Appointments" asp-action="GuestCreate" class="btn btn-vet-primary">Book Surgery</a>
                 </form>
             </div>
             <img src="~/images/site/request-cat.png" asp-append-version="true" alt="Cat raising one paw" />
@@ -372,9 +375,9 @@ document.addEventListener("DOMContentLoaded", function () {
         surgery: {
             photo: "prices-1.jfif",
             rows: [
-                ["Surgery consultation", "Pre-procedure assessment", "Contact clinic"],
-                ["Elective surgery", "Scheduled procedure", "Contact clinic"],
-                ["Post-surgery guidance", "Recovery reminders", "Contact clinic"]
+                ["Pre-op blood test screening", "Walk-in only before scheduling", "Contact clinic"],
+                ["Surgery scheduling", "Schedule within 1 week if pet is fit for surgery", "Contact clinic"],
+                ["Surgery preparation", "Bathe at least 1 day before; 8-12 hrs fasting food; 5 hrs fasting water", "Contact clinic"]
             ]
         }
     };
@@ -388,9 +391,9 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         {
             name: "Surgery Team",
-            description: "Handles scheduled surgery cases with preparation guidance and recovery reminders.",
+            description: "Handles surgery cases after walk-in pre-op blood test screening. If the pet is fit for surgery, the procedure should be scheduled within 1 week.",
             photo: "vet-ultrasound-dog.jpg",
-            skills: ["Surgery assessment", "Pre-operative preparation", "Procedure support", "Post-visit guidance"]
+            skills: ["Walk-in pre-op blood test", "Bath at least 1 day before surgery", "8-12 hrs fasting food", "5 hrs fasting water"]
         },
         {
             name: "Grooming Staff",

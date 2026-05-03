@@ -124,6 +124,27 @@ namespace VetClinicSystem.Repositories.Appointments
 
         public void Delete(Appointment appointment)
         {
+            var notifications = _context.StaffNotifications
+                .Where(x => x.AppointmentId == appointment.Id)
+                .ToList();
+
+            if (notifications.Any())
+                _context.StaffNotifications.RemoveRange(notifications);
+
+            var reminderLogs = _context.ReminderLogs
+                .Where(x => x.AppointmentId == appointment.Id)
+                .ToList();
+
+            if (reminderLogs.Any())
+                _context.ReminderLogs.RemoveRange(reminderLogs);
+
+            var medicalRecords = _context.MedicalRecords
+                .Where(x => x.AppointmentId == appointment.Id)
+                .ToList();
+
+            foreach (var medicalRecord in medicalRecords)
+                medicalRecord.AppointmentId = null;
+
             _context.Appointments.Remove(appointment);
         }
 

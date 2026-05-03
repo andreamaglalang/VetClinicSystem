@@ -101,7 +101,18 @@ namespace VetClinicSystem.Controllers
             if (HttpContext.Session.GetInt32("UserId") == null)
                 return RedirectToAction("Login", "Account");
 
-            _serviceManager.Delete(id);
+            try
+            {
+                _serviceManager.Delete(id);
+                TempData["Success"] = "Service deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message.Contains("REFERENCE constraint", StringComparison.OrdinalIgnoreCase)
+                    ? "This service is already used by existing appointments, so it cannot be deleted."
+                    : ex.Message;
+            }
+
             return RedirectToAction("Index");
         }
     }

@@ -8,6 +8,7 @@
     <tr><th>Date</th><td>@Model.AppointmentDate</td></tr>
     <tr><th>Time</th><td>@Model.AppointmentTime</td></tr>
     <tr><th>Reason</th><td>@Model.ReasonForVisit</td></tr>
+    <tr><th>Booking Type</th><td>@(Model.IsGuestBooking ? "Guest" : "Client")</td></tr>
     <tr><th>Client Notes</th><td>@Model.ClientNotes</td></tr>
 </table>
 

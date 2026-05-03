@@ -7,6 +7,7 @@ namespace VetClinicSystem.Controllers
     public class PetsController : Controller
     {
         private readonly IPetService _petService;
+        private static readonly string[] SexOptions = ["Male", "Female"];
 
         public PetsController(IPetService petService)
         {
@@ -35,6 +36,7 @@ namespace VetClinicSystem.Controllers
             if (HttpContext.Session.GetInt32("UserId") == null)
                 return RedirectToAction("Login", "Account");
 
+            LoadSexOptions();
             return View();
         }
 
@@ -53,6 +55,7 @@ namespace VetClinicSystem.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Please complete all required pet fields.";
+                LoadSexOptions();
                 return View(pet);
             }
 
@@ -65,6 +68,7 @@ namespace VetClinicSystem.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
+                LoadSexOptions();
                 return View(pet);
             }
         }
@@ -202,6 +206,11 @@ namespace VetClinicSystem.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        private void LoadSexOptions()
+        {
+            ViewBag.SexOptions = SexOptions;
         }
     }
 }

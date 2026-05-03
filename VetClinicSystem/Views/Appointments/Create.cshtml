@@ -2,6 +2,19 @@
 
 <h2>Create Appointment</h2>
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="alert alert-info">
+    Surgery is the only service available for appointment booking. All other services are walk-in only. The clinic is closed on Tuesdays and selected major holidays.
+</div>
+
+<div class="alert alert-warning">
+    Pre-op blood test screening is walk-in only. If your pet is fit for surgery, schedule the procedure within 1 week. Before surgery, bathe your pet at least a day before, withhold food for 8-12 hours, and withhold water for 5 hours.
+</div>
+
 <form method="post">
     @Html.AntiForgeryToken()
 
@@ -11,13 +24,14 @@
     </div>
 
     <div class="mb-3">
-        <label asp-for="ServiceId"></label>
+        <label asp-for="ServiceId">Appointment Service</label>
         <select asp-for="ServiceId" asp-items="ViewBag.Services" class="form-control"></select>
     </div>
 
     <div class="mb-3">
         <label asp-for="AppointmentDate"></label>
-        <input asp-for="AppointmentDate" type="date" class="form-control" />
+        <input asp-for="AppointmentDate" type="date" class="form-control" data-appointment-date />
+        <span class="text-danger" data-unavailable-date-message></span>
     </div>
 
     <div class="mb-3">
@@ -38,3 +52,102 @@
     <button type="submit" class="btn btn-success">Save</button>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dateInput = document.querySelector("[data-appointment-date]");
+            const message = document.querySelector("[data-unavailable-date-message]");
+            const form = dateInput?.closest("form");
+
+            if (!dateInput || !message || !form) return;
+
+            function getEasterSunday(year) {
+                const a = year % 19;
+                const b = Math.floor(year / 100);
+                const c = year % 100;
+                const d = Math.floor(b / 4);
+                const e = b % 4;
+                const f = Math.floor((b + 8) / 25);
+                const g = Math.floor((b - f + 1) / 3);
+                const h = (19 * a + b - d - g + 15) % 30;
+                const i = Math.floor(c / 4);
+                const k = c % 4;
+                const l = (32 + 2 * e + 2 * i - h - k) % 7;
+                const m = Math.floor((a + 11 * h + 22 * l) / 451);
+                const month = Math.floor((h + l - 7 * m + 114) / 31);
+                const day = ((h + l - 7 * m + 114) % 31) + 1;
+
+                return new Date(year, month - 1, day);
+            }
+
+            function toKey(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                return year + "-" + month + "-" + day;
+            }
+
+            function addDays(date, days) {
+                const next = new Date(date);
+                next.setDate(next.getDate() + days);
+                return next;
+            }
+
+            function getUnavailableDateMessage(value) {
+                if (!value) return "";
+
+                const selectedDate = new Date(value + "T00:00:00");
+                const month = selectedDate.getMonth() + 1;
+                const day = selectedDate.getDate();
+
+                if (selectedDate.getDay() === 2) {
+                    return "The clinic is closed every Tuesday. Please choose another date.";
+                }
+
+                const fixedHolidays = {
+                    "1-1": "New Year's Day",
+                    "11-1": "All Saints' Day",
+                    "12-24": "Christmas Eve",
+                    "12-25": "Christmas Day",
+                    "12-31": "New Year's Eve"
+                };
+
+                const fixedHoliday = fixedHolidays[month + "-" + day];
+                if (fixedHoliday) {
+                    return "The clinic is unavailable on " + fixedHoliday + ". Please choose another date.";
+                }
+
+                const easterSunday = getEasterSunday(selectedDate.getFullYear());
+                const holyWeekDates = {};
+                holyWeekDates[toKey(addDays(easterSunday, -3))] = "Maundy Thursday";
+                holyWeekDates[toKey(addDays(easterSunday, -2))] = "Good Friday";
+                holyWeekDates[toKey(addDays(easterSunday, -1))] = "Black Saturday";
+
+                const holyWeekName = holyWeekDates[value];
+                if (holyWeekName) {
+                    return "The clinic is unavailable on " + holyWeekName + ". Please choose another date.";
+                }
+
+                return "";
+            }
+
+            function validateDate() {
+                const error = getUnavailableDateMessage(dateInput.value);
+                message.textContent = error;
+                dateInput.setCustomValidity(error);
+                return error === "";
+            }
+
+            dateInput.addEventListener("change", validateDate);
+            form.addEventListener("submit", function (event) {
+                if (!validateDate()) {
+                    event.preventDefault();
+                    dateInput.reportValidity();
+                }
+            });
+
+            validateDate();
+        });
+    </script>
+}

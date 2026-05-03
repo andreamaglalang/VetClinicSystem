@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using VetClinicSystem.Helpers;
 using VetClinicSystem.Models;
 using VetClinicSystem.Services.Appointments;
 using VetClinicSystem.Services.Pets;
@@ -12,15 +13,18 @@ namespace VetClinicSystem.Controllers
         private readonly IAppointmentService _appointmentService;
         private readonly IPetService _petService;
         private readonly IServiceManager _serviceManager;
+        private readonly VetClinicDbContext _context;
 
         public AppointmentsController(
             IAppointmentService appointmentService,
             IPetService petService,
-            IServiceManager serviceManager)
+            IServiceManager serviceManager,
+            VetClinicDbContext context)
         {
             _appointmentService = appointmentService;
             _petService = petService;
             _serviceManager = serviceManager;
+            _context = context;
         }
 
         public IActionResult Index(string? search, int? statusId, DateOnly? appointmentDate)
@@ -76,9 +80,70 @@ namespace VetClinicSystem.Controllers
                 ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
             }
 
-            ViewBag.Services = new SelectList(_serviceManager.GetAll(), "Id", "ServiceName");
+            ViewBag.Services = new SelectList(GetAppointmentServices(), "Id", "ServiceName");
 
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult GuestCreate()
+        {
+            if (HttpContext.Session.GetInt32("UserId") != null)
+                return RedirectToAction("Create");
+
+            LoadGuestDropdowns();
+            return View(new GuestAppointmentBooking());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult GuestCreate(GuestAppointmentBooking booking)
+        {
+            if (HttpContext.Session.GetInt32("UserId") != null)
+                return RedirectToAction("Create");
+
+            if (!ModelState.IsValid)
+            {
+                LoadGuestDropdowns(booking.ServiceId);
+                TempData["Error"] = "Please complete all required guest booking fields.";
+                return View(booking);
+            }
+
+            if (!booking.AppointmentDate.HasValue || !booking.AppointmentTime.HasValue)
+            {
+                LoadGuestDropdowns(booking.ServiceId);
+                TempData["Error"] = "Please choose an appointment date and time.";
+                return View(booking);
+            }
+
+            if (!IsAppointmentService(booking.ServiceId))
+            {
+                LoadGuestDropdowns(booking.ServiceId);
+                TempData["Error"] = "Only surgery can be booked by appointment. Other services are walk-in only.";
+                return View(booking);
+            }
+
+            var appointmentDate = booking.AppointmentDate.Value;
+            var unavailableDateReason = GetUnavailableDateReason(appointmentDate);
+            if (unavailableDateReason != null)
+            {
+                LoadGuestDropdowns(booking.ServiceId);
+                TempData["Error"] = unavailableDateReason;
+                return View(booking);
+            }
+
+            try
+            {
+                CreateGuestBooking(booking);
+                TempData["Success"] = "Guest surgery booking submitted successfully. The clinic will contact you for confirmation.";
+                return RedirectToAction("GuestCreate");
+            }
+            catch (Exception ex)
+            {
+                LoadGuestDropdowns(booking.ServiceId);
+                TempData["Error"] = ex.Message;
+                return View(booking);
+            }
         }
 
         [HttpPost]
@@ -113,10 +178,26 @@ namespace VetClinicSystem.Controllers
                     return Unauthorized();
             }
 
+            if (!IsAppointmentService(appointment.ServiceId))
+            {
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                TempData["Error"] = "Only surgery can be booked by appointment. Other services are walk-in only.";
+                return View(appointment);
+            }
+
+            var unavailableDateReason = GetUnavailableDateReason(appointment.AppointmentDate);
+            if (unavailableDateReason != null)
+            {
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                TempData["Error"] = unavailableDateReason;
+                return View(appointment);
+            }
+
             try
             {
                 appointment.CreatedByUserId = userId.Value;
                 appointment.LastUpdated = DateTime.Now;
+                appointment.IsWalkIn = false;
 
                 _appointmentService.Add(appointment);
 
@@ -191,9 +272,25 @@ namespace VetClinicSystem.Controllers
                 return View(appointment);
             }
 
+            if (!IsAppointmentService(appointment.ServiceId))
+            {
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                TempData["Error"] = "Only surgery can be booked by appointment. Other services are walk-in only.";
+                return View(appointment);
+            }
+
+            var unavailableDateReason = GetUnavailableDateReason(appointment.AppointmentDate);
+            if (unavailableDateReason != null)
+            {
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                TempData["Error"] = unavailableDateReason;
+                return View(appointment);
+            }
+
             try
             {
                 appointment.LastUpdated = DateTime.Now;
+                appointment.IsWalkIn = false;
                 _appointmentService.Update(appointment);
 
                 TempData["Success"] = "Appointment updated successfully.";
@@ -342,7 +439,198 @@ namespace VetClinicSystem.Controllers
             else
                 ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", selectedPetId);
 
-            ViewBag.Services = new SelectList(_serviceManager.GetAll(), "Id", "ServiceName", selectedServiceId);
+            ViewBag.Services = new SelectList(GetAppointmentServices(), "Id", "ServiceName", selectedServiceId);
+        }
+
+        private void LoadGuestDropdowns(int? selectedServiceId = null)
+        {
+            ViewBag.Services = new SelectList(GetAppointmentServices(), "Id", "ServiceName", selectedServiceId);
+            ViewBag.SexOptions = new SelectList(new[] { "Male", "Female" });
+        }
+
+        private void CreateGuestBooking(GuestAppointmentBooking booking)
+        {
+            if (!booking.AppointmentDate.HasValue || !booking.AppointmentTime.HasValue)
+                throw new Exception("Please choose an appointment date and time.");
+
+            var email = booking.Email.Trim();
+            var existingUser = _context.Users.FirstOrDefault(x => x.Email == email);
+
+            if (existingUser != null && !existingUser.IsGuest)
+                throw new Exception("This email is already registered. Please log in to book surgery with this account.");
+
+            using var transaction = _context.Database.BeginTransaction();
+
+            var clientRole = _context.Roles.FirstOrDefault(x => x.RoleName == "Client");
+            if (clientRole == null)
+                throw new Exception("Client role is missing. Please contact the clinic.");
+
+            var guestUser = existingUser ?? new User
+            {
+                Username = BuildGuestUsername(),
+                Email = email,
+                PasswordHash = PasswordHelper.HashPassword(Guid.NewGuid().ToString("N")),
+                RoleId = clientRole.Id,
+                IsActive = true,
+                IsGuest = true,
+                DateCreated = DateTime.Now
+            };
+
+            if (existingUser == null)
+            {
+                _context.Users.Add(guestUser);
+                _context.SaveChanges();
+            }
+
+            var petOwner = _context.PetOwners.FirstOrDefault(x => x.UserId == guestUser.Id);
+            if (petOwner == null)
+            {
+                petOwner = new PetOwner
+                {
+                    UserId = guestUser.Id,
+                    FirstName = booking.FirstName.Trim(),
+                    LastName = booking.LastName.Trim(),
+                    ContactNumber = booking.ContactNumber.Trim(),
+                    Address = booking.Address,
+                    DateCreated = DateTime.Now
+                };
+
+                _context.PetOwners.Add(petOwner);
+                _context.SaveChanges();
+            }
+            else
+            {
+                petOwner.FirstName = booking.FirstName.Trim();
+                petOwner.LastName = booking.LastName.Trim();
+                petOwner.ContactNumber = booking.ContactNumber.Trim();
+                petOwner.Address = booking.Address;
+                _context.SaveChanges();
+            }
+
+            var pet = new Pet
+            {
+                OwnerId = petOwner.Id,
+                PetName = booking.PetName.Trim(),
+                Species = booking.Species.Trim(),
+                Breed = booking.Breed,
+                Sex = booking.Sex,
+                Age = booking.Age,
+                Notes = booking.PetNotes,
+                DateCreated = DateTime.Now
+            };
+
+            _context.Pets.Add(pet);
+            _context.SaveChanges();
+
+            var appointment = new Appointment
+            {
+                PetId = pet.Id,
+                ServiceId = booking.ServiceId,
+                AppointmentDate = booking.AppointmentDate.Value,
+                AppointmentTime = booking.AppointmentTime.Value,
+                ReasonForVisit = booking.ReasonForVisit,
+                ClientNotes = booking.ClientNotes,
+                CreatedByUserId = guestUser.Id,
+                IsWalkIn = false,
+                IsGuestBooking = true,
+                LastUpdated = DateTime.Now
+            };
+
+            _appointmentService.Add(appointment);
+            transaction.Commit();
+        }
+
+        private string BuildGuestUsername()
+        {
+            string username;
+
+            do
+            {
+                username = $"guest_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}"[..32];
+            }
+            while (_context.Users.Any(x => x.Username == username));
+
+            return username;
+        }
+
+        private List<Service> GetAppointmentServices()
+        {
+            return _serviceManager.GetAll()
+                .Where(IsAppointmentService)
+                .ToList();
+        }
+
+        private bool IsAppointmentService(int serviceId)
+        {
+            var service = _serviceManager.GetById(serviceId);
+            return service != null && IsAppointmentService(service);
+        }
+
+        private bool IsAppointmentService(Service service)
+        {
+            return service.ServiceName.Contains("Surgery", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string? GetUnavailableDateReason(DateOnly appointmentDate)
+        {
+            if (appointmentDate.DayOfWeek == DayOfWeek.Tuesday)
+                return "The clinic is closed every Tuesday. Please choose another appointment date.";
+
+            var holidayName = GetClinicHolidayName(appointmentDate);
+            if (holidayName != null)
+                return $"The clinic is unavailable on {holidayName}. Please choose another appointment date.";
+
+            return null;
+        }
+
+        private string? GetClinicHolidayName(DateOnly date)
+        {
+            if (date.Month == 1 && date.Day == 1)
+                return "New Year's Day";
+
+            if (date.Month == 11 && date.Day == 1)
+                return "All Saints' Day";
+
+            if (date.Month == 12 && date.Day == 24)
+                return "Christmas Eve";
+
+            if (date.Month == 12 && date.Day == 25)
+                return "Christmas Day";
+
+            if (date.Month == 12 && date.Day == 31)
+                return "New Year's Eve";
+
+            var easterSunday = GetEasterSunday(date.Year);
+            if (date == easterSunday.AddDays(-3))
+                return "Maundy Thursday";
+
+            if (date == easterSunday.AddDays(-2))
+                return "Good Friday";
+
+            if (date == easterSunday.AddDays(-1))
+                return "Black Saturday";
+
+            return null;
+        }
+
+        private DateOnly GetEasterSunday(int year)
+        {
+            var a = year % 19;
+            var b = year / 100;
+            var c = year % 100;
+            var d = b / 4;
+            var e = b % 4;
+            var f = (b + 8) / 25;
+            var g = (b - f + 1) / 3;
+            var h = (19 * a + b - d - g + 15) % 30;
+            var i = c / 4;
+            var k = c % 4;
+            var l = (32 + 2 * e + 2 * i - h - k) % 7;
+            var m = (a + 11 * h + 22 * l) / 451;
+            var month = (h + l - 7 * m + 114) / 31;
+            var day = ((h + l - 7 * m + 114) % 31) + 1;
+
+            return new DateOnly(year, month, day);
         }
 
         private bool HasProperty(object obj, string propertyName)

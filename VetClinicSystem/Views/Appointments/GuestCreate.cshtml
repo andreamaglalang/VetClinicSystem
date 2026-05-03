@@ -1,0 +1,250 @@
+@model VetClinicSystem.Models.GuestAppointmentBooking
+
+@{
+    ViewData["Title"] = "Guest Surgery Booking";
+}
+
+<section class="guest-booking-shell">
+    <div class="guest-booking-container">
+        <div class="guest-booking-heading">
+            <span>Surgery appointment</span>
+            <h2>Guest Surgery Booking</h2>
+            <p>Share your contact and pet details so the clinic can confirm the surgery schedule with you.</p>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form method="post" class="guest-booking-card">
+            @Html.AntiForgeryToken()
+
+            <div class="guest-booking-notes">
+                <div>
+                    <strong>Surgery booking only</strong>
+                    <p>Surgery is the only service available for appointment booking. All other services are walk-in only.</p>
+                </div>
+                <div>
+                    <strong>Pre-surgery reminder</strong>
+                    <p>Pre-op blood test screening is walk-in only. If your pet is fit, schedule the procedure within 1 week.</p>
+                </div>
+                <div>
+                    <strong>Preparation notes</strong>
+                    <p>Bathe your pet at least a day before surgery. Withhold food for 8-12 hours and water for 5 hours.</p>
+                </div>
+            </div>
+
+            <div class="guest-form-section">
+                <h3>Owner Information</h3>
+                <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FirstName"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="LastName"></label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ContactNumber"></label>
+                    <input asp-for="ContactNumber" class="form-control" />
+                    <span asp-validation-for="ContactNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Address"></label>
+                    <input asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="guest-form-section">
+                <h3>Pet Information</h3>
+                <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="PetName"></label>
+                    <input asp-for="PetName" class="form-control" />
+                    <span asp-validation-for="PetName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Species"></label>
+                    <input asp-for="Species" class="form-control" />
+                    <span asp-validation-for="Species" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Breed"></label>
+                    <input asp-for="Breed" class="form-control" />
+                    <span asp-validation-for="Breed" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Sex"></label>
+                    <select asp-for="Sex" asp-items="ViewBag.SexOptions" class="form-control">
+                        <option value="">Select sex</option>
+                    </select>
+                    <span asp-validation-for="Sex" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Age"></label>
+                    <input asp-for="Age" class="form-control" />
+                    <span asp-validation-for="Age" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="PetNotes"></label>
+                    <textarea asp-for="PetNotes" class="form-control"></textarea>
+                    <span asp-validation-for="PetNotes" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="guest-form-section">
+                <h3>Surgery Appointment</h3>
+                <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="ServiceId"></label>
+                    <select asp-for="ServiceId" asp-items="ViewBag.Services" class="form-control"></select>
+                    <span asp-validation-for="ServiceId" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="AppointmentDate"></label>
+                    <input asp-for="AppointmentDate" type="date" class="form-control" data-appointment-date />
+                    <span class="text-danger" data-unavailable-date-message></span>
+                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="AppointmentTime"></label>
+                    <input asp-for="AppointmentTime" type="time" class="form-control" />
+                    <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ReasonForVisit"></label>
+                    <input asp-for="ReasonForVisit" class="form-control" />
+                    <span asp-validation-for="ReasonForVisit" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ClientNotes"></label>
+                    <textarea asp-for="ClientNotes" class="form-control"></textarea>
+                    <span asp-validation-for="ClientNotes" class="text-danger"></span>
+                </div>
+                </div>
+            </div>
+
+            <div class="guest-booking-actions">
+                <button type="submit" class="btn btn-success">Submit Guest Booking</button>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dateInput = document.querySelector("[data-appointment-date]");
+            const message = document.querySelector("[data-unavailable-date-message]");
+            const form = dateInput?.closest("form");
+
+            if (!dateInput || !message || !form) return;
+
+            function getEasterSunday(year) {
+                const a = year % 19;
+                const b = Math.floor(year / 100);
+                const c = year % 100;
+                const d = Math.floor(b / 4);
+                const e = b % 4;
+                const f = Math.floor((b + 8) / 25);
+                const g = Math.floor((b - f + 1) / 3);
+                const h = (19 * a + b - d - g + 15) % 30;
+                const i = Math.floor(c / 4);
+                const k = c % 4;
+                const l = (32 + 2 * e + 2 * i - h - k) % 7;
+                const m = Math.floor((a + 11 * h + 22 * l) / 451);
+                const month = Math.floor((h + l - 7 * m + 114) / 31);
+                const day = ((h + l - 7 * m + 114) % 31) + 1;
+
+                return new Date(year, month - 1, day);
+            }
+
+            function toKey(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                return year + "-" + month + "-" + day;
+            }
+
+            function addDays(date, days) {
+                const next = new Date(date);
+                next.setDate(next.getDate() + days);
+                return next;
+            }
+
+            function getUnavailableDateMessage(value) {
+                if (!value) return "";
+
+                const selectedDate = new Date(value + "T00:00:00");
+                const month = selectedDate.getMonth() + 1;
+                const day = selectedDate.getDate();
+
+                if (selectedDate.getDay() === 2) {
+                    return "The clinic is closed every Tuesday. Please choose another date.";
+                }
+
+                const fixedHolidays = {
+                    "1-1": "New Year's Day",
+                    "11-1": "All Saints' Day",
+                    "12-24": "Christmas Eve",
+                    "12-25": "Christmas Day",
+                    "12-31": "New Year's Eve"
+                };
+
+                const fixedHoliday = fixedHolidays[month + "-" + day];
+                if (fixedHoliday) {
+                    return "The clinic is unavailable on " + fixedHoliday + ". Please choose another date.";
+                }
+
+                const easterSunday = getEasterSunday(selectedDate.getFullYear());
+                const holyWeekDates = {};
+                holyWeekDates[toKey(addDays(easterSunday, -3))] = "Maundy Thursday";
+                holyWeekDates[toKey(addDays(easterSunday, -2))] = "Good Friday";
+                holyWeekDates[toKey(addDays(easterSunday, -1))] = "Black Saturday";
+
+                const holyWeekName = holyWeekDates[value];
+                if (holyWeekName) {
+                    return "The clinic is unavailable on " + holyWeekName + ". Please choose another date.";
+                }
+
+                return "";
+            }
+
+            function validateDate() {
+                const error = getUnavailableDateMessage(dateInput.value);
+                message.textContent = error;
+                dateInput.setCustomValidity(error);
+                return error === "";
+            }
+
+            dateInput.addEventListener("change", validateDate);
+            form.addEventListener("submit", function (event) {
+                if (!validateDate()) {
+                    event.preventDefault();
+                    dateInput.reportValidity();
+                }
+            });
+
+            validateDate();
+        });
+    </script>
+}

@@ -35,6 +35,8 @@ public partial class Appointment
 
     public bool IsWalkIn { get; set; }
 
+    public bool IsGuestBooking { get; set; }
+
     public int CreatedByUserId { get; set; }
 
     [Column(TypeName = "datetime")]

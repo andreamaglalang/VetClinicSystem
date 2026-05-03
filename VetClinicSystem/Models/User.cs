@@ -26,6 +26,8 @@ public partial class User
 
     public bool IsActive { get; set; }
 
+    public bool IsGuest { get; set; }
+
     [Column(TypeName = "datetime")]
     public DateTime DateCreated { get; set; }
 

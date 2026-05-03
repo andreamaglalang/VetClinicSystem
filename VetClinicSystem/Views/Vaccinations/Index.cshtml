@@ -2,6 +2,16 @@
 
 <h2>Vaccinations</h2>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
 <p>
     <a asp-action="Create" class="btn btn-primary">Add Vaccination</a>
 </p>
