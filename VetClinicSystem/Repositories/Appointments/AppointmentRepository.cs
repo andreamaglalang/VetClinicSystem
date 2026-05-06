@@ -107,6 +107,7 @@ namespace VetClinicSystem.Repositories.Appointments
         {
             return _context.Appointments
                 .Include(x => x.Pet)
+                    .ThenInclude(x => x.Owner)
                 .Include(x => x.Service)
                 .Include(x => x.Status)
                 .FirstOrDefault(x => x.Id == id);

@@ -103,6 +103,45 @@ namespace VetClinicSystem.Repositories.Pets
 
         public void Delete(Pet pet)
         {
+            var appointments = _context.Appointments
+                .Where(x => x.PetId == pet.Id)
+                .ToList();
+            var appointmentIds = appointments.Select(x => x.Id).ToList();
+
+            if (appointmentIds.Any())
+            {
+                var staffNotifications = _context.StaffNotifications
+                    .Where(x => appointmentIds.Contains(x.AppointmentId))
+                    .ToList();
+
+                if (staffNotifications.Any())
+                    _context.StaffNotifications.RemoveRange(staffNotifications);
+
+                var reminderLogs = _context.ReminderLogs
+                    .Where(x => appointmentIds.Contains(x.AppointmentId))
+                    .ToList();
+
+                if (reminderLogs.Any())
+                    _context.ReminderLogs.RemoveRange(reminderLogs);
+            }
+
+            var medicalRecords = _context.MedicalRecords
+                .Where(x => x.PetId == pet.Id)
+                .ToList();
+
+            if (medicalRecords.Any())
+                _context.MedicalRecords.RemoveRange(medicalRecords);
+
+            var vaccinationRecords = _context.VaccinationRecords
+                .Where(x => x.PetId == pet.Id)
+                .ToList();
+
+            if (vaccinationRecords.Any())
+                _context.VaccinationRecords.RemoveRange(vaccinationRecords);
+
+            if (appointments.Any())
+                _context.Appointments.RemoveRange(appointments);
+
             _context.Pets.Remove(pet);
         }
 

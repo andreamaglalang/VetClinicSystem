@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using VetClinicSystem.Models;
 using VetClinicSystem.Repositories.Appointments;
 using VetClinicSystem.Repositories.Notifications;
@@ -103,10 +104,12 @@ namespace VetClinicSystem.Services.Appointments
                 _appointmentRepository.Add(appointment);
                 _appointmentRepository.Save();
 
+                var savedAppointment = _appointmentRepository.GetById(appointment.Id) ?? appointment;
+
                 var notification = new StaffNotification
                 {
                     AppointmentId = appointment.Id,
-                    Message = "New appointment has been created.",
+                    Message = BuildAppointmentNotificationMessage(savedAppointment),
                     IsRead = false,
                     DateCreated = DateTime.Now
                 };
@@ -202,6 +205,34 @@ namespace VetClinicSystem.Services.Appointments
             var prop = obj.GetType().GetProperty(propertyName);
             if (prop != null && prop.CanWrite)
                 prop.SetValue(obj, value);
+        }
+
+        private string BuildAppointmentNotificationMessage(Appointment appointment)
+        {
+            var ownerName = FormatOwnerName(appointment.Pet?.Owner);
+            var petName = string.IsNullOrWhiteSpace(appointment.Pet?.PetName)
+                ? "the pet"
+                : appointment.Pet.PetName.Trim();
+            var serviceName = string.IsNullOrWhiteSpace(appointment.Service?.ServiceName)
+                ? "service"
+                : appointment.Service.ServiceName.Trim();
+            var appointmentDate = appointment.AppointmentDate.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture);
+            var statusName = string.IsNullOrWhiteSpace(appointment.Status?.StatusName)
+                ? "Pending"
+                : appointment.Status.StatusName.Trim();
+
+            var message = $"{ownerName} requested a {serviceName} appointment for {petName} on {appointmentDate}. Status: {statusName}.";
+
+            return message.Length <= 255 ? message : message[..255];
+        }
+
+        private string FormatOwnerName(PetOwner? owner)
+        {
+            if (owner == null)
+                return "A pet owner";
+
+            var fullName = $"{owner.FirstName} {owner.LastName}".Trim();
+            return string.IsNullOrWhiteSpace(fullName) ? "A pet owner" : fullName;
         }
     }
 }

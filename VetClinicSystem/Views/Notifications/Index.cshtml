@@ -1,7 +1,41 @@
-﻿@model List<VetClinicSystem.Models.StaffNotification>
+@model List<VetClinicSystem.Models.StaffNotification>
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Notifications";
+}
+
+@functions {
+    private static string GetNotificationMessage(VetClinicSystem.Models.StaffNotification notification)
+    {
+        if (notification.Appointment == null)
+            return notification.Message;
+
+        if (!string.Equals(notification.Message, "New appointment has been created.", StringComparison.OrdinalIgnoreCase))
+            return notification.Message;
+
+        var appointment = notification.Appointment;
+        var owner = appointment.Pet?.Owner;
+        var ownerName = owner == null
+            ? "A pet owner"
+            : $"{owner.FirstName} {owner.LastName}".Trim();
+
+        if (string.IsNullOrWhiteSpace(ownerName))
+            ownerName = "A pet owner";
+
+        var petName = string.IsNullOrWhiteSpace(appointment.Pet?.PetName)
+            ? "the pet"
+            : appointment.Pet.PetName.Trim();
+        var serviceName = string.IsNullOrWhiteSpace(appointment.Service?.ServiceName)
+            ? "service"
+            : appointment.Service.ServiceName.Trim();
+        var appointmentDate = appointment.AppointmentDate.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture);
+        var statusName = string.IsNullOrWhiteSpace(appointment.Status?.StatusName)
+            ? "Pending"
+            : appointment.Status.StatusName.Trim();
+
+        return $"{ownerName} requested a {serviceName} appointment for {petName} on {appointmentDate}. Status: {statusName}.";
+    }
 }
 
 <h2>Notifications</h2>
@@ -30,7 +64,7 @@ else
             @foreach (var item in Model)
             {
                     <tr>
-                        <td>@item.Message</td>
+                        <td>@GetNotificationMessage(item)</td>
                         <td>@item.DateCreated</td>
                         <td>
                         @if (item.IsRead)

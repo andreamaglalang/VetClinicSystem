@@ -46,7 +46,9 @@
 
 <h4>Appointments Overview</h4>
 
-<canvas id="appointmentsChart" height="100"></canvas>
+<section class="chart-card chart-card--appointments">
+    <canvas id="appointmentsChart"></canvas>
+</section>
 
 @section Scripts {
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -70,6 +72,19 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
                     plugins: {
                         legend: {
                             display: true

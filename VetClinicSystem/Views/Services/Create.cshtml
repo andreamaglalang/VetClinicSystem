@@ -13,13 +13,17 @@
         <label asp-for="Description"></label>
         <input asp-for="Description" class="form-control" />
     </div>
-    <div class="form-check mb-2">
-        <input asp-for="IsWalkInOnly" class="form-check-input" />
-        <label asp-for="IsWalkInOnly" class="form-check-label"></label>
-    </div>
-    <div class="form-check mb-3">
-        <input asp-for="RequiresAppointment" class="form-check-input" />
-        <label asp-for="RequiresAppointment" class="form-check-label"></label>
+    <div class="service-toggle-group">
+        <label class="service-toggle">
+            <input asp-for="IsWalkInOnly" />
+            <span></span>
+            <strong>Walk-in only</strong>
+        </label>
+        <label class="service-toggle">
+            <input asp-for="RequiresAppointment" />
+            <span></span>
+            <strong>Requires appointment</strong>
+        </label>
     </div>
 
     <button type="submit" class="btn btn-success">Save</button>

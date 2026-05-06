@@ -14,7 +14,7 @@
         </div>
 
         <div class="medivet-hero-visual" aria-label="Veterinary clinic dog visual">
-            <img src="~/images/site/dog-cat-doctors.png" asp-append-version="true" alt="Dog and cat dressed as veterinary doctors" />
+            <img src="~/images/site/dog-cat-doctors.png" asp-append-version="true" alt="Corgi dressed as a veterinary doctor" />
         </div>
     </div>
 </section>
@@ -125,7 +125,6 @@
                 </p>
                 <div class="medivet-actions">
                     <a asp-controller="Appointments" asp-action="GuestCreate" class="btn btn-vet-primary">Book Surgery</a>
-                    <a href="#contact" class="btn btn-vet-outline btn-vet-secondary-accent">Full Price List</a>
                 </div>
             </div>
         </div>
@@ -217,12 +216,8 @@
         <h2>Reviews</h2>
         <div class="medivet-review-grid">
             <article>
-                <div><i class="fa-solid fa-paw"></i><strong>Morris, cat owner</strong><span>14.05.2026</span></div>
-                <p>Very caring veterinary team. The doctor explained everything clearly and helped us choose the next steps.</p>
-            </article>
-            <article>
-                <div><i class="fa-solid fa-bone"></i><strong>Alex, dog owner</strong><span>02.04.2026</span></div>
-                <p>Friendly service and attentive staff. We felt calm and confident during the visit.</p>
+                <div><i class="fa-solid fa-paw"></i><strong>Ken</strong><span>7 months ago</span></div>
+                <p>Our baby Salt had her spaying operation here and it was very successful! The clinic will follow up &amp; monitor the condition of your furbaby.</p>
             </article>
         </div>
     </div>
@@ -271,8 +266,7 @@
             <p><i class="fa-solid fa-clock"></i> Wednesday-Sunday: 9am-7pm</p>
             <p><i class="fa-solid fa-calendar-xmark"></i> Tuesday: Closed</p>
             <div class="medivet-map">
-                <i class="fa-solid fa-map-location-dot"></i>
-                <span>Clinic location map</span>
+                <img src="~/images/site/vet-map.png" asp-append-version="true" alt="Map showing Thrive Animal Specialist and Grooming Hub location" />
             </div>
             <div class="medivet-contact-links">
                 <a href="https://maps.app.goo.gl/Kht4unZvM7oVFW25A?g_st=ac" target="_blank" rel="noopener" class="btn btn-vet-primary">Open Google Maps</a>
@@ -283,25 +277,26 @@
         <div class="medivet-request-card">
             <div>
                 <h2>Leave a Request</h2>
-                <p>We will contact you as soon as possible.</p>
-                <form>
+                <p>Choose surgery to continue with an appointment request. Other clinic services are walk-in only.</p>
+                <form data-service-request-form>
                     <div class="medivet-form-row">
-                        <input class="form-control" placeholder="Your name" />
-                        <input class="form-control" placeholder="Phone" />
+                        <input class="form-control" name="ownerName" placeholder="Your name" autocomplete="name" required />
+                        <input class="form-control" name="contactNumber" placeholder="Phone" autocomplete="tel" required />
                     </div>
-                    <select class="form-control">
-                        <option>Select service</option>
-                        <option>Consultation</option>
-                        <option>Pet Supplies</option>
-                        <option>Pet Boarding</option>
-                        <option>Pet Grooming</option>
-                        <option>Basic Domestic Test</option>
-                        <option>Vaccination and Deworming</option>
-                        <option>Confinement</option>
-                        <option>Surgery</option>
+                    <select class="form-control" name="serviceName" required data-service-request-select>
+                        <option value="">Select service</option>
+                        <option value="Consultation" data-request-mode="walk-in">Consultation (walk-in)</option>
+                        <option value="Pet Supplies" data-request-mode="walk-in">Pet Supplies (walk-in)</option>
+                        <option value="Pet Boarding" data-request-mode="walk-in">Pet Boarding (walk-in)</option>
+                        <option value="Pet Grooming" data-request-mode="walk-in">Pet Grooming (walk-in)</option>
+                        <option value="Basic Domestic Test" data-request-mode="walk-in">Basic Domestic Test (walk-in)</option>
+                        <option value="Vaccination and Deworming" data-request-mode="walk-in">Vaccination and Deworming (walk-in)</option>
+                        <option value="Confinement" data-request-mode="walk-in">Confinement (walk-in)</option>
+                        <option value="Surgery" data-request-mode="appointment">Surgery (appointment)</option>
                     </select>
-                    <textarea class="form-control" rows="5" placeholder="Comment"></textarea>
-                    <a asp-controller="Appointments" asp-action="GuestCreate" class="btn btn-vet-primary">Book Surgery</a>
+                    <textarea class="form-control" name="clientNotes" rows="5" placeholder="Comment"></textarea>
+                    <p class="medivet-request-feedback" data-service-request-feedback aria-live="polite"></p>
+                    <button type="submit" class="btn btn-vet-primary">Continue Request</button>
                 </form>
             </div>
             <img src="~/images/site/request-cat.png" asp-append-version="true" alt="Cat raising one paw" />
@@ -485,14 +480,36 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         function updateCarousel() {
-            track.style.transform = "";
-
-            cards.forEach(function (_, offset) {
-                track.appendChild(cards[(currentIndex + offset) % cards.length]);
-            });
-
             cards.forEach(function (card, index) {
-                card.classList.toggle("medivet-card-active", index === currentIndex);
+                let position = index - currentIndex;
+
+                if (position > cards.length / 2) {
+                    position -= cards.length;
+                }
+
+                if (position < -cards.length / 2) {
+                    position += cards.length;
+                }
+
+                card.classList.remove(
+                    "medivet-card-active",
+                    "medivet-card-left",
+                    "medivet-card-right",
+                    "medivet-card-far-left",
+                    "medivet-card-far-right"
+                );
+
+                if (position === 0) {
+                    card.classList.add("medivet-card-active");
+                } else if (position === -1) {
+                    card.classList.add("medivet-card-left");
+                } else if (position === 1) {
+                    card.classList.add("medivet-card-right");
+                } else if (position === -2) {
+                    card.classList.add("medivet-card-far-left");
+                } else if (position === 2) {
+                    card.classList.add("medivet-card-far-right");
+                }
             });
 
             Array.from(dots.children).forEach(function (dot, index) {
@@ -500,14 +517,17 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
-        previousButton.addEventListener("click", function () {
-            currentIndex = currentIndex <= 0 ? cards.length - 1 : currentIndex - 1;
+        function moveCarousel(direction) {
+            currentIndex = (currentIndex + direction + cards.length) % cards.length;
             updateCarousel();
+        }
+
+        previousButton.addEventListener("click", function () {
+            moveCarousel(-1);
         });
 
         nextButton.addEventListener("click", function () {
-            currentIndex = (currentIndex + 1) % cards.length;
-            updateCarousel();
+            moveCarousel(1);
         });
 
         window.addEventListener("resize", function () {
@@ -680,6 +700,58 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function setupServiceRequestForm() {
+        const form = document.querySelector("[data-service-request-form]");
+        const serviceSelect = document.querySelector("[data-service-request-select]");
+        const feedback = document.querySelector("[data-service-request-feedback]");
+
+        if (!form || !serviceSelect || !feedback) return;
+
+        function getSelectedMode() {
+            return serviceSelect.selectedOptions[0]?.dataset.requestMode || "";
+        }
+
+        function updateFeedback() {
+            const serviceName = serviceSelect.value;
+            const mode = getSelectedMode();
+
+            feedback.classList.remove("is-error", "is-success");
+
+            if (!serviceName) {
+                feedback.textContent = "";
+                return;
+            }
+
+            if (mode === "appointment") {
+                feedback.textContent = "Surgery requests continue to the guest booking form for pet details, preferred date, and clinic confirmation.";
+                feedback.classList.add("is-success");
+                return;
+            }
+
+            feedback.textContent = serviceName + " is walk-in only. Please visit the clinic during open hours or contact us directly for availability and pricing.";
+        }
+
+        serviceSelect.addEventListener("change", updateFeedback);
+
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            if (!form.reportValidity()) return;
+
+            if (getSelectedMode() !== "appointment") {
+                updateFeedback();
+                feedback.classList.add("is-error");
+                serviceSelect.focus();
+                return;
+            }
+
+            const params = new URLSearchParams(new FormData(form));
+            window.location.href = "/Appointments/GuestCreate?" + params.toString();
+        });
+
+        updateFeedback();
+    }
+
     function setupTabArrows() {
         const rows = Array.from(document.querySelectorAll(".medivet-tab-row"));
 
@@ -715,6 +787,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setupSpecialists();
     setupGallery();
     setupArticles();
+    setupServiceRequestForm();
     setupTabArrows();
 });
 </script>

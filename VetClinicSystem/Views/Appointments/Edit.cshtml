@@ -7,12 +7,21 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
-<div class="alert alert-info">
-    Surgery is the only service available for appointment booking. All other services are walk-in only. The clinic is closed on Tuesdays and selected major holidays.
-</div>
-
-<div class="alert alert-warning">
-    Pre-op blood test screening is walk-in only. If your pet is fit for surgery, schedule the procedure within 1 week. Before surgery, bathe your pet at least a day before, withhold food for 8-12 hours, and withhold water for 5 hours.
+<div class="appointment-create-notes" aria-label="Appointment booking reminders">
+    <section>
+        <i class="fa-solid fa-calendar-check"></i>
+        <div>
+            <strong>Appointment availability</strong>
+            <p>Surgery is the only service available for appointment booking. Other services are walk-in only, and the clinic is closed on Tuesdays and selected major holidays.</p>
+        </div>
+    </section>
+    <section>
+        <i class="fa-solid fa-notes-medical"></i>
+        <div>
+            <strong>Before surgery</strong>
+            <p>Pre-op blood test screening is walk-in only. If your pet is fit for surgery, schedule within 1 week. Bathe your pet a day before, withhold food for 8-12 hours, and water for 5 hours.</p>
+        </div>
+    </section>
 </div>
 
 <form method="post">

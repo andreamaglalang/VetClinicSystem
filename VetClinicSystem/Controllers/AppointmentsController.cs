@@ -86,13 +86,39 @@ namespace VetClinicSystem.Controllers
         }
 
         [HttpGet]
-        public IActionResult GuestCreate()
+        public IActionResult GuestCreate(string? ownerName, string? contactNumber, string? serviceName, string? clientNotes)
         {
             if (HttpContext.Session.GetInt32("UserId") != null)
                 return RedirectToAction("Create");
 
-            LoadGuestDropdowns();
-            return View(new GuestAppointmentBooking());
+            var booking = new GuestAppointmentBooking
+            {
+                ContactNumber = contactNumber?.Trim() ?? string.Empty,
+                ClientNotes = clientNotes?.Trim()
+            };
+
+            if (!string.IsNullOrWhiteSpace(ownerName))
+            {
+                var nameParts = ownerName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                booking.FirstName = nameParts[0];
+                booking.LastName = nameParts.Length > 1 ? nameParts[1] : string.Empty;
+            }
+
+            if (!string.IsNullOrWhiteSpace(serviceName))
+            {
+                var requestedServiceName = serviceName.Trim();
+                var service = GetAppointmentServices()
+                    .FirstOrDefault(x =>
+                        x.ServiceName.Equals(requestedServiceName, StringComparison.OrdinalIgnoreCase) ||
+                        x.ServiceName.Contains(requestedServiceName, StringComparison.OrdinalIgnoreCase) ||
+                        requestedServiceName.Contains(x.ServiceName, StringComparison.OrdinalIgnoreCase));
+
+                if (service != null)
+                    booking.ServiceId = service.Id;
+            }
+
+            LoadGuestDropdowns(booking.ServiceId);
+            return View(booking);
         }
 
         [HttpPost]

@@ -159,18 +159,71 @@ document.addEventListener("DOMContentLoaded", function () {
         return parsed.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
     }
 
+    function formatTime(value) {
+        if (!value) return "Scheduled";
+
+        const parts = value.split(":");
+        if (parts.length < 2) return value;
+
+        let hour = Number(parts[0]);
+        const minute = parts[1];
+        if (Number.isNaN(hour)) return value;
+
+        const period = hour >= 12 ? "PM" : "AM";
+        hour = hour % 12 || 12;
+
+        return hour + ":" + minute + " " + period;
+    }
+
+    function placePopover(anchor) {
+        if (!popover || !anchor) return;
+
+        const calendarCard = anchor.closest(".med-calendar-card");
+        if (!calendarCard) return;
+
+        popover.hidden = false;
+        popover.classList.add("is-visible");
+
+        const cardRect = calendarCard.getBoundingClientRect();
+        const anchorRect = anchor.getBoundingClientRect();
+        const popoverWidth = popover.offsetWidth;
+        const popoverHeight = popover.offsetHeight;
+        const gap = 14;
+        const padding = 14;
+
+        let left = anchorRect.right - cardRect.left + gap;
+        let top = anchorRect.top - cardRect.top + (anchorRect.height / 2) - (popoverHeight / 2);
+
+        if (left + popoverWidth > cardRect.width - padding) {
+            left = anchorRect.left - cardRect.left - popoverWidth - gap;
+        }
+
+        if (left < padding) {
+            left = Math.min(cardRect.width - popoverWidth - padding, anchorRect.left - cardRect.left);
+            top = anchorRect.bottom - cardRect.top + gap;
+        }
+
+        top = Math.max(padding, Math.min(top, cardRect.height - popoverHeight - padding));
+
+        popover.style.left = left + "px";
+        popover.style.top = top + "px";
+    }
+
     document.querySelectorAll("[data-appointment-day]").forEach(function (button) {
         button.addEventListener("click", function () {
             const day = Number(button.dataset.appointmentDay);
             const appointment = appointments.find(function (item) { return item.day === day; });
             if (!appointment || !popover) return;
 
+            document.querySelectorAll("[data-appointment-day]").forEach(function (dateButton) {
+                dateButton.classList.toggle("is-selected", dateButton === button);
+            });
+
             title.textContent = appointment.title || "Appointment";
             reason.textContent = appointment.reason || appointment.pet || "Clinic appointment";
             date.textContent = formatDate(appointment.date);
-            time.textContent = (appointment.time || "Scheduled") + " • " + (appointment.status || "Scheduled");
-            popover.hidden = false;
-            popover.classList.add("is-visible");
+            time.textContent = formatTime(appointment.time) + " - " + (appointment.status || "Scheduled");
+            placePopover(button);
         });
     });
 
@@ -178,6 +231,9 @@ document.addEventListener("DOMContentLoaded", function () {
         closeButton.addEventListener("click", function () {
             popover.hidden = true;
             popover.classList.remove("is-visible");
+            document.querySelectorAll("[data-appointment-day]").forEach(function (button) {
+                button.classList.remove("is-selected");
+            });
         });
     }
 
@@ -195,3 +251,5 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 }
+
+
