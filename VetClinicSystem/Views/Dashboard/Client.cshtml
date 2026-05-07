@@ -84,13 +84,21 @@
 
         <section class="med-calendar-card">
             <div class="calendar-head">
-                <h2>@today.ToString("MMMM")</h2>
-                <span>@today.Year</span>
+                <button type="button" class="calendar-nav-button" id="calendarPrev" aria-label="Previous month">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div>
+                    <h2 id="calendarMonth">@today.ToString("MMMM")</h2>
+                    <span id="calendarYear">@today.Year</span>
+                </div>
+                <button type="button" class="calendar-nav-button" id="calendarNext" aria-label="Next month">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
             </div>
             <div class="calendar-grid calendar-weekdays">
-                <span>mo</span><span>tu</span><span>we</span><span>th</span><span>fr</span><span>sa</span><span>su</span>
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
             </div>
-            <div class="calendar-grid calendar-days">
+            <div class="calendar-grid calendar-days" id="calendarDays">
                 @for (var i = 0; i < startOffset; i++)
                 {
                     <span class="muted"></span>
@@ -153,10 +161,26 @@ document.addEventListener("DOMContentLoaded", function () {
     const reason = document.getElementById("appointmentPopoverReason");
     const date = document.getElementById("appointmentPopoverDate");
     const time = document.getElementById("appointmentPopoverTime");
+    const calendarMonth = document.getElementById("calendarMonth");
+    const calendarYear = document.getElementById("calendarYear");
+    const calendarDays = document.getElementById("calendarDays");
+    const calendarPrev = document.getElementById("calendarPrev");
+    const calendarNext = document.getElementById("calendarNext");
+    const todayInfo = {
+        year: @today.Year,
+        month: @(today.Month - 1),
+        day: @today.Day
+    };
+    let visibleYear = todayInfo.year;
+    let visibleMonth = todayInfo.month;
 
     function formatDate(value) {
         const parsed = new Date(value + "T00:00:00");
         return parsed.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    }
+
+    function toDateKey(year, month, day) {
+        return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
     }
 
     function formatTime(value) {
@@ -209,33 +233,111 @@ document.addEventListener("DOMContentLoaded", function () {
         popover.style.top = top + "px";
     }
 
-    document.querySelectorAll("[data-appointment-day]").forEach(function (button) {
-        button.addEventListener("click", function () {
-            const day = Number(button.dataset.appointmentDay);
-            const appointment = appointments.find(function (item) { return item.day === day; });
-            if (!appointment || !popover) return;
+    function hidePopover() {
+        if (!popover) return;
 
-            document.querySelectorAll("[data-appointment-day]").forEach(function (dateButton) {
-                dateButton.classList.toggle("is-selected", dateButton === button);
-            });
-
-            title.textContent = appointment.title || "Appointment";
-            reason.textContent = appointment.reason || appointment.pet || "Clinic appointment";
-            date.textContent = formatDate(appointment.date);
-            time.textContent = formatTime(appointment.time) + " - " + (appointment.status || "Scheduled");
-            placePopover(button);
+        popover.hidden = true;
+        popover.classList.remove("is-visible");
+        document.querySelectorAll("[data-appointment-date]").forEach(function (button) {
+            button.classList.remove("is-selected");
         });
-    });
+    }
+
+    function showAppointment(anchor) {
+        const appointmentDate = anchor.dataset.appointmentDate;
+        const appointment = appointments.find(function (item) { return item.date === appointmentDate; });
+        if (!appointment || !popover) return;
+
+        document.querySelectorAll("[data-appointment-date]").forEach(function (dateButton) {
+            dateButton.classList.toggle("is-selected", dateButton === anchor);
+        });
+
+        title.textContent = appointment.title || "Appointment";
+        reason.textContent = appointment.reason || appointment.pet || "Clinic appointment";
+        date.textContent = formatDate(appointment.date);
+        time.textContent = formatTime(appointment.time) + " - " + (appointment.status || "Scheduled");
+        placePopover(anchor);
+    }
+
+    function renderCalendar() {
+        if (!calendarDays || !calendarMonth || !calendarYear) return;
+
+        hidePopover();
+
+        const monthDate = new Date(visibleYear, visibleMonth, 1);
+        const monthName = monthDate.toLocaleDateString(undefined, { month: "long" });
+        const startOffset = (monthDate.getDay() + 6) % 7;
+        const daysInVisibleMonth = new Date(visibleYear, visibleMonth + 1, 0).getDate();
+
+        calendarMonth.textContent = monthName;
+        calendarYear.textContent = visibleYear;
+        calendarDays.innerHTML = "";
+
+        for (let i = 0; i < startOffset; i += 1) {
+            const emptyDay = document.createElement("span");
+            emptyDay.className = "muted";
+            calendarDays.appendChild(emptyDay);
+        }
+
+        for (let day = 1; day <= daysInVisibleMonth; day += 1) {
+            const dateKey = toDateKey(visibleYear, visibleMonth, day);
+            const hasAppointment = appointments.some(function (item) { return item.date === dateKey; });
+            const isToday = visibleYear === todayInfo.year && visibleMonth === todayInfo.month && day === todayInfo.day;
+            const dayElement = document.createElement(hasAppointment ? "button" : "span");
+
+            dayElement.textContent = day;
+            dayElement.className = [isToday ? "today" : "", hasAppointment ? "has-appointment" : ""]
+                .filter(Boolean)
+                .join(" ");
+
+            if (hasAppointment) {
+                dayElement.type = "button";
+                dayElement.dataset.appointmentDate = dateKey;
+                dayElement.setAttribute("aria-label", "View appointments on " + monthName + " " + day + ", " + visibleYear);
+            }
+
+            calendarDays.appendChild(dayElement);
+        }
+    }
+
+    if (calendarDays) {
+        calendarDays.addEventListener("click", function (event) {
+            const appointmentButton = event.target.closest("[data-appointment-date]");
+            if (!appointmentButton) return;
+
+            showAppointment(appointmentButton);
+        });
+    }
+
+    if (calendarPrev) {
+        calendarPrev.addEventListener("click", function () {
+            visibleMonth -= 1;
+            if (visibleMonth < 0) {
+                visibleMonth = 11;
+                visibleYear -= 1;
+            }
+            renderCalendar();
+        });
+    }
+
+    if (calendarNext) {
+        calendarNext.addEventListener("click", function () {
+            visibleMonth += 1;
+            if (visibleMonth > 11) {
+                visibleMonth = 0;
+                visibleYear += 1;
+            }
+            renderCalendar();
+        });
+    }
 
     if (closeButton && popover) {
         closeButton.addEventListener("click", function () {
-            popover.hidden = true;
-            popover.classList.remove("is-visible");
-            document.querySelectorAll("[data-appointment-day]").forEach(function (button) {
-                button.classList.remove("is-selected");
-            });
+            hidePopover();
         });
     }
+
+    renderCalendar();
 
     const search = document.getElementById("dashboardSearch");
     const searchableItems = Array.from(document.querySelectorAll("[data-dashboard-item]"));
