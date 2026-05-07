@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using VetClinicSystem.Helpers;
 using VetClinicSystem.Models;
 using VetClinicSystem.Services.Clinics;
 
@@ -47,6 +48,8 @@ namespace VetClinicSystem.Controllers
 
             if (!ModelState.IsValid)
                 return View(clinicInfo);
+
+            clinicInfo.ContactNumber = PhoneNumberHelper.Normalize(clinicInfo.ContactNumber);
 
             _clinicService.SaveClinicInfo(clinicInfo);
             return RedirectToAction("Index");

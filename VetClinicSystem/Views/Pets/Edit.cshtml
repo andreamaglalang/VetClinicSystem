@@ -6,11 +6,6 @@
 
 <h2>Edit Pet</h2>
 
-@if (TempData["Error"] != null)
-{
-        <div class="alert alert-danger">@TempData["Error"]</div>
-}
-
 <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
 <form method="post">

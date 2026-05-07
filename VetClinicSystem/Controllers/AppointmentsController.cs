@@ -170,6 +170,7 @@ namespace VetClinicSystem.Controllers
 
             try
             {
+                booking.ContactNumber = PhoneNumberHelper.Normalize(booking.ContactNumber);
                 CreateGuestBooking(booking);
                 TempData["Success"] = "Guest surgery booking submitted successfully. Confirmation is recorded and the clinic will contact you for final approval.";
                 return RedirectToAction("GuestCreate");

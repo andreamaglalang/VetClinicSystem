@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using VetClinicSystem.Helpers;
 
 namespace VetClinicSystem.Models;
 
@@ -16,6 +17,7 @@ public class GuestAppointmentBooking
 
     [Required]
     [StringLength(20)]
+    [PhilippineMobileNumber]
     [Display(Name = "Contact Number")]
     public string ContactNumber { get; set; } = string.Empty;
 

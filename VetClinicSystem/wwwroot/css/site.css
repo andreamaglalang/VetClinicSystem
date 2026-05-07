@@ -35,6 +35,172 @@ body {
     letter-spacing: 0;
 }
 
+.toast-stack {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(24, 50, 58, 0.26);
+    backdrop-filter: blur(2px);
+    pointer-events: auto;
+}
+
+.vet-toast {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+    width: min(330px, calc(100vw - 48px));
+    min-height: 246px;
+    padding: 32px 26px 24px;
+    border: 1px solid rgba(126, 217, 217, 0.42);
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 22px 58px rgba(24, 50, 58, 0.18);
+    color: var(--ink);
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.45;
+    animation: toast-pop-in 0.22s ease both;
+}
+
+.vet-toast.is-hiding {
+    animation: toast-pop-out 0.22s ease both;
+}
+
+.vet-toast > i {
+    width: 62px;
+    height: 62px;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    background: var(--toast-icon-bg, #f4fbfb);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: none;
+}
+
+.vet-toast strong {
+    color: #111111;
+    margin-top: 4px;
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.vet-toast span {
+    max-width: 270px;
+    color: #111111;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.vet-toast-action {
+    width: 100%;
+    min-height: 34px;
+    margin-top: 14px;
+    padding: 0 22px;
+    border: 1px solid #b9c6c9;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #111111 !important;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vet-toast::after {
+    content: "";
+    position: absolute;
+    left: 26px;
+    right: 26px;
+    bottom: 69px;
+    height: 1px;
+    background: #dfe8e9;
+}
+
+.vet-toast-action i {
+    display: none;
+}
+
+.vet-toast-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #9db2b2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.vet-toast-close:hover {
+    background: transparent;
+    color: var(--brand-dark);
+}
+
+.vet-toast--success {
+    border-color: #d7efdf;
+    background: #ffffff;
+    color: #069978;
+    --toast-icon-bg: #e9fbf0;
+}
+
+.vet-toast--error {
+    border-color: #f4cccc;
+    background: #ffffff;
+    color: #ff4a42;
+    --toast-icon-bg: #fff0f0;
+}
+
+.vet-toast--warning {
+    border-color: #f3d890;
+    background: #ffffff;
+    color: #f0aa13;
+    --toast-icon-bg: #fff8e6;
+}
+
+.vet-toast--info {
+    border-color: #bfe3ed;
+    background: #ffffff;
+    color: #0d7fec;
+    --toast-icon-bg: #edf6ff;
+}
+
+@keyframes toast-pop-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toast-pop-out {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px) scale(0.96);
+    }
+}
+
 a {
     color: var(--brand);
 }
@@ -290,6 +456,144 @@ p {
     margin-left: 10px;
 }
 
+.account-danger-zone {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid #f1b8b6;
+    border-radius: 14px;
+    background: #fff7f7;
+}
+
+.account-danger-zone h4 {
+    margin: 0 0 6px;
+    color: #9b3d3d;
+    font-size: 20px;
+}
+
+.account-danger-zone p {
+    margin: 0;
+    color: #7a5555;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.account-danger-zone form {
+    margin: 0;
+}
+
+.admin-user-action-form {
+    margin: 0;
+}
+
+.admin-users-table td:last-child {
+    white-space: nowrap;
+}
+
+.admin-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2050;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(24, 50, 58, 0.26);
+    backdrop-filter: blur(2px);
+}
+
+.admin-confirm-overlay[hidden] {
+    display: none;
+}
+
+.admin-confirm-modal {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+    width: min(340px, calc(100vw - 48px));
+    padding: 32px 26px 24px;
+    border: 1px solid rgba(126, 217, 217, 0.42);
+    border-radius: 12px;
+    background: #ffffff;
+    text-align: center;
+    box-shadow: 0 22px 58px rgba(24, 50, 58, 0.18);
+}
+
+.admin-confirm-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #9db2b2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-confirm-close:hover {
+    background: transparent;
+    color: #735515;
+}
+
+.admin-confirm-icon {
+    width: 62px;
+    height: 62px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    background: #fff8e6;
+    color: #b88914;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: none;
+}
+
+.admin-confirm-modal h3 {
+    margin: 0;
+    color: #111111;
+    margin-top: 4px;
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.admin-confirm-modal p {
+    max-width: 290px;
+    margin: 0;
+    color: #111111;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.admin-confirm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 22px;
+    padding-top: 10px;
+    border-top: 1px solid #dfe8e9;
+}
+
+.admin-confirm-actions .btn {
+    flex: 1 1 120px;
+    min-width: 0;
+    min-height: 34px;
+    border-radius: 6px !important;
+    color: #111111 !important;
+}
+
 .app-container--standard > form[method="get"],
 .app-container--standard > .alert,
 .app-container--standard > p,
@@ -465,6 +769,11 @@ p {
     border: 1px solid transparent !important;
     font-weight: 700;
     padding: 10px 16px;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     box-shadow: none !important;
     transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
@@ -474,6 +783,7 @@ p {
 }
 
 .btn-sm {
+    min-height: 36px;
     padding: 7px 10px;
     font-size: 12px;
 }
@@ -508,6 +818,7 @@ p {
 }
 
 .btn-secondary,
+.btn-outline-secondary,
 .btn-vet-outline {
     background: #fff !important;
     border-color: var(--line) !important;
@@ -515,9 +826,11 @@ p {
 }
 
 .btn-secondary:hover,
+.btn-outline-secondary:hover,
 .btn-vet-outline:hover {
     background: var(--brand-soft) !important;
     border-color: #b8dfe4 !important;
+    color: var(--brand-dark) !important;
 }
 
 .btn-vet-secondary-accent {
@@ -984,6 +1297,10 @@ p {
 
     .account-settings-card {
         padding: 22px;
+    }
+
+    .account-danger-zone {
+        grid-template-columns: 1fr;
     }
 
     .table-panel {
@@ -3481,11 +3798,18 @@ label,
     box-shadow: none;
 }
 
-.medivet-tabs button.active {
+.medivet-tabs button.active,
+.medivet-tabs button[aria-pressed="true"] {
     border-color: var(--teal);
     background: linear-gradient(135deg, var(--aqua), var(--teal));
     color: #ffffff;
     box-shadow: 0 12px 24px rgba(3, 139, 166, 0.18);
+}
+
+.medivet-tabs button:focus-visible,
+.medivet-dots button:focus-visible {
+    outline: 3px solid rgba(40, 213, 213, 0.28);
+    outline-offset: 3px;
 }
 
 .medivet-section .btn.btn-vet-secondary-accent,
@@ -3703,6 +4027,11 @@ label,
 .medivet-gallery-strip img:nth-of-type(3) {
     height: 322px;
     transform: translateY(-12px);
+}
+
+.medivet-gallery-strip img.active {
+    border-color: rgba(3, 139, 166, 0.36);
+    box-shadow: 0 16px 34px rgba(3, 139, 166, 0.12);
 }
 
 .medivet-review-grid {
@@ -4324,5 +4653,864 @@ table > tbody > tr:hover > td {
         width: 100%;
     }
 }
+
+/* Responsive safety pass */
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+}
+
+img,
+video {
+    height: auto;
+}
+
+.mobile-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid rgba(3, 139, 166, 0.22);
+    border-radius: 14px;
+    background: #ffffff;
+    color: var(--teal);
+    font-weight: 900;
+    box-shadow: 0 10px 22px rgba(3, 139, 166, 0.08);
+}
+
+.top-logo,
+.top-logo > div,
+.main-landing-nav,
+.app-container,
+.app-container--standard,
+.app-container--client-dashboard,
+.table-panel,
+.med-dashboard,
+.med-main,
+.med-side-rail,
+.med-profile-panel,
+.guest-booking-card,
+.guest-booking-container,
+.action-modal-content,
+.admin-confirm-modal,
+.vet-toast {
+    min-width: 0;
+}
+
+.app-container--standard > table.table,
+.table-panel table.table {
+    width: 100%;
+}
+
+.table-panel {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-panel > form[method="get"],
+.table-panel > p,
+.table-panel > .table-pagination {
+    min-width: 0;
+}
+
+.app-container--standard .table,
+.table-panel .table {
+    vertical-align: middle;
+}
+
+.form-control,
+.form-select,
+textarea,
+select,
+input {
+    max-width: 100%;
+}
+
+.action-modal-dialog {
+    width: min(920px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.action-modal-body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.action-modal-body table,
+.admin-confirm-modal table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.appointment-calendar-popover,
+.calendar-popover,
+.schedule-popover {
+    max-width: min(320px, calc(100vw - 28px));
+}
+
+@media (max-width: 1180px) {
+    .main-header {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .top-clinic-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 16px;
+    }
+
+    .top-info,
+    .top-info-empty {
+        display: none;
+    }
+
+    .main-landing-nav {
+        gap: 14px 22px;
+    }
+
+    .main-landing-nav a {
+        padding: 8px 10px !important;
+        border-radius: 999px !important;
+    }
+
+    .app-container,
+    .app-container--client-dashboard {
+        width: min(100% - 36px, 1180px);
+    }
+
+    .medivet-container,
+    .vet-section,
+    .guest-booking-container {
+        width: min(100% - 36px, 1120px);
+    }
+
+    .med-dashboard,
+    .admin-dashboard-grid,
+    .dashboard-summary-grid,
+    .staff-dashboard-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .med-profile-panel,
+    .med-side-rail {
+        position: static !important;
+        width: 100%;
+    }
+
+    .med-action-row,
+    .stats-grid,
+    .dashboard-cards,
+    .admin-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .medivet-hero-grid,
+    .medivet-contact-grid,
+    .medivet-price-layout,
+    .medivet-specialist-layout,
+    .medivet-request-grid,
+    .guest-booking-notes,
+    .appointment-create-notes,
+    .account-settings-grid,
+    .login-shell,
+    .auth-shell {
+        grid-template-columns: 1fr !important;
+    }
+
+    .medivet-tabs,
+    .medivet-specialist-tabs,
+    .medivet-article-tabs {
+        overflow-x: auto;
+        justify-content: flex-start;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .medivet-tabs > *,
+    .medivet-specialist-tabs > *,
+    .medivet-article-tabs > * {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+    }
+
+    .med-action-row,
+    .stats-grid,
+    .dashboard-cards,
+    .admin-stat-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .chart-card,
+    .chart-card--appointments,
+    .appointments-overview-card {
+        min-height: 260px;
+        overflow: hidden;
+    }
+
+    .chart-card canvas,
+    .chart-card--appointments canvas,
+    .appointments-overview-card canvas {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 220px;
+    }
+}
+
+@media (max-width: 760px) {
+    .main-header {
+        padding: 10px 14px;
+    }
+
+    .top-clinic-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .top-logo {
+        gap: 10px;
+    }
+
+    .brand-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+    }
+
+    .top-logo strong {
+        font-size: 18px;
+        line-height: 1.05;
+    }
+
+    .top-logo small {
+        font-size: 11px;
+        line-height: 1.2;
+    }
+
+    .top-socials {
+        gap: 7px;
+    }
+
+    .top-socials a {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+    }
+
+    .mobile-nav-toggle {
+        display: inline-flex;
+    }
+
+    .main-landing-nav {
+        display: none;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid rgba(126, 217, 217, 0.38);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 16px 34px rgba(3, 139, 166, 0.12);
+        overflow: visible;
+    }
+
+    .main-landing-nav.is-open {
+        display: grid;
+    }
+
+    .main-landing-nav a,
+    .main-landing-nav a:last-child {
+        display: block;
+        width: 100%;
+        padding: 11px 12px !important;
+        border-radius: 12px !important;
+        text-align: center;
+        white-space: normal;
+    }
+
+    .app-container,
+    .app-container--client-dashboard,
+    .medivet-container,
+    .vet-section,
+    .guest-booking-container {
+        width: min(100% - 24px, 640px);
+    }
+
+    .app-container {
+        padding-top: 26px;
+        padding-bottom: 42px;
+    }
+
+    .app-container--standard > h1,
+    .app-container--standard > h2,
+    .app-container--standard > h3,
+    .med-topbar h1,
+    .guest-booking-heading h2 {
+        font-size: clamp(28px, 9vw, 40px) !important;
+        line-height: 1.08;
+    }
+
+    .table-panel {
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .table-panel table.table,
+    .app-container--standard > table.table {
+        min-width: 680px;
+    }
+
+    .table-pagination {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .table-pagination__buttons {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .row {
+        --bs-gutter-x: 1rem;
+    }
+
+    .row > [class*="col-"] {
+        margin-bottom: 12px;
+    }
+
+    .guest-booking-card,
+    .account-settings-card,
+    .app-container--standard > form[method="post"],
+    .app-container--standard > .card {
+        width: 100%;
+        max-width: 100%;
+        padding: 20px !important;
+        border-radius: 16px;
+    }
+
+    .guest-booking-actions,
+    .form-actions,
+    .account-actions,
+    .modal-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .guest-booking-actions .btn,
+    .form-actions .btn,
+    .account-actions .btn,
+    .app-container--standard > form[method="post"] > .btn,
+    .app-container--standard > form[method="post"] > a.btn {
+        width: 100%;
+        margin-left: 0 !important;
+    }
+
+    .calendar-grid,
+    .calendar-days {
+        gap: 6px !important;
+    }
+
+    .calendar-grid > *,
+    .calendar-days > * {
+        min-width: 0;
+    }
+
+    .calendar-day,
+    .calendar-days button,
+    .calendar-days span {
+        min-height: 46px;
+        padding: 6px;
+        font-size: 13px !important;
+    }
+
+    .medivet-gallery-strip {
+        overflow-x: auto;
+        justify-content: flex-start;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .medivet-gallery-strip img {
+        flex: 0 0 min(76vw, 280px);
+        scroll-snap-align: center;
+        object-fit: cover;
+    }
+
+    .action-modal-dialog {
+        width: calc(100vw - 20px);
+        max-width: calc(100vw - 20px);
+    }
+
+    .action-modal-header,
+    .action-modal-body {
+        padding-left: 18px !important;
+        padding-right: 18px !important;
+    }
+
+    .admin-confirm-modal,
+    .vet-toast {
+        width: min(100%, calc(100vw - 28px));
+    }
+
+    .admin-confirm-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .admin-confirm-actions .btn,
+    .vet-toast-action {
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .top-clinic-bar {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .top-logo {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .top-socials {
+        justify-content: center;
+    }
+
+    .medivet-side-circle-yellow {
+        right: -180px;
+    }
+
+    .medivet-side-circle-blue {
+        left: -150px;
+    }
+
+    .table-panel table.table,
+    .app-container--standard > table.table {
+        min-width: 620px;
+    }
+
+    .guest-booking-notes > div,
+    .appointment-create-notes > div {
+        grid-template-columns: 1fr;
+        text-align: left;
+    }
+
+    .btn-group,
+    .table-actions {
+        flex-wrap: wrap;
+    }
+
+    .action-modal-body .btn,
+    .action-modal-body a.btn,
+    .action-modal-body button.btn {
+        width: 100%;
+        margin: 4px 0 !important;
+    }
+
+    .action-modal-body .table-actions .btn,
+    .action-modal-body .table-action-icon {
+        width: auto;
+    }
+}
+
+/* Focused UI fixes requested after responsive pass */
+:root {
+    --page: #f1f8f9;
+    --brand-soft: #e9f7f8;
+}
+
+.top-logo {
+    text-decoration: none !important;
+}
+
+.top-logo:hover,
+.top-logo:focus {
+    text-decoration: none !important;
+}
+
+.btn-danger,
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active,
+.admin-confirm-actions .btn-danger,
+.admin-confirm-actions .btn-danger:hover,
+.action-modal-body .btn-danger,
+.action-modal-body .btn-danger:hover,
+.vet-toast .btn-danger,
+.vet-toast .btn-danger:hover {
+    color: #ffffff !important;
+}
+
+.medivet-service-carousel .medivet-photo-card {
+    background: #f9feff !important;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, filter 0.22s ease;
+}
+
+.medivet-service-carousel .medivet-photo-card img {
+    opacity: 0.24;
+    mix-blend-mode: normal;
+}
+
+.medivet-service-carousel .medivet-photo-card::after {
+    background: transparent;
+}
+
+.medivet-service-carousel .medivet-photo-card h3 {
+    color: var(--teal) !important;
+}
+
+.medivet-service-carousel .medivet-photo-card p {
+    color: #34474c !important;
+    font-weight: 700;
+    text-shadow: none;
+}
+
+.medivet-service-carousel .medivet-card-active {
+    background: linear-gradient(135deg, rgba(40, 213, 213, 0.88), rgba(3, 139, 166, 0.88)) !important;
+}
+
+.medivet-service-carousel .medivet-card-active h3,
+.medivet-service-carousel .medivet-card-active p {
+    color: #ffffff !important;
+}
+
+.medivet-service-carousel .medivet-card-active img {
+    opacity: 0.20;
+}
+
+.medivet-photo-card a,
+.medivet-article-grid .featured a,
+.medivet-tabs button,
+.medivet-tab-arrow {
+    transition: transform 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+}
+
+.medivet-photo-card a:hover,
+.medivet-article-grid .featured a:hover,
+.medivet-tabs button:hover,
+.medivet-tab-arrow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(3, 139, 166, 0.14);
+}
+
+.medivet-article-grid article:hover,
+.medivet-benefits article:hover,
+.medivet-review-grid article:hover,
+.card:hover,
+.med-action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 38px rgba(24, 50, 58, 0.12);
+}
+
+
+.auth-shell,
+.auth-logo-card,
+.card,
+.card-body,
+.content-card,
+.review-card,
+.contact-card,
+.price-table-card,
+.table-panel,
+.admin-users-panel,
+.chart-card,
+.chart-card--appointments,
+.appointments-overview-card,
+.med-welcome-card,
+.med-results-card,
+.med-action-card,
+.med-profile-panel,
+.med-calendar-card,
+.medivet-contact-card,
+.medivet-request-card,
+.medivet-price-panel,
+.medivet-photo-card,
+.medivet-benefits article,
+.medivet-review-grid article,
+.medivet-article-grid article,
+.guest-booking-card,
+.guest-booking-container,
+.guest-booking-notes > div,
+.appointment-create-notes > div,
+.account-settings-shell,
+.account-settings-card,
+.app-container--standard > form[method="post"],
+.action-modal-content,
+.modal-content,
+.admin-confirm-modal,
+.vet-toast {
+    background-color: #ffffff !important;
+    backdrop-filter: none !important;
+    opacity: 1 !important;
+}
+
+.app-container--client-dashboard .med-main-panel {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    backdrop-filter: none !important;
+}
+
+.page-shell,
+.page-shell > .container-fluid,
+.app-container,
+.medivet-section,
+.medivet-container,
+.guest-booking-shell,
+.guest-booking-container,
+.auth-page,
+.account-settings-shell {
+    position: relative;
+    z-index: 3;
+}
+
+.medivet-side-circles {
+    z-index: 1;
+}
+
+@media (max-width: 760px) {
+    .top-logo {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .main-landing-nav a {
+        margin: 0;
+    }
+}
+
+/* Keep login/register cards solid above the decorative background circles. */
+.auth-page {
+    position: relative;
+    z-index: 3;
+    isolation: isolate;
+}
+
+.auth-shell,
+.auth-form-panel,
+.auth-visual-panel,
+.auth-logo-card {
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+}
+
+.auth-shell,
+.auth-form-panel,
+.auth-logo-card {
+    background-color: #ffffff !important;
+}
+
+.auth-visual-panel {
+    background-color: #b6f2f2 !important;
+}
+
+/* Gentle color calibration for phone and tablet screens */
+:root {
+    --aqua: #30cfd1;
+    --teal: #1191a4;
+    --brand-soft: #dceff1;
+    --page: #e4f1f3;
+}
+
+.main-header {
+    background: rgba(216, 238, 241, 0.98);
+}
+
+.top-socials a,
+.brand-icon {
+    background: #aee7e8;
+}
+
+.medivet-side-circle-blue {
+    background: rgba(32, 197, 200, 0.10);
+}
+
+.medivet-side-circle-yellow {
+    background: rgba(238, 183, 68, 0.13);
+}
+
+.medivet-tabs button.active,
+.medivet-tabs button[aria-pressed="true"],
+.medivet-doctor-list button.active,
+.medivet-article-grid .featured,
+.medivet-article-grid .featured::before {
+    background: linear-gradient(135deg, rgba(48, 207, 209, 0.86), rgba(17, 145, 164, 0.86));
+}
+
+.medivet-service-carousel .medivet-card-active {
+    background: linear-gradient(135deg, rgba(48, 207, 209, 0.82), rgba(17, 145, 164, 0.84)) !important;
+}
+
+.medivet-price-panel th {
+    background: #ace7e8;
+}
+
+.medivet-price-panel tbody tr:nth-of-type(odd) td,
+.medivet-price-panel tbody tr:nth-of-type(odd):hover td,
+.table-pagination button:hover:not(:disabled),
+.medivet-article-grid {
+    background: #edf8f9 !important;
+}
+
+.guest-booking-shell {
+    background: linear-gradient(180deg, #f7fcfc 0%, #e6f2f4 100%);
+}
+
+@media (max-width: 1024px) {
+    body {
+        background-color: #e4f1f3;
+    }
+
+    .main-header {
+        background: rgba(216, 238, 241, 0.99) !important;
+    }
+
+    .mobile-nav-toggle,
+    .main-landing-nav {
+        background: #f6fbfc;
+    }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+    .top-clinic-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px 18px;
+    }
+
+    .top-info {
+        display: flex !important;
+        grid-column: 1 / -1;
+        justify-content: center;
+        gap: 18px;
+        font-size: 13px;
+        line-height: 1.25;
+    }
+
+    .top-info span {
+        white-space: nowrap;
+    }
+
+    .top-info-empty {
+        display: none !important;
+    }
+}
+
+#services,
+#prices,
+#articles,
+#contact {
+    scroll-margin-top: 150px;
+}
+
+@media (max-width: 760px) {
+    html,
+    body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .medivet-tab-row {
+        grid-template-columns: 38px minmax(0, 1fr) 38px;
+        gap: 8px;
+    }
+
+    .medivet-tab-row .medivet-tabs {
+        display: flex;
+        flex-wrap: nowrap;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 2px 2px 8px;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .medivet-tab-row .medivet-tabs button {
+        flex: 0 0 min(168px, 72vw);
+        scroll-snap-align: center;
+    }
+
+    .medivet-tab-row .medivet-tab-arrow {
+        width: 36px;
+        min-width: 36px;
+        height: 40px;
+        padding: 0;
+        align-self: center;
+    }
+
+    .medivet-price-layout,
+    .medivet-price-panel {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .medivet-price-panel {
+        overflow-x: auto;
+        overflow-y: visible;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .medivet-price-panel table {
+        min-width: 560px;
+    }
+
+    .medivet-price-panel::after {
+        display: none;
+    }
+
+    .medivet-service-carousel.medivet-slider-row {
+        grid-template-columns: 38px minmax(0, 1fr) 38px;
+        align-items: center;
+    }
+
+    .medivet-service-carousel .medivet-arrow {
+        display: inline-flex;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        align-self: center;
+    }
+
+    .medivet-service-window {
+        min-width: 0;
+    }
+
+    #services,
+    #prices,
+    #articles,
+    #contact {
+        scroll-margin-top: 210px;
+    }
+}
+
 
 

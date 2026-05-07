@@ -4,6 +4,7 @@
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var isClientDashboard = currentController == "Dashboard" && currentAction == "Client";
+    var hasPopupMessage = TempData["Success"] != null || TempData["Error"] != null || TempData["Warning"] != null || TempData["Message"] != null || ViewBag.Error != null;
 }
 
 <!DOCTYPE html>
@@ -26,9 +27,65 @@
         <span class="medivet-side-circle medivet-side-circle-yellow"></span>
     </div>
 
+    @if (hasPopupMessage)
+    {
+    <div class="toast-stack" aria-live="polite" aria-atomic="true">
+        @if (TempData["Success"] != null)
+        {
+            <div class="vet-toast vet-toast--success" role="status">
+                <button class="vet-toast-close" type="button" aria-label="Close notification"><i class="fa-solid fa-xmark"></i></button>
+                <i class="fa-solid fa-check"></i>
+                <strong>Success!</strong>
+                <span>@TempData["Success"]</span>
+                <button class="vet-toast-action" type="button">Continue</button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="vet-toast vet-toast--error" role="alert">
+                <button class="vet-toast-close" type="button" aria-label="Close notification"><i class="fa-solid fa-xmark"></i></button>
+                <i class="fa-solid fa-xmark"></i>
+                <strong>Error occurred!</strong>
+                <span>@TempData["Error"]</span>
+                <button class="vet-toast-action" type="button">OK</button>
+            </div>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <div class="vet-toast vet-toast--warning" role="status">
+                <button class="vet-toast-close" type="button" aria-label="Close notification"><i class="fa-solid fa-xmark"></i></button>
+                <i class="fa-solid fa-exclamation"></i>
+                <strong>Something went wrong!</strong>
+                <span>@TempData["Warning"]</span>
+                <button class="vet-toast-action" type="button">Try again</button>
+            </div>
+        }
+        @if (TempData["Message"] != null)
+        {
+            <div class="vet-toast vet-toast--info" role="status">
+                <button class="vet-toast-close" type="button" aria-label="Close notification"><i class="fa-solid fa-xmark"></i></button>
+                <i class="fa-solid fa-info"></i>
+                <strong>Notice</strong>
+                <span>@TempData["Message"]</span>
+                <button class="vet-toast-action" type="button">OK</button>
+            </div>
+        }
+        @if (ViewBag.Error != null)
+        {
+            <div class="vet-toast vet-toast--error" role="alert">
+                <button class="vet-toast-close" type="button" aria-label="Close notification"><i class="fa-solid fa-xmark"></i></button>
+                <i class="fa-solid fa-xmark"></i>
+                <strong>Error occurred!</strong>
+                <span>@ViewBag.Error</span>
+                <button class="vet-toast-action" type="button">OK</button>
+            </div>
+        }
+    </div>
+    }
+
     <header class="main-header">
         <div class="top-clinic-bar">
-            <div class="top-logo">
+            <a class="top-logo" asp-controller="Home" asp-action="Index" aria-label="Go to Thrive home page">
                 <span class="brand-icon">
                     <img src="~/images/site/thrive-logo.png" asp-append-version="true" alt="Thrive Animal Specialist and Grooming Hub logo" />
                 </span>
@@ -36,7 +93,7 @@
                     <strong>Thrive</strong>
                     <small>Animal Specialist & Grooming Hub</small>
                 </div>
-            </div>
+            </a>
 
             @if (roleId == null)
             {
@@ -58,7 +115,12 @@
             </div>
         </div>
 
-        <nav class="main-landing-nav">
+        <button class="mobile-nav-toggle" type="button" aria-controls="mainNavigation" aria-expanded="false">
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            <span>Menu</span>
+        </button>
+
+        <nav class="main-landing-nav" id="mainNavigation">
             @if (roleId == 1)
             {
                     <a asp-controller="Dashboard" asp-action="Admin">Dashboard</a>
@@ -99,12 +161,10 @@
             else
             {
                     <a asp-controller="Home" asp-action="Index">Home</a>
-                    <a href="/#services">Services</a>
+                    <a asp-controller="Home" asp-action="Index" asp-fragment="services">Services</a>
                     <a href="/#prices">Prices</a>
-                    <a href="/#specialists">Specialists</a>
                     <a asp-controller="Appointments" asp-action="GuestCreate">Book Surgery</a>
                     <a href="/#articles">Articles</a>
-                    <a href="/#gallery">Gallery</a>
                     <a href="/#contact">Contact</a>
                     <a asp-controller="Account" asp-action="Login">Login</a>
                     <a asp-controller="Account" asp-action="Register">Register</a>
@@ -136,6 +196,37 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".vet-toast").forEach(function (toast) {
+                const dismiss = function () {
+                    toast.classList.add("is-hiding");
+                    window.setTimeout(function () {
+                        const stack = toast.closest(".toast-stack");
+                        toast.remove();
+                        if (stack && !stack.querySelector(".vet-toast")) {
+                            stack.remove();
+                        }
+                    }, 220);
+                };
+
+                toast.querySelectorAll("button").forEach(function (button) {
+                    button.addEventListener("click", dismiss);
+                });
+            });
+
+            document.querySelectorAll(".toast-stack").forEach(function (stack) {
+                stack.addEventListener("click", function (event) {
+                    if (event.target === stack) {
+                        const toast = stack.querySelector(".vet-toast");
+                        if (toast) {
+                            toast.querySelector("button")?.click();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

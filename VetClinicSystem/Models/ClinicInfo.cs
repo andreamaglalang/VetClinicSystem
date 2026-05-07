@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using VetClinicSystem.Helpers;
 
 namespace VetClinicSystem.Models;
 
@@ -19,6 +20,7 @@ public partial class ClinicInfo
     public string? Address { get; set; }
 
     [StringLength(20)]
+    [PhilippineMobileNumber]
     public string? ContactNumber { get; set; }
 
     [StringLength(100)]

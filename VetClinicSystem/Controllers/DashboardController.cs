@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using VetClinicSystem.Models;
 using VetClinicSystem.Services.Appointments;
 using VetClinicSystem.Services.MedicalRecords;
 using VetClinicSystem.Services.Notifications;
@@ -17,6 +18,7 @@ namespace VetClinicSystem.Controllers
         private readonly IUserService _userService;
         private readonly IVaccinationService _vaccinationService;
         private readonly IMedicalRecordService _medicalRecordService;
+        private readonly VetClinicDbContext _context;
 
         public DashboardController(
             IPetService petService,
@@ -24,7 +26,8 @@ namespace VetClinicSystem.Controllers
             INotificationService notificationService,
             IUserService userService,
             IVaccinationService vaccinationService,
-            IMedicalRecordService medicalRecordService)
+            IMedicalRecordService medicalRecordService,
+            VetClinicDbContext context)
         {
             _petService = petService;
             _appointmentService = appointmentService;
@@ -32,6 +35,7 @@ namespace VetClinicSystem.Controllers
             _userService = userService;
             _vaccinationService = vaccinationService;
             _medicalRecordService = medicalRecordService;
+            _context = context;
         }
 
         public IActionResult Admin()
@@ -62,6 +66,60 @@ namespace VetClinicSystem.Controllers
             ViewBag.ChartData = JsonSerializer.Serialize(grouped.Select(x => x.Count));
 
             return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeactivateUser(int id)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            if (id == currentUserId.Value)
+            {
+                TempData["Error"] = "You cannot deactivate your own account.";
+                return RedirectToAction("Admin");
+            }
+
+            var user = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (user == null)
+            {
+                TempData["Error"] = "User account was not found.";
+                return RedirectToAction("Admin");
+            }
+
+            user.IsActive = false;
+            _context.SaveChanges();
+
+            TempData["Success"] = "User account deactivated successfully.";
+            return RedirectToAction("Admin");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RestoreUser(int id)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            var user = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (user == null)
+            {
+                TempData["Error"] = "User account was not found.";
+                return RedirectToAction("Admin");
+            }
+
+            user.IsActive = true;
+            _context.SaveChanges();
+
+            TempData["Success"] = "User account restored successfully.";
+            return RedirectToAction("Admin");
         }
 
         public IActionResult Staff()

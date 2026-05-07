@@ -2,15 +2,13 @@
 
 <h2>Delete Pet</h2>
 
-<div class="alert alert-danger">Are you sure you want to delete this pet?</div>
-
 <table class="table table-bordered">
     <tr><th>Pet Name</th><td>@Model.PetName</td></tr>
     <tr><th>Species</th><td>@Model.Species</td></tr>
     <tr><th>Breed</th><td>@Model.Breed</td></tr>
 </table>
 
-<form method="post">
+<form method="post" data-confirm-message="Are you sure you want to delete this pet?">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <button type="submit" class="btn btn-danger">Delete</button>

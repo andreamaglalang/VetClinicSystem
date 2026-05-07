@@ -21,7 +21,7 @@
 
     <div class="mb-3">
         <label asp-for="ContactNumber"></label>
-        <input asp-for="ContactNumber" class="form-control" />
+        <input asp-for="ContactNumber" class="form-control" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="14" pattern="09[0-9\s-]{9,12}" title="Enter an 11-digit mobile number starting with 09." />
         <span asp-validation-for="ContactNumber" class="text-danger"></span>
     </div>
 

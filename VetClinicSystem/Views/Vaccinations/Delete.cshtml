@@ -2,13 +2,11 @@
 
 <h2>Delete Vaccination</h2>
 
-<div class="alert alert-danger">Are you sure you want to delete this vaccination record?</div>
-
 <table class="table table-bordered">
     <tr><th>Vaccine</th><td>@Model.VaccineName</td></tr>
 </table>
 
-<form method="post">
+<form method="post" data-confirm-message="Are you sure you want to delete this vaccination record?">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <button type="submit" class="btn btn-danger">Delete</button>

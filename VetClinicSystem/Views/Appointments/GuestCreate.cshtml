@@ -12,16 +12,6 @@
             <p>Share your contact and pet details so the clinic can confirm the surgery schedule with you.</p>
         </div>
 
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success">@TempData["Success"]</div>
-        }
-
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">@TempData["Error"]</div>
-        }
-
         <form method="post" class="guest-booking-card">
             @Html.AntiForgeryToken()
 
@@ -64,7 +54,7 @@
                 </div>
                 <div class="col-md-6">
                     <label asp-for="ContactNumber"></label>
-                    <input asp-for="ContactNumber" class="form-control" />
+                        <input asp-for="ContactNumber" class="form-control" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="14" pattern="09[0-9\s-]{9,12}" title="Enter an 11-digit mobile number starting with 09." />
                     <span asp-validation-for="ContactNumber" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">

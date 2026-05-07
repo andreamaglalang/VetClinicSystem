@@ -9,11 +9,6 @@
             <h2>Register</h2>
             <p class="auth-subtitle">Create your client account to manage pets and appointments.</p>
 
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger">@ViewBag.Error</div>
-            }
-
             <form method="post">
                 <div class="auth-grid">
                     <div class="mb-3">
@@ -43,7 +38,11 @@
 
                     <div class="mb-3">
                         <label class="form-label">Contact Number</label>
-                        <input type="text" name="contactNumber" class="form-control auth-input" />
+                        <input type="tel" name="contactNumber" class="form-control auth-input" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="14" pattern="09[0-9\s-]{9,12}" title="Enter an 11-digit mobile number starting with 09." />
+                        @if (ViewBag.ContactNumberError != null)
+                        {
+                            <span class="text-danger">@ViewBag.ContactNumberError</span>
+                        }
                     </div>
                 </div>
 

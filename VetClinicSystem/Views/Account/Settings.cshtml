@@ -11,11 +11,6 @@
         <h1>Account Settings</h1>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
-
     <div class="account-settings-card">
         <form asp-action="Settings" asp-controller="Account" method="post">
             @Html.AntiForgeryToken()
@@ -46,7 +41,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">Contact Number</label>
-                    <input type="tel" name="ContactNumber" class="form-control" value="@ViewBag.ContactNumber" placeholder="09XXXXXXXXX" />
+                    <input type="tel" name="ContactNumber" class="form-control" value="@ViewBag.ContactNumber" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="14" pattern="09[0-9\s-]{9,12}" title="Enter an 11-digit mobile number starting with 09." />
                     @if (ViewBag.ContactNumberError != null)
                     {
                         <span class="text-danger">@ViewBag.ContactNumberError</span>
@@ -101,6 +96,17 @@
             <button type="submit" class="btn btn-primary">Save Changes</button>
             <a asp-controller="Dashboard" asp-action="@dashboardAction" class="btn btn-outline-secondary">Back</a>
         </form>
+
+        <section class="account-danger-zone" aria-labelledby="dangerZoneTitle">
+            <div>
+                <h4 id="dangerZoneTitle">Danger Zone</h4>
+                <p>Deactivate your account without removing your clinic records, pets, appointments, medical records, vaccinations, or notifications.</p>
+            </div>
+            <form asp-action="Deactivate" asp-controller="Account" method="post" onsubmit="return confirm('Are you sure you want to deactivate your account? You will no longer be able to login, but your clinic records will remain saved.');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger">Deactivate Account</button>
+            </form>
+        </section>
     </div>
 </section>
 

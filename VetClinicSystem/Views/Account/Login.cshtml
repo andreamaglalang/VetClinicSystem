@@ -9,16 +9,6 @@
             <h2>Sign in</h2>
             <p class="auth-subtitle">Access your Thrive Animal Specialist & Grooming Hub account.</p>
 
-            @if (TempData["Success"] != null)
-            {
-                    <div class="alert alert-success">@TempData["Success"]</div>
-            }
-
-            @if (ViewBag.Error != null)
-            {
-                    <div class="alert alert-danger">@ViewBag.Error</div>
-            }
-
             <form method="post">
                 <div class="mb-3">
                     <label class="form-label">Username</label>

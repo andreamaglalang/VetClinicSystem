@@ -1,7 +1,7 @@
 @{
     ViewData["Title"] = "Home";
 }
-
+    
 <section class="medivet-hero" id="home">
     <div class="medivet-container medivet-hero-grid">
         <div class="medivet-hero-copy">
@@ -17,7 +17,7 @@
             <img src="~/images/site/dog-cat-doctors.png" asp-append-version="true" alt="Corgi dressed as a veterinary doctor" />
         </div>
     </div>
-</section>
+</section>  
 
 <section class="medivet-section medivet-wave-top" id="services">
     <div class="medivet-container">
@@ -89,15 +89,15 @@
         <h2>Prices</h2>
         <div class="medivet-tab-row">
             <button class="medivet-tab-arrow" type="button" aria-label="Previous price category" data-tab-prev><i class="fa-solid fa-chevron-left"></i></button>
-            <div class="medivet-tabs" id="priceTabs">
-                <button class="active" type="button" data-price-tab="consultation">Consultation</button>
-                <button type="button" data-price-tab="supplies">Pet Supplies</button>
-                <button type="button" data-price-tab="boarding">Pet Boarding</button>
-                <button type="button" data-price-tab="grooming">Pet Grooming</button>
-                <button type="button" data-price-tab="tests">Basic Test</button>
-                <button type="button" data-price-tab="vaccination">Vaccination</button>
-                <button type="button" data-price-tab="confinement">Confinement</button>
-                <button type="button" data-price-tab="surgery">Surgery</button>
+            <div class="medivet-tabs" id="priceTabs" role="group" aria-label="Price categories">
+                <button class="active" type="button" data-price-tab="consultation" aria-pressed="true">Consultation</button>
+                <button type="button" data-price-tab="supplies" aria-pressed="false">Pet Supplies</button>
+                <button type="button" data-price-tab="boarding" aria-pressed="false">Pet Boarding</button>
+                <button type="button" data-price-tab="grooming" aria-pressed="false">Pet Grooming</button>
+                <button type="button" data-price-tab="tests" aria-pressed="false">Basic Test</button>
+                <button type="button" data-price-tab="vaccination" aria-pressed="false">Vaccination</button>
+                <button type="button" data-price-tab="confinement" aria-pressed="false">Confinement</button>
+                <button type="button" data-price-tab="surgery" aria-pressed="false">Surgery</button>
             </div>
             <button class="medivet-tab-arrow" type="button" aria-label="Next price category" data-tab-next><i class="fa-solid fa-chevron-right"></i></button>
         </div>
@@ -131,58 +131,6 @@
     </div>
 </section>
 
-<section class="medivet-section" id="specialists">
-    <div class="medivet-container">
-        <h2>Our Specialists</h2>
-        <div class="medivet-tab-row">
-            <button class="medivet-tab-arrow" type="button" aria-label="Previous specialist category" data-tab-prev><i class="fa-solid fa-chevron-left"></i></button>
-            <div class="medivet-tabs" id="specialistTabs">
-                <button class="active" type="button" data-specialist-tab="0">General Care</button>
-                <button type="button" data-specialist-tab="1">Surgery</button>
-                <button type="button" data-specialist-tab="2">Grooming</button>
-                <button type="button" data-specialist-tab="3">Boarding</button>
-            </div>
-            <button class="medivet-tab-arrow" type="button" aria-label="Next specialist category" data-tab-next><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-
-        <div class="medivet-specialist-layout">
-            <div class="medivet-doctor-list">
-                <button class="active" type="button" data-specialist-button="0">
-                    <img src="~/images/site/diagnostic-care.jpg" asp-append-version="true" alt="Veterinary specialist" />
-                    <span><strong>Veterinarian</strong><small>Consultation and vaccination</small></span>
-                </button>
-                <button type="button" data-specialist-button="1">
-                    <img src="~/images/site/vet-ultrasound-dog.jpg" asp-append-version="true" alt="Surgery specialist" />
-                    <span><strong>Surgery Team</strong><small>Scheduled procedures</small></span>
-                </button>
-                <button type="button" data-specialist-button="2">
-                    <img src="~/images/site/pet-grooming.jpg" asp-append-version="true" alt="Dental specialist" />
-                    <span><strong>Grooming Staff</strong><small>Coat and comfort care</small></span>
-                </button>
-                <button type="button" data-specialist-button="3">
-                    <img src="~/images/site/cat-exam.jpg" asp-append-version="true" alt="Boarding staff" />
-                    <span><strong>Clinic Staff</strong><small>Boarding and confinement</small></span>
-                </button>
-            </div>
-
-            <img class="medivet-specialist-photo" id="specialistPhoto" src="~/images/site/diagnostic-care.jpg" asp-append-version="true" alt="Veterinarian with a dog" />
-
-            <div class="medivet-specialist-copy">
-                <h3 id="specialistName">Veterinarian</h3>
-                <p id="specialistDescription">Experienced animal care specialist with a focus on prevention, consultation, diagnostics, and long-term pet wellness.</p>
-                <h4>Specialization</h4>
-                <ul id="specialistSkills">
-                    <li>Therapy</li>
-                    <li>Vaccination</li>
-                    <li>Preventive care</li>
-                    <li>Small pet consultation</li>
-                </ul>
-                <a asp-controller="Appointments" asp-action="GuestCreate" class="btn btn-vet-primary">Book Surgery</a>
-            </div>
-        </div>
-    </div>
-</section>
-
 <section class="medivet-band" id="why">
     <div class="medivet-container">
         <h2>Why Choose Us</h2>
@@ -192,22 +140,6 @@
             <article><i class="fa-solid fa-house-medical"></i><h3>All in One Place</h3><p>Walk-in services, surgery appointments, and pet records.</p></article>
             <article><i class="fa-solid fa-microscope"></i><h3>Clinical Excellence</h3><p>Reliable diagnostics and practical treatment planning.</p></article>
         </div>
-    </div>
-</section>
-
-<section class="medivet-section" id="gallery">
-    <div class="medivet-container">
-        <h2>Photo Gallery</h2>
-        <div class="medivet-gallery-strip">
-            <button class="medivet-arrow" type="button" aria-label="Previous gallery image" data-gallery-prev><i class="fa-solid fa-chevron-left"></i></button>
-            <img data-gallery-image src="~/images/site/gallery-1.png" asp-append-version="true" alt="Clinic gallery photo 1" />
-            <img data-gallery-image src="~/images/site/gallery-2.png" asp-append-version="true" alt="Clinic gallery photo 2" />
-            <img data-gallery-image src="~/images/site/gallery-3.png" asp-append-version="true" alt="Clinic gallery photo 3" />
-            <img data-gallery-image src="~/images/site/gallery-4.png" asp-append-version="true" alt="Clinic gallery photo 4" />
-            <img data-gallery-image src="~/images/site/gallery-5.png" asp-append-version="true" alt="Clinic gallery photo 5" />
-            <button class="medivet-arrow" type="button" aria-label="Next gallery image" data-gallery-next><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-        <div class="medivet-dots" id="galleryDots" aria-label="Gallery position"></div>
     </div>
 </section>
 
@@ -228,12 +160,12 @@
         <h2>Useful Articles</h2>
         <div class="medivet-tab-row">
             <button class="medivet-tab-arrow" type="button" aria-label="Previous article category" data-tab-prev><i class="fa-solid fa-chevron-left"></i></button>
-            <div class="medivet-tabs" id="articleTabs">
-                <button class="active" type="button" data-article-tab="therapy">Therapy</button>
-                <button type="button" data-article-tab="care">Care</button>
-                <button type="button" data-article-tab="nutrition">Nutrition</button>
-                <button type="button" data-article-tab="vaccination">Vaccination</button>
-                <button type="button" data-article-tab="behavior">Behavior</button>
+            <div class="medivet-tabs" id="articleTabs" role="group" aria-label="Article categories">
+                <button class="active" type="button" data-article-tab="therapy" aria-pressed="true">Therapy</button>
+                <button type="button" data-article-tab="care" aria-pressed="false">Care</button>
+                <button type="button" data-article-tab="nutrition" aria-pressed="false">Nutrition</button>
+                <button type="button" data-article-tab="vaccination" aria-pressed="false">Vaccination</button>
+                <button type="button" data-article-tab="behavior" aria-pressed="false">Behavior</button>
             </div>
             <button class="medivet-tab-arrow" type="button" aria-label="Next article category" data-tab-next><i class="fa-solid fa-chevron-right"></i></button>
         </div>
@@ -281,7 +213,7 @@
                 <form data-service-request-form>
                     <div class="medivet-form-row">
                         <input class="form-control" name="ownerName" placeholder="Your name" autocomplete="name" required />
-                        <input class="form-control" name="contactNumber" placeholder="Phone" autocomplete="tel" required />
+                        <input class="form-control" name="contactNumber" placeholder="09XXXXXXXXX" autocomplete="tel" inputmode="numeric" maxlength="14" pattern="09[0-9\s-]{9,12}" title="Enter an 11-digit mobile number starting with 09." required />
                     </div>
                     <select class="form-control" name="serviceName" required data-service-request-select>
                         <option value="">Select service</option>
@@ -449,7 +381,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function setActiveButton(buttons, activeButton) {
         buttons.forEach(function (button) {
-            button.classList.toggle("active", button === activeButton);
+            const isActive = button === activeButton;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+    }
+
+    function setupToggleKeyboard(container) {
+        const buttons = Array.from(container.querySelectorAll("button"));
+        if (!buttons.length) return;
+
+        buttons.forEach(function (button) {
+            button.addEventListener("keydown", function (event) {
+                if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+
+                event.preventDefault();
+
+                const activeIndex = Math.max(0, buttons.findIndex(function (item) {
+                    return item.classList.contains("active");
+                }));
+                const direction = event.key === "ArrowRight" ? 1 : -1;
+                const nextIndex = (activeIndex + direction + buttons.length) % buttons.length;
+
+                buttons[nextIndex].focus();
+                buttons[nextIndex].click();
+            });
         });
     }
 
@@ -652,6 +608,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const data = galleryData[(currentIndex + offset) % galleryData.length];
                 image.src = imageBase + data.src;
                 image.alt = data.alt;
+                image.classList.toggle("active", offset === Math.floor(images.length / 2));
             });
 
             Array.from(dots.children).forEach(function (dot, index) {
@@ -756,20 +713,36 @@ document.addEventListener("DOMContentLoaded", function () {
         const rows = Array.from(document.querySelectorAll(".medivet-tab-row"));
 
         rows.forEach(function (row) {
+            const tabContainer = row.querySelector(".medivet-tabs");
             const tabs = Array.from(row.querySelectorAll(".medivet-tabs button"));
             const previousButton = row.querySelector("[data-tab-prev]");
             const nextButton = row.querySelector("[data-tab-next]");
 
             if (!tabs.length || !previousButton || !nextButton) return;
 
+            if (tabContainer) {
+                setupToggleKeyboard(tabContainer);
+            }
+
             function move(direction) {
                 const activeIndex = Math.max(0, tabs.findIndex(function (tab) {
                     return tab.classList.contains("active");
                 }));
                 const nextIndex = (activeIndex + direction + tabs.length) % tabs.length;
+                const nextTab = tabs[nextIndex];
 
-                tabs[nextIndex].click();
-                tabs[nextIndex].scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                nextTab.click();
+
+                if (!tabContainer) return;
+
+                const containerRect = tabContainer.getBoundingClientRect();
+                const tabRect = nextTab.getBoundingClientRect();
+                const targetLeft = tabContainer.scrollLeft
+                    + (tabRect.left - containerRect.left)
+                    - (containerRect.width / 2)
+                    + (tabRect.width / 2);
+
+                tabContainer.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
             }
 
             previousButton.addEventListener("click", function () {
@@ -784,8 +757,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     setupServiceCarousel();
     setupPriceTabs();
-    setupSpecialists();
-    setupGallery();
     setupArticles();
     setupServiceRequestForm();
     setupTabArrows();

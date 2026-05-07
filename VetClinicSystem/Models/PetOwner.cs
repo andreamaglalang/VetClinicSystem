@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using VetClinicSystem.Helpers;
 
 namespace VetClinicSystem.Models;
 
@@ -21,6 +22,7 @@ public partial class PetOwner
     public string LastName { get; set; } = null!;
 
     [StringLength(20)]
+    [PhilippineMobileNumber]
     public string ContactNumber { get; set; } = null!;
 
     [StringLength(255)]

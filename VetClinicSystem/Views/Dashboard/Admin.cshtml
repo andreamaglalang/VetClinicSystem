@@ -1,6 +1,7 @@
 @{
     ViewData["Title"] = "Admin Dashboard";
     var users = ViewBag.Users as List<VetClinicSystem.Models.User> ?? new List<VetClinicSystem.Models.User>();
+    var currentUserId = Context.Session.GetInt32("UserId");
 }
 
 <h2 class="mb-4">Admin Dashboard</h2>
@@ -70,6 +71,7 @@
                         <th>Role</th>
                         <th>Status</th>
                         <th>Date Created</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -95,6 +97,28 @@
                             }
                         </td>
                         <td>@user.DateCreated.ToString("MMM d, yyyy")</td>
+                        <td>
+                            @if (user.Id == currentUserId)
+                            {
+                                <span class="text-muted">Current account</span>
+                            }
+                            else if (user.IsActive)
+                            {
+                                <form asp-action="DeactivateUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to deactivate this user account?">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Deactivate</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="RestoreUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to restore this user account?">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    <button type="submit" class="btn btn-success btn-sm">Restore</button>
+                                </form>
+                            }
+                        </td>
                     </tr>
                 }
                 </tbody>
@@ -102,6 +126,21 @@
         </div>
     }
 </section>
+
+<div class="admin-confirm-overlay" id="adminUserConfirmOverlay" hidden>
+    <div class="admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="adminUserConfirmTitle">
+        <button type="button" class="admin-confirm-close" data-admin-confirm-cancel aria-label="Close confirmation">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <span class="admin-confirm-icon"><i class="fa-solid fa-exclamation"></i></span>
+        <h3 id="adminUserConfirmTitle">Confirm Action</h3>
+        <p id="adminUserConfirmMessage"></p>
+        <div class="admin-confirm-actions">
+            <button type="button" class="btn btn-danger" data-admin-confirm-submit>Confirm</button>
+            <button type="button" class="btn btn-outline-secondary" data-admin-confirm-cancel>Cancel</button>
+        </div>
+    </div>
+</div>
 
 <hr />
 
@@ -115,6 +154,50 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
         <script>
+            const confirmOverlay = document.getElementById("adminUserConfirmOverlay");
+            const confirmMessage = document.getElementById("adminUserConfirmMessage");
+            const confirmSubmit = document.querySelector("[data-admin-confirm-submit]");
+            let pendingUserActionForm = null;
+
+            document.querySelectorAll("[data-admin-user-confirm]").forEach(function (form) {
+                form.addEventListener("submit", function (event) {
+                    if (form.dataset.confirmed === "true") {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    pendingUserActionForm = form;
+                    confirmMessage.textContent = form.dataset.adminUserConfirm;
+                    confirmOverlay.hidden = false;
+                    confirmSubmit.focus();
+                });
+            });
+
+            document.querySelectorAll("[data-admin-confirm-cancel]").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    confirmOverlay.hidden = true;
+                    pendingUserActionForm = null;
+                });
+            });
+
+            if (confirmOverlay) {
+                confirmOverlay.addEventListener("click", function (event) {
+                    if (event.target === confirmOverlay) {
+                        confirmOverlay.hidden = true;
+                        pendingUserActionForm = null;
+                    }
+                });
+            }
+
+            if (confirmSubmit) {
+                confirmSubmit.addEventListener("click", function () {
+                    if (!pendingUserActionForm) return;
+
+                    pendingUserActionForm.dataset.confirmed = "true";
+                    pendingUserActionForm.requestSubmit();
+                });
+            }
+
             var labels = @Html.Raw(ViewBag.ChartLabels);
             var data = @Html.Raw(ViewBag.ChartData);
 

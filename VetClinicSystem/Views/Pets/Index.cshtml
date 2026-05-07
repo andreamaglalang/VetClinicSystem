@@ -6,16 +6,6 @@
 
 <h2>Pets</h2>
 
-@if (TempData["Success"] != null)
-{
-        <div class="alert alert-success">@TempData["Success"]</div>
-}
-
-@if (TempData["Error"] != null)
-{
-        <div class="alert alert-danger">@TempData["Error"]</div>
-}
-
 <form method="get" asp-action="Index" class="mb-3">
     <div class="row">
         <div class="col-md-6">

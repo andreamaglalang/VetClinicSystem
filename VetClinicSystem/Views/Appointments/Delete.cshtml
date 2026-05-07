@@ -2,14 +2,12 @@
 
 <h2>Cancel Appointment</h2>
 
-<div class="alert alert-danger">Are you sure you want to cancel this appointment?</div>
-
 <table class="table table-bordered">
     <tr><th>Date</th><td>@Model.AppointmentDate</td></tr>
     <tr><th>Time</th><td>@Model.AppointmentTime</td></tr>
 </table>
 
-<form method="post">
+<form method="post" data-confirm-message="Are you sure you want to cancel this appointment?">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <button type="submit" class="btn btn-danger">Cancel Appointment</button>

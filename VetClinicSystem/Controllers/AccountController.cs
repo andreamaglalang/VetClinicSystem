@@ -42,6 +42,14 @@ namespace VetClinicSystem.Controllers
         [HttpPost]
         public IActionResult Login(string username, string password)
         {
+            var existingUser = _context.Users.FirstOrDefault(x => x.Username == username);
+
+            if (existingUser != null && !existingUser.IsActive)
+            {
+                ViewBag.Error = "Your account has been deactivated. Please contact the clinic.";
+                return View();
+            }
+
             var user = _userService.Login(username, password);
 
             if (user == null)
@@ -82,6 +90,14 @@ namespace VetClinicSystem.Controllers
             string contactNumber,
             string address)
         {
+            contactNumber = PhoneNumberHelper.Normalize(contactNumber);
+
+            if (!PhoneNumberHelper.IsValidPhilippineMobileNumber(contactNumber))
+            {
+                ViewBag.ContactNumberError = PhoneNumberHelper.ValidationMessage;
+                return View();
+            }
+
             var success = _userService.Register(username, email, password, firstName, lastName, contactNumber, address);
 
             if (!success)
@@ -149,9 +165,11 @@ namespace VetClinicSystem.Controllers
                     hasValidationError = true;
                 }
 
-                if (string.IsNullOrWhiteSpace(contactNumber) || !IsValidPhilippineMobileNumber(contactNumber))
+                contactNumber = PhoneNumberHelper.Normalize(contactNumber);
+
+                if (!PhoneNumberHelper.IsValidPhilippineMobileNumber(contactNumber))
                 {
-                    ViewBag.ContactNumberError = "Please enter a valid 11-digit mobile number starting with 09.";
+                    ViewBag.ContactNumberError = PhoneNumberHelper.ValidationMessage;
                     hasValidationError = true;
                 }
             }
@@ -264,6 +282,28 @@ namespace VetClinicSystem.Controllers
             return RedirectToAction("Settings");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Deactivate()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+                return RedirectToAction("Login");
+
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId.Value);
+
+            if (user == null)
+                return RedirectToAction("Login");
+
+            user.IsActive = false;
+            _context.SaveChanges();
+
+            HttpContext.Session.Clear();
+
+            return RedirectToAction("Login");
+        }
+
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
@@ -285,11 +325,6 @@ namespace VetClinicSystem.Controllers
                 password.Any(char.IsLower) &&
                 password.Any(char.IsDigit) &&
                 password.Any(ch => !char.IsLetterOrDigit(ch));
-        }
-
-        private static bool IsValidPhilippineMobileNumber(string contactNumber)
-        {
-            return Regex.IsMatch(contactNumber.Trim(), @"^09\d{9}$");
         }
 
         private void PrepareSettingsViewData(int userId, string? firstName = null, string? lastName = null, string? contactNumber = null)

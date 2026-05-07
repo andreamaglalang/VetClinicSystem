@@ -3,16 +3,6 @@
 <h2>Medical Records</h2>
 <p class="text-muted">Chronological treatment history, newest records first.</p>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-
 <p>
     <a asp-action="Create" class="btn btn-primary">Add Record</a>
 </p>

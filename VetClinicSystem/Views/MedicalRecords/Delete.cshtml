@@ -2,13 +2,11 @@
 
 <h2>Delete Medical Record</h2>
 
-<div class="alert alert-danger">Are you sure you want to delete this medical record?</div>
-
 <table class="table table-bordered">
     <tr><th>Diagnosis</th><td>@Model.Diagnosis</td></tr>
 </table>
 
-<form method="post">
+<form method="post" data-confirm-message="Are you sure you want to delete this medical record?">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <button type="submit" class="btn btn-danger">Delete</button>
