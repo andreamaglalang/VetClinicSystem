@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Appointments";
+    var roleId = Context.Session.GetInt32("RoleId");
+    var isClient = roleId == 3;
 }
 
 <h2>Appointments</h2>
@@ -49,6 +51,8 @@
         @foreach (var item in Model)
         {
             var statusName = item.Status?.StatusName ?? "Unknown";
+            var appointmentDateTime = item.AppointmentDate.ToDateTime(item.AppointmentTime);
+            var canChangeAppointment = !isClient || appointmentDateTime >= DateTime.Now.AddDays(1);
             var statusClass = statusName.ToLowerInvariant() switch
             {
                 "approved" or "completed" or "confirmed" => "status-pill--success",
@@ -70,14 +74,26 @@
                         <a asp-action="Details" asp-route-id="@item.Id" class="table-action-icon table-action-icon--details" title="Details" aria-label="View appointment details">
                             <i class="fa-solid fa-eye"></i>
                         </a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="table-action-icon table-action-icon--edit" title="Edit" aria-label="Edit appointment">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--delete" title="Cancel appointment" aria-label="Cancel appointment">
-                            <i class="fa-solid fa-calendar-xmark"></i>
-                        </a>
+                        @if (canChangeAppointment)
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="table-action-icon table-action-icon--edit" title="Edit" aria-label="Edit appointment">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--delete" title="Cancel appointment" aria-label="Cancel appointment">
+                                <i class="fa-solid fa-calendar-xmark"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="table-action-icon table-action-icon--edit table-action-icon--disabled" title="Appointments can only be edited at least 1 day before the scheduled visit." aria-label="Edit unavailable">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </span>
+                            <span class="table-action-icon table-action-icon--delete table-action-icon--disabled" title="Appointments can only be cancelled at least 1 day before the scheduled visit." aria-label="Cancel unavailable">
+                                <i class="fa-solid fa-calendar-xmark"></i>
+                            </span>
+                        }
 
-                        @if (Context.Session.GetInt32("RoleId") == 1 || Context.Session.GetInt32("RoleId") == 2)
+                        @if (roleId == 1 || roleId == 2)
                         {
                                 <a asp-action="Approve" asp-route-id="@item.Id" class="table-action-icon table-action-icon--approve" title="Approve" aria-label="Approve appointment">
                                     <i class="fa-solid fa-check"></i>
