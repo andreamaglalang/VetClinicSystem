@@ -53,6 +53,8 @@ builder.Services.AddScoped<IClinicService, ClinicService>();
 
 var app = builder.Build();
 
+EnsureUserSettingsColumns(app);
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -86,3 +88,22 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+static void EnsureUserSettingsColumns(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<VetClinicDbContext>();
+
+    context.Database.ExecuteSqlRaw(@"
+IF COL_LENGTH('Users', 'MustChangePassword') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD MustChangePassword BIT NOT NULL DEFAULT 0;
+END
+
+IF COL_LENGTH('Users', 'LastPasswordChange') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD LastPasswordChange DATETIME NULL;
+END");
+}

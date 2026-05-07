@@ -28,6 +28,10 @@ public partial class User
 
     public bool IsGuest { get; set; }
 
+    public bool MustChangePassword { get; set; }
+
+    public DateTime? LastPasswordChange { get; set; }
+
     [Column(TypeName = "datetime")]
     public DateTime DateCreated { get; set; }
 

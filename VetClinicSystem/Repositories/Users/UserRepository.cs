@@ -1,4 +1,5 @@
-﻿using VetClinicSystem.Models;
+using Microsoft.EntityFrameworkCore;
+using VetClinicSystem.Models;
 
 namespace VetClinicSystem.Repositories.Users
 {
@@ -33,7 +34,12 @@ namespace VetClinicSystem.Repositories.Users
 
         public List<User> GetAll()
         {
-            return _context.Users.ToList();
+            return _context.Users
+                .Include(x => x.Role)
+                .Include(x => x.PetOwner)
+                .OrderBy(x => x.Role.RoleName)
+                .ThenBy(x => x.Username)
+                .ToList();
         }
 
         public void Add(User user)

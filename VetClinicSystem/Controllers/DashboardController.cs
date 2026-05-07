@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using VetClinicSystem.Services.Appointments;
+using VetClinicSystem.Services.MedicalRecords;
 using VetClinicSystem.Services.Notifications;
 using VetClinicSystem.Services.Pets;
 using VetClinicSystem.Services.Users;
+using VetClinicSystem.Services.Vaccinations;
 
 namespace VetClinicSystem.Controllers
 {
@@ -13,17 +15,23 @@ namespace VetClinicSystem.Controllers
         private readonly IAppointmentService _appointmentService;
         private readonly INotificationService _notificationService;
         private readonly IUserService _userService;
+        private readonly IVaccinationService _vaccinationService;
+        private readonly IMedicalRecordService _medicalRecordService;
 
         public DashboardController(
             IPetService petService,
             IAppointmentService appointmentService,
             INotificationService notificationService,
-            IUserService userService)
+            IUserService userService,
+            IVaccinationService vaccinationService,
+            IMedicalRecordService medicalRecordService)
         {
             _petService = petService;
             _appointmentService = appointmentService;
             _notificationService = notificationService;
             _userService = userService;
+            _vaccinationService = vaccinationService;
+            _medicalRecordService = medicalRecordService;
         }
 
         public IActionResult Admin()
@@ -32,10 +40,12 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Login", "Account");
 
             var appointments = _appointmentService.GetAll();
+            var users = _userService.GetAll();
 
             ViewBag.TotalPets = _petService.GetAll().Count;
             ViewBag.TotalAppointments = appointments.Count;
-            ViewBag.TotalUsers = _userService.GetAll().Count;
+            ViewBag.TotalUsers = users.Count;
+            ViewBag.Users = users;
             ViewBag.UnreadNotifications = _notificationService.GetUnread().Count;
 
             var grouped = appointments
@@ -76,11 +86,33 @@ namespace VetClinicSystem.Controllers
             var appointments = _appointmentService.GetByUser(userId.Value);
             var user = _userService.GetById(userId.Value);
             var petOwner = _userService.GetPetOwnerByUserId(userId.Value);
+            var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+            var todayDate = DateOnly.FromDateTime(DateTime.Today);
 
             ViewBag.TotalPets = _petService.GetByUser(userId.Value).Count;
             ViewBag.TotalAppointments = appointments.Count;
             ViewBag.CurrentUser = user;
             ViewBag.PetOwner = petOwner;
+            ViewBag.UpcomingReminders = appointments
+                .Where(x => x.AppointmentDate >= todayDate && x.AppointmentDate <= todayDate.AddDays(2))
+                .OrderBy(x => x.AppointmentDate)
+                .ThenBy(x => x.AppointmentTime)
+                .Take(3)
+                .ToList();
+            ViewBag.FollowUpAppointments = appointments
+                .Where(x => x.Status?.StatusName == "Completed")
+                .OrderByDescending(x => x.AppointmentDate)
+                .Take(2)
+                .ToList();
+            ViewBag.OverdueVaccinations = _vaccinationService.GetAll()
+                .Where(x => myPetIds.Contains(x.PetId) && x.NextDueDate.HasValue && x.NextDueDate.Value < todayDate)
+                .OrderBy(x => x.NextDueDate)
+                .ToList();
+            ViewBag.RecentTreatmentHistory = _medicalRecordService.GetAll()
+                .Where(x => myPetIds.Contains(x.PetId))
+                .OrderByDescending(x => x.RecordDate)
+                .Take(3)
+                .ToList();
             ViewBag.ClientAppointments = appointments
                 .OrderBy(x => x.AppointmentDate)
                 .ThenBy(x => x.AppointmentTime)

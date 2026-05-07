@@ -1,5 +1,6 @@
-﻿@{
+@{
     ViewData["Title"] = "Admin Dashboard";
+    var users = ViewBag.Users as List<VetClinicSystem.Models.User> ?? new List<VetClinicSystem.Models.User>();
 }
 
 <h2 class="mb-4">Admin Dashboard</h2>
@@ -41,6 +42,66 @@
         </div>
     </div>
 </div>
+
+<hr />
+
+<section class="admin-users-panel">
+    <div class="admin-users-panel__header">
+        <div>
+            <h4>Users</h4>
+            <p>All registered admin, staff, and client accounts.</p>
+        </div>
+        <span>@users.Count account@(users.Count == 1 ? "" : "s")</span>
+    </div>
+
+    @if (!users.Any())
+    {
+        <div class="alert alert-info">No users found.</div>
+    }
+    else
+    {
+        <div class="table-panel">
+            <table class="table table-bordered table-striped admin-users-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Date Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var user in users)
+                {
+                    var displayName = user.PetOwner != null
+                        ? $"{user.PetOwner.FirstName} {user.PetOwner.LastName}".Trim()
+                        : user.Username;
+
+                    <tr>
+                        <td>@displayName</td>
+                        <td>@user.Username</td>
+                        <td>@user.Email</td>
+                        <td>@(user.Role?.RoleName ?? "User")</td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="status-pill status-pill--success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="status-pill status-pill--muted">Inactive</span>
+                            }
+                        </td>
+                        <td>@user.DateCreated.ToString("MMM d, yyyy")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
 
 <hr />
 

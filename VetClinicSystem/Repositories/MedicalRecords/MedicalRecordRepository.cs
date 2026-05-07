@@ -16,12 +16,19 @@ namespace VetClinicSystem.Repositories.MedicalRecords
         {
             return _context.MedicalRecords
                 .Include(x => x.Pet)
+                .Include(x => x.Appointment)
+                    .ThenInclude(x => x!.Service)
+                .OrderByDescending(x => x.RecordDate)
                 .ToList();
         }
 
         public MedicalRecord? GetById(int id)
         {
-            return _context.MedicalRecords.FirstOrDefault(x => x.Id == id);
+            return _context.MedicalRecords
+                .Include(x => x.Pet)
+                .Include(x => x.Appointment)
+                    .ThenInclude(x => x!.Service)
+                .FirstOrDefault(x => x.Id == id);
         }
 
         public void Add(MedicalRecord medicalRecord)

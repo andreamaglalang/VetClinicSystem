@@ -18,6 +18,8 @@ namespace VetClinicSystem.Repositories.Appointments
                 .Include(x => x.Pet)
                 .Include(x => x.Service)
                 .Include(x => x.Status)
+                .OrderByDescending(x => x.AppointmentDate)
+                .ThenByDescending(x => x.AppointmentTime)
                 .ToList();
         }
 
@@ -28,6 +30,8 @@ namespace VetClinicSystem.Repositories.Appointments
                 .Include(x => x.Service)
                 .Include(x => x.Status)
                 .Where(x => x.Pet.OwnerId == ownerId)
+                .OrderByDescending(x => x.AppointmentDate)
+                .ThenByDescending(x => x.AppointmentTime)
                 .ToList();
         }
 
@@ -69,7 +73,10 @@ namespace VetClinicSystem.Repositories.Appointments
                 query = query.Where(x => x.AppointmentDate == appointmentDate.Value);
             }
 
-            return query.ToList();
+            return query
+                .OrderByDescending(x => x.AppointmentDate)
+                .ThenByDescending(x => x.AppointmentTime)
+                .ToList();
         }
 
         public List<Appointment> FilterByOwnerId(int ownerId, string? search, int? statusId, DateOnly? appointmentDate)
@@ -100,7 +107,10 @@ namespace VetClinicSystem.Repositories.Appointments
                 query = query.Where(x => x.AppointmentDate == appointmentDate.Value);
             }
 
-            return query.ToList();
+            return query
+                .OrderByDescending(x => x.AppointmentDate)
+                .ThenByDescending(x => x.AppointmentTime)
+                .ToList();
         }
 
         public Appointment? GetById(int id)
@@ -110,6 +120,7 @@ namespace VetClinicSystem.Repositories.Appointments
                     .ThenInclude(x => x.Owner)
                 .Include(x => x.Service)
                 .Include(x => x.Status)
+                .Include(x => x.CreatedByUser)
                 .FirstOrDefault(x => x.Id == id);
         }
 

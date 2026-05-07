@@ -5,6 +5,7 @@
 }
 
 <h2>Appointments</h2>
+<p class="page-subtitle">Appointment history, newest records first.</p>
 
 @if (TempData["Success"] != null)
 {
@@ -69,8 +70,8 @@
             <tr>
                 <td>@item.Pet?.PetName</td>
                 <td>@item.Service?.ServiceName</td>
-                <td>@item.AppointmentDate</td>
-                <td>@item.AppointmentTime</td>
+                <td>@item.AppointmentDate.ToString("MMM d, yyyy")</td>
+                <td>@item.AppointmentTime.ToString("h:mm tt")</td>
                 <td>@item.ReasonForVisit</td>
                 <td>@(item.IsGuestBooking ? "Guest" : "Client")</td>
                 <td><span class="status-pill @statusClass">@statusName</span></td>
@@ -82,8 +83,8 @@
                         <a asp-action="Edit" asp-route-id="@item.Id" class="table-action-icon table-action-icon--edit" title="Edit" aria-label="Edit appointment">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--delete" title="Delete" aria-label="Delete appointment">
-                            <i class="fa-solid fa-trash-can"></i>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--delete" title="Cancel appointment" aria-label="Cancel appointment">
+                            <i class="fa-solid fa-calendar-xmark"></i>
                         </a>
 
                         @if (Context.Session.GetInt32("RoleId") == 1 || Context.Session.GetInt32("RoleId") == 2)

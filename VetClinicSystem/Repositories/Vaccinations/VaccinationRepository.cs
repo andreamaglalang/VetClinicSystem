@@ -16,12 +16,17 @@ namespace VetClinicSystem.Repositories.Vaccinations
         {
             return _context.VaccinationRecords
                 .Include(x => x.Pet)
+                    .ThenInclude(x => x.Owner)
+                .OrderBy(x => x.NextDueDate ?? DateOnly.MaxValue)
+                .ThenByDescending(x => x.VaccinationDate)
                 .ToList();
         }
 
         public VaccinationRecord? GetById(int id)
         {
-            return _context.VaccinationRecords.FirstOrDefault(x => x.Id == id);
+            return _context.VaccinationRecords
+                .Include(x => x.Pet)
+                .FirstOrDefault(x => x.Id == id);
         }
 
         public void Add(VaccinationRecord vaccinationRecord)

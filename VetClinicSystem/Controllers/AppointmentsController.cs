@@ -10,6 +10,8 @@ namespace VetClinicSystem.Controllers
 {
     public class AppointmentsController : Controller
     {
+        private const int MaxSurgeryAppointmentsPerDay = 2;
+
         private readonly IAppointmentService _appointmentService;
         private readonly IPetService _petService;
         private readonly IServiceManager _serviceManager;
@@ -158,10 +160,18 @@ namespace VetClinicSystem.Controllers
                 return View(booking);
             }
 
+            var surgeryRuleError = GetSurgeryBookingRuleError(booking.ServiceId, appointmentDate);
+            if (surgeryRuleError != null)
+            {
+                LoadGuestDropdowns(booking.ServiceId);
+                TempData["Error"] = surgeryRuleError;
+                return View(booking);
+            }
+
             try
             {
                 CreateGuestBooking(booking);
-                TempData["Success"] = "Guest surgery booking submitted successfully. The clinic will contact you for confirmation.";
+                TempData["Success"] = "Guest surgery booking submitted successfully. Confirmation is recorded and the clinic will contact you for final approval.";
                 return RedirectToAction("GuestCreate");
             }
             catch (Exception ex)
@@ -219,6 +229,14 @@ namespace VetClinicSystem.Controllers
                 return View(appointment);
             }
 
+            var surgeryRuleError = GetSurgeryBookingRuleError(appointment.ServiceId, appointment.AppointmentDate);
+            if (surgeryRuleError != null)
+            {
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                TempData["Error"] = surgeryRuleError;
+                return View(appointment);
+            }
+
             try
             {
                 appointment.CreatedByUserId = userId.Value;
@@ -227,7 +245,7 @@ namespace VetClinicSystem.Controllers
 
                 _appointmentService.Add(appointment);
 
-                TempData["Success"] = "Appointment created successfully.";
+                TempData["Success"] = "Appointment created successfully. Confirmation has been recorded.";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -256,6 +274,12 @@ namespace VetClinicSystem.Controllers
                 var myAppointments = _appointmentService.GetByUser(userId.Value);
                 if (!myAppointments.Any(a => a.Id == id))
                     return Unauthorized();
+
+                if (!CanClientChangeAppointment(appointment))
+                {
+                    TempData["Error"] = "Appointments can only be rescheduled at least 1 day before the scheduled visit.";
+                    return RedirectToAction("Index");
+                }
             }
 
             LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
@@ -283,8 +307,15 @@ namespace VetClinicSystem.Controllers
             if (roleId == 3)
             {
                 var myAppointments = _appointmentService.GetByUser(userId.Value);
-                if (!myAppointments.Any(a => a.Id == appointment.Id))
+                var currentAppointment = myAppointments.FirstOrDefault(a => a.Id == appointment.Id);
+                if (currentAppointment == null)
                     return Unauthorized();
+
+                if (!CanClientChangeAppointment(currentAppointment))
+                {
+                    TempData["Error"] = "Appointments can only be rescheduled at least 1 day before the scheduled visit.";
+                    return RedirectToAction("Index");
+                }
 
                 var myPets = _petService.GetByUser(userId.Value);
                 if (!myPets.Any(p => p.Id == appointment.PetId))
@@ -310,6 +341,14 @@ namespace VetClinicSystem.Controllers
             {
                 LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
                 TempData["Error"] = unavailableDateReason;
+                return View(appointment);
+            }
+
+            var surgeryRuleError = GetSurgeryBookingRuleError(appointment.ServiceId, appointment.AppointmentDate, appointment.Id);
+            if (surgeryRuleError != null)
+            {
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                TempData["Error"] = surgeryRuleError;
                 return View(appointment);
             }
 
@@ -369,8 +408,15 @@ namespace VetClinicSystem.Controllers
             if (roleId == 3)
             {
                 var myAppointments = _appointmentService.GetByUser(userId.Value);
-                if (!myAppointments.Any(a => a.Id == id))
+                var clientAppointment = myAppointments.FirstOrDefault(a => a.Id == id);
+                if (clientAppointment == null)
                     return Unauthorized();
+
+                if (!CanClientChangeAppointment(clientAppointment))
+                {
+                    TempData["Error"] = "Appointments can only be cancelled at least 1 day before the scheduled visit.";
+                    return RedirectToAction("Index");
+                }
             }
 
             return View(appointment);
@@ -389,14 +435,21 @@ namespace VetClinicSystem.Controllers
             if (roleId == 3)
             {
                 var myAppointments = _appointmentService.GetByUser(userId.Value);
-                if (!myAppointments.Any(a => a.Id == id))
+                var appointment = myAppointments.FirstOrDefault(a => a.Id == id);
+                if (appointment == null)
                     return Unauthorized();
+
+                if (!CanClientChangeAppointment(appointment))
+                {
+                    TempData["Error"] = "Appointments can only be cancelled at least 1 day before the scheduled visit.";
+                    return RedirectToAction("Index");
+                }
             }
 
             try
             {
                 _appointmentService.Delete(id);
-                TempData["Success"] = "Appointment deleted successfully.";
+                TempData["Success"] = "Appointment cancelled successfully.";
             }
             catch (Exception ex)
             {
@@ -595,6 +648,37 @@ namespace VetClinicSystem.Controllers
         private bool IsAppointmentService(Service service)
         {
             return service.ServiceName.Contains("Surgery", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string? GetSurgeryBookingRuleError(int serviceId, DateOnly appointmentDate, int? currentAppointmentId = null)
+        {
+            if (!IsAppointmentService(serviceId))
+                return null;
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (appointmentDate < today)
+                return "Surgery appointments cannot be booked in the past.";
+
+            if (appointmentDate > today.AddDays(6))
+                return "Surgery appointments must be scheduled within the same week.";
+
+            var surgeryAppointmentsOnDate = _context.Appointments
+                .Count(x =>
+                    x.AppointmentDate == appointmentDate &&
+                    x.Id != currentAppointmentId &&
+                    x.Service.ServiceName.Contains("Surgery") &&
+                    x.StatusId != 3);
+
+            if (surgeryAppointmentsOnDate >= MaxSurgeryAppointmentsPerDay)
+                return $"Only {MaxSurgeryAppointmentsPerDay} surgery appointments can be scheduled per day. Please choose another date.";
+
+            return null;
+        }
+
+        private bool CanClientChangeAppointment(Appointment appointment)
+        {
+            var appointmentDateTime = appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime);
+            return appointmentDateTime >= DateTime.Now.AddDays(1);
         }
 
         private string? GetUnavailableDateReason(DateOnly appointmentDate)

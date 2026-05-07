@@ -11,6 +11,10 @@
         : (currentUser?.Username ?? "Pet Parent");
     var displayEmail = currentUser?.Email ?? "No email provided";
     var appointments = ViewBag.ClientAppointments as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var upcomingReminders = ViewBag.UpcomingReminders as IEnumerable<VetClinicSystem.Models.Appointment> ?? Enumerable.Empty<VetClinicSystem.Models.Appointment>();
+    var followUpAppointments = ViewBag.FollowUpAppointments as IEnumerable<VetClinicSystem.Models.Appointment> ?? Enumerable.Empty<VetClinicSystem.Models.Appointment>();
+    var overdueVaccinations = ViewBag.OverdueVaccinations as IEnumerable<VetClinicSystem.Models.VaccinationRecord> ?? Enumerable.Empty<VetClinicSystem.Models.VaccinationRecord>();
+    var recentTreatmentHistory = ViewBag.RecentTreatmentHistory as IEnumerable<VetClinicSystem.Models.MedicalRecord> ?? Enumerable.Empty<VetClinicSystem.Models.MedicalRecord>();
     var monthAppointmentDays = appointments
         .Where(x => DateTime.TryParse((string)x.date, out var date) && date.Year == today.Year && date.Month == today.Month)
         .Select(x => (int)x.day)
@@ -140,13 +144,44 @@
         <div class="profile-note">
             <span>@today.ToString("dd/MM/yyyy")</span>
             <h3>Recent Result</h3>
-            <p>Your pet care overview is up to date. Review upcoming appointments and vaccination reminders.</p>
+            @if (recentTreatmentHistory.Any())
+            {
+                var latestRecord = recentTreatmentHistory.First();
+                <p>@latestRecord.Pet?.PetName: @(latestRecord.Treatment ?? latestRecord.Diagnosis ?? "Latest treatment record")</p>
+            }
+            else
+            {
+                <p>Your pet care overview is up to date. Review upcoming appointments and vaccination reminders.</p>
+            }
         </div>
         <div class="reminder-list">
             <h3>Reminders</h3>
-            <a asp-controller="Appointments" asp-action="Index" data-dashboard-item="appointment follow-up reminders"><i class="fa-regular fa-envelope"></i><span>Appointment follow-up<small>@(monthAppointmentDays.Any() ? $"{today:MMMM} {monthAppointmentDays.First()}" : "No upcoming date")</small></span></a>
-            <a asp-controller="Vaccinations" asp-action="Index" data-dashboard-item="vaccination record schedule"><i class="fa-solid fa-syringe"></i><span>Vaccination record<small>Review schedule</small></span></a>
-            <a asp-controller="MedicalRecords" asp-action="Index" data-dashboard-item="medical records latest notes"><i class="fa-solid fa-file-medical"></i><span>Medical records<small>Latest notes</small></span></a>
+            @foreach (var appointment in upcomingReminders)
+            {
+                <a asp-controller="Appointments" asp-action="Index" data-dashboard-item="appointment reminder scheduled">
+                    <i class="fa-regular fa-envelope"></i>
+                    <span>Appointment reminder<small>@appointment.Pet?.PetName - @appointment.AppointmentDate.ToString("MMM d")</small></span>
+                </a>
+            }
+            @foreach (var appointment in followUpAppointments)
+            {
+                <a asp-controller="Appointments" asp-action="Details" asp-route-id="@appointment.Id" data-dashboard-item="follow-up after visit">
+                    <i class="fa-solid fa-notes-medical"></i>
+                    <span>Follow-up after visit<small>@appointment.Pet?.PetName - @appointment.AppointmentDate.ToString("MMM d")</small></span>
+                </a>
+            }
+            @foreach (var vaccination in overdueVaccinations)
+            {
+                <a asp-controller="Vaccinations" asp-action="Index" data-dashboard-item="overdue vaccination alert">
+                    <i class="fa-solid fa-syringe"></i>
+                    <span>Overdue vaccination<small>@vaccination.Pet?.PetName - @vaccination.VaccineName</small></span>
+                </a>
+            }
+            @if (!upcomingReminders.Any() && !followUpAppointments.Any() && !overdueVaccinations.Any())
+            {
+                <a asp-controller="Vaccinations" asp-action="Index" data-dashboard-item="vaccination record schedule"><i class="fa-solid fa-syringe"></i><span>Vaccination record<small>Review schedule</small></span></a>
+                <a asp-controller="MedicalRecords" asp-action="Index" data-dashboard-item="medical records latest notes"><i class="fa-solid fa-file-medical"></i><span>Medical records<small>Latest notes</small></span></a>
+            }
         </div>
     </aside>
 </section>

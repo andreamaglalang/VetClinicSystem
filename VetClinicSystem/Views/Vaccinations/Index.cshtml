@@ -23,17 +23,34 @@
             <th>Vaccine</th>
             <th>Vaccination Date</th>
             <th>Next Due Date</th>
+            <th>Status</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
+            var isOverdue = item.NextDueDate.HasValue && item.NextDueDate.Value < DateOnly.FromDateTime(DateTime.Today);
+            var isDueSoon = item.NextDueDate.HasValue && item.NextDueDate.Value <= DateOnly.FromDateTime(DateTime.Today).AddDays(7) && !isOverdue;
             <tr>
                 <td>@item.Pet?.PetName</td>
                 <td>@item.VaccineName</td>
-                <td>@item.VaccinationDate</td>
-                <td>@item.NextDueDate</td>
+                <td>@item.VaccinationDate.ToString("MMM d, yyyy")</td>
+                <td>@(item.NextDueDate?.ToString("MMM d, yyyy") ?? "Not set")</td>
+                <td>
+                    @if (isOverdue)
+                    {
+                        <span class="status-pill status-pill--danger">Overdue</span>
+                    }
+                    else if (isDueSoon)
+                    {
+                        <span class="status-pill status-pill--warning">Due Soon</span>
+                    }
+                    else
+                    {
+                        <span class="status-pill status-pill--success">Up to date</span>
+                    }
+                </td>
                 <td>
                     <div class="table-actions">
                         <a asp-action="Details" asp-route-id="@item.Id" class="table-action-icon table-action-icon--details" title="Details" aria-label="View vaccination details">

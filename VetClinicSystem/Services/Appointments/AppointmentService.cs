@@ -116,6 +116,9 @@ namespace VetClinicSystem.Services.Appointments
 
                 _notificationRepository.Add(notification);
                 _notificationRepository.Save();
+
+                AddReminderLogs(savedAppointment);
+                _appointmentRepository.Save();
             }
             catch (DbUpdateException ex)
             {
@@ -224,6 +227,51 @@ namespace VetClinicSystem.Services.Appointments
             var message = $"{ownerName} requested a {serviceName} appointment for {petName} on {appointmentDate}. Status: {statusName}.";
 
             return message.Length <= 255 ? message : message[..255];
+        }
+
+        private void AddReminderLogs(Appointment appointment)
+        {
+            var recipient = appointment.CreatedByUser?.Email ?? appointment.Pet?.Owner?.ContactNumber ?? "Client";
+            var appointmentDate = appointment.AppointmentDate.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture);
+            var petName = string.IsNullOrWhiteSpace(appointment.Pet?.PetName) ? "your pet" : appointment.Pet.PetName.Trim();
+            var serviceName = string.IsNullOrWhiteSpace(appointment.Service?.ServiceName) ? "appointment" : appointment.Service.ServiceName.Trim();
+
+            appointment.ReminderLogs.Add(CreateReminderLog(
+                appointment.Id,
+                "Confirmation",
+                recipient,
+                $"{serviceName} appointment for {petName} on {appointmentDate} has been received."));
+
+            appointment.ReminderLogs.Add(CreateReminderLog(
+                appointment.Id,
+                "Reminder 2 Days Before",
+                recipient,
+                $"Reminder: {petName} has a {serviceName} appointment in 2 days."));
+
+            appointment.ReminderLogs.Add(CreateReminderLog(
+                appointment.Id,
+                "Reminder 1 Day Before",
+                recipient,
+                $"Reminder: {petName} has a {serviceName} appointment tomorrow."));
+
+            appointment.ReminderLogs.Add(CreateReminderLog(
+                appointment.Id,
+                "Follow-up After Visit",
+                recipient,
+                $"Follow-up: please monitor {petName} after the visit and contact the clinic for concerns."));
+        }
+
+        private ReminderLog CreateReminderLog(int appointmentId, string reminderType, string recipient, string message)
+        {
+            return new ReminderLog
+            {
+                AppointmentId = appointmentId,
+                ReminderType = reminderType,
+                Recipient = recipient,
+                Message = message.Length <= 255 ? message : message[..255],
+                SentStatus = "Pending",
+                DateCreated = DateTime.Now
+            };
         }
 
         private string FormatOwnerName(PetOwner? owner)

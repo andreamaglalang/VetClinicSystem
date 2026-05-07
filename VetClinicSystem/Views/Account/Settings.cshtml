@@ -1,0 +1,109 @@
+@model VetClinicSystem.Models.User
+
+@{
+    ViewData["Title"] = "Account Settings";
+    var roleId = Context.Session.GetInt32("RoleId");
+    var dashboardAction = roleId == 1 ? "Admin" : roleId == 2 ? "Staff" : "Client";
+}
+
+<section class="account-settings-shell">
+    <div class="account-settings-header">
+        <h1>Account Settings</h1>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="account-settings-card">
+        <form asp-action="Settings" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" asp-for="Id" />
+
+            @if (ViewBag.PetOwner != null)
+            {
+                <div class="account-settings-grid">
+                    <div class="mb-3">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="FirstName" class="form-control" value="@ViewBag.FirstName" />
+                        @if (ViewBag.FirstNameError != null)
+                        {
+                            <span class="text-danger">@ViewBag.FirstNameError</span>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="LastName" class="form-control" value="@ViewBag.LastName" />
+                        @if (ViewBag.LastNameError != null)
+                        {
+                            <span class="text-danger">@ViewBag.LastNameError</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Contact Number</label>
+                    <input type="tel" name="ContactNumber" class="form-control" value="@ViewBag.ContactNumber" placeholder="09XXXXXXXXX" />
+                    @if (ViewBag.ContactNumberError != null)
+                    {
+                        <span class="text-danger">@ViewBag.ContactNumberError</span>
+                    }
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Username" class="form-control" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <hr />
+
+            <h4>Change Password</h4>
+            <p class="text-muted">Leave password fields blank if you only want to update username/email.</p>
+
+            <div class="mb-3">
+                <label class="form-label">Current Password</label>
+                <input type="password" name="CurrentPassword" class="form-control" />
+                @if (ViewBag.CurrentPasswordError != null)
+                {
+                    <span class="text-danger">@ViewBag.CurrentPasswordError</span>
+                }
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">New Password</label>
+                <input type="password" name="NewPassword" class="form-control" />
+                @if (ViewBag.NewPasswordError != null)
+                {
+                    <span class="text-danger">@ViewBag.NewPasswordError</span>
+                }
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" name="ConfirmPassword" class="form-control" />
+                @if (ViewBag.ConfirmPasswordError != null)
+                {
+                    <span class="text-danger">@ViewBag.ConfirmPasswordError</span>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a asp-controller="Dashboard" asp-action="@dashboardAction" class="btn btn-outline-secondary">Back</a>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
