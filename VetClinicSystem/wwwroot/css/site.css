@@ -1114,6 +1114,15 @@ p {
     transform: translateY(-1px);
 }
 
+.table-action-icon--disabled,
+.table-action-icon--disabled:hover {
+    cursor: not-allowed;
+    opacity: 0.45;
+    filter: grayscale(0.55);
+    pointer-events: none;
+    transform: none;
+}
+
 .table-action-icon--details {
     background: #eaf6ff;
     border-color: #cfe9ff;
