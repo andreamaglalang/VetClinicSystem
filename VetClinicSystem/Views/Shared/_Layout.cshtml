@@ -83,7 +83,7 @@
     </div>
     }
 
-    <header class="main-header">
+    <header class="main-header @(roleId == null ? "main-header--public" : "main-header--account")">
         <div class="top-clinic-bar">
             <a class="top-logo" asp-controller="Home" asp-action="Index" aria-label="Go to Thrive home page">
                 <span class="brand-icon">
@@ -97,22 +97,17 @@
 
             @if (roleId == null)
             {
-                <div class="top-info">
-                    <span><i class="fa-solid fa-location-dot"></i> Angeles City, Pampanga</span>
-                    <span><i class="fa-solid fa-clock"></i> Mon 9AM-5PM, Wed-Sun 9AM-7PM</span>
-                    <span><i class="fa-solid fa-phone"></i> 0969-644-0381</span>
+                <div class="top-header-actions">
+                    <a class="btn btn-outline-secondary btn-sm" asp-controller="Account" asp-action="Login">Login</a>
+                    <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">Register</a>
                 </div>
             }
             else
             {
-                <div class="top-info-empty" aria-hidden="true"></div>
+                <div class="top-header-actions">
+                    <a class="btn btn-outline-secondary btn-sm" asp-controller="Account" asp-action="Logout">Logout</a>
+                </div>
             }
-
-            <div class="top-socials">
-                <a href="https://www.facebook.com/share/1KmWxCrZmF/" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
-                <a href="mailto:thriveanimalspecialist@gmail.com"><i class="fa-solid fa-envelope"></i></a>
-                <a href="https://maps.app.goo.gl/Kht4unZvM7oVFW25A?g_st=ac" target="_blank"><i class="fa-solid fa-map-location-dot"></i></a>
-            </div>
         </div>
 
         <button class="mobile-nav-toggle" type="button" aria-controls="mainNavigation" aria-expanded="false">
@@ -120,10 +115,11 @@
             <span>Menu</span>
         </button>
 
-        <nav class="main-landing-nav" id="mainNavigation">
+        <nav class="main-landing-nav @(roleId == null ? "main-landing-nav--public" : "main-landing-nav--account")" id="mainNavigation">
             @if (roleId == 1)
             {
                     <a asp-controller="Dashboard" asp-action="Admin">Dashboard</a>
+                    <a asp-controller="Dashboard" asp-action="Users">Users</a>
                     <a asp-controller="Pets" asp-action="Index">Pets</a>
                     <a asp-controller="Appointments" asp-action="Index">Appointments</a>
                     <a asp-controller="MedicalRecords" asp-action="Index">Medical Records</a>
@@ -132,7 +128,6 @@
                     <a asp-controller="Clinic" asp-action="Index">Clinic</a>
                     <a asp-controller="Notifications" asp-action="Index">Notifications</a>
                     <a asp-controller="Account" asp-action="Settings">Account Settings</a>
-                    <a asp-controller="Account" asp-action="Logout">Logout</a>
             }
             else if (roleId == 2)
             {
@@ -145,7 +140,6 @@
                     <a asp-controller="Clinic" asp-action="Index">Clinic</a>
                     <a asp-controller="Notifications" asp-action="Index">Notifications</a>
                     <a asp-controller="Account" asp-action="Settings">Account Settings</a>
-                    <a asp-controller="Account" asp-action="Logout">Logout</a>
             }
             else if (roleId == 3)
             {
@@ -156,7 +150,6 @@
                     <a asp-controller="Vaccinations" asp-action="Index">Vaccinations</a>
                     <a asp-controller="Clinic" asp-action="Index">Clinic</a>
                     <a asp-controller="Account" asp-action="Settings">Account Settings</a>
-                    <a asp-controller="Account" asp-action="Logout">Logout</a>
             }
             else
             {
@@ -166,8 +159,6 @@
                     <a asp-controller="Appointments" asp-action="GuestCreate">Book Surgery</a>
                     <a href="/#articles">Articles</a>
                     <a href="/#contact">Contact</a>
-                    <a asp-controller="Account" asp-action="Login">Login</a>
-                    <a asp-controller="Account" asp-action="Register">Register</a>
             }
         </nav>
     </header>

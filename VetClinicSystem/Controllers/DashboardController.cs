@@ -49,8 +49,7 @@ namespace VetClinicSystem.Controllers
             ViewBag.TotalPets = _petService.GetAll().Count;
             ViewBag.TotalAppointments = appointments.Count;
             ViewBag.TotalUsers = users.Count;
-            ViewBag.Users = users;
-            ViewBag.UnreadNotifications = _notificationService.GetUnread().Count;
+            ViewBag.UnreadNotifications = _notificationService.GetUnreadForStaff().Count;
 
             var grouped = appointments
                 .GroupBy(a => a.AppointmentDate)
@@ -68,6 +67,18 @@ namespace VetClinicSystem.Controllers
             return View();
         }
 
+        public IActionResult Users()
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            ViewBag.CurrentUserId = currentUserId.Value;
+            return View(_userService.GetAll());
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult DeactivateUser(int id)
@@ -81,21 +92,21 @@ namespace VetClinicSystem.Controllers
             if (id == currentUserId.Value)
             {
                 TempData["Error"] = "You cannot deactivate your own account.";
-                return RedirectToAction("Admin");
+                return RedirectToAction("Users");
             }
 
             var user = _context.Users.FirstOrDefault(x => x.Id == id);
             if (user == null)
             {
                 TempData["Error"] = "User account was not found.";
-                return RedirectToAction("Admin");
+                return RedirectToAction("Users");
             }
 
             user.IsActive = false;
             _context.SaveChanges();
 
             TempData["Success"] = "User account deactivated successfully.";
-            return RedirectToAction("Admin");
+            return RedirectToAction("Users");
         }
 
         [HttpPost]
@@ -112,14 +123,14 @@ namespace VetClinicSystem.Controllers
             if (user == null)
             {
                 TempData["Error"] = "User account was not found.";
-                return RedirectToAction("Admin");
+                return RedirectToAction("Users");
             }
 
             user.IsActive = true;
             _context.SaveChanges();
 
             TempData["Success"] = "User account restored successfully.";
-            return RedirectToAction("Admin");
+            return RedirectToAction("Users");
         }
 
         public IActionResult Staff()
@@ -128,7 +139,7 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Login", "Account");
 
             ViewBag.TotalAppointments = _appointmentService.GetAll().Count;
-            ViewBag.UnreadNotifications = _notificationService.GetUnread().Count;
+            ViewBag.UnreadNotifications = _notificationService.GetUnreadForStaff().Count;
 
             return View();
         }
@@ -151,6 +162,7 @@ namespace VetClinicSystem.Controllers
             ViewBag.TotalAppointments = appointments.Count;
             ViewBag.CurrentUser = user;
             ViewBag.PetOwner = petOwner;
+            ViewBag.UnreadNotifications = _notificationService.GetUnreadForUser(userId.Value).Count;
             ViewBag.UpcomingReminders = appointments
                 .Where(x => x.AppointmentDate >= todayDate && x.AppointmentDate <= todayDate.AddDays(2))
                 .OrderBy(x => x.AppointmentDate)

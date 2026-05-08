@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VetClinicSystem.Models;
 using VetClinicSystem.Repositories.Appointments;
-using VetClinicSystem.Repositories.Clinics;
+using VetClinicSystem.Repositories.Clinics; 
 using VetClinicSystem.Repositories.MedicalRecords;
 using VetClinicSystem.Repositories.Notifications;
 using VetClinicSystem.Repositories.Pets;
@@ -53,7 +53,7 @@ builder.Services.AddScoped<IClinicService, ClinicService>();
 
 var app = builder.Build();
 
-EnsureUserSettingsColumns(app);
+EnsureApplicationSchema(app);
 
 if (!app.Environment.IsDevelopment())
 {
@@ -71,11 +71,16 @@ app.UseSession();
 app.Use(async (context, next) =>
 {
     var notificationService = context.RequestServices.GetService<INotificationService>();
+    var roleId = context.Session.GetInt32("RoleId");
+    var userId = context.Session.GetInt32("UserId");
 
-    if (notificationService != null &&
-        (context.Session.GetInt32("RoleId") == 1 || context.Session.GetInt32("RoleId") == 2))
+    if (notificationService != null && (roleId == 1 || roleId == 2))
     {
-        context.Items["NotificationCount"] = notificationService.GetUnread().Count;
+        context.Items["NotificationCount"] = notificationService.GetUnreadForStaff().Count;
+    }
+    else if (notificationService != null && roleId == 3 && userId.HasValue)
+    {
+        context.Items["NotificationCount"] = notificationService.GetUnreadForUser(userId.Value).Count;
     }
 
     await next();
@@ -89,7 +94,7 @@ app.MapControllerRoute(
 
 app.Run();
 
-static void EnsureUserSettingsColumns(WebApplication app)
+static void EnsureApplicationSchema(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<VetClinicDbContext>();
@@ -105,5 +110,139 @@ IF COL_LENGTH('Users', 'LastPasswordChange') IS NULL
 BEGIN
     ALTER TABLE Users
     ADD LastPasswordChange DATETIME NULL;
-END");
+END
+
+IF COL_LENGTH('Appointments', 'PreferredAppointmentDate') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD PreferredAppointmentDate DATE NULL;
+END
+
+IF COL_LENGTH('Appointments', 'PreferredAppointmentTime') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD PreferredAppointmentTime TIME NULL;
+END
+
+IF COL_LENGTH('Appointments', 'SurgeryCategory') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD SurgeryCategory NVARCHAR(20) NULL;
+END
+
+IF COL_LENGTH('Appointments', 'SurgeryLoadPoints') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD SurgeryLoadPoints INT NOT NULL CONSTRAINT DF_Appointments_SurgeryLoadPoints DEFAULT 0;
+END
+
+IF COL_LENGTH('Appointments', 'IsEmergency') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD IsEmergency BIT NOT NULL CONSTRAINT DF_Appointments_IsEmergency DEFAULT 0;
+END
+
+IF COL_LENGTH('Appointments', 'IsScheduleFinalized') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD IsScheduleFinalized BIT NOT NULL CONSTRAINT DF_Appointments_IsScheduleFinalized DEFAULT 0;
+END
+
+IF COL_LENGTH('StaffNotifications', 'UserId') IS NULL
+BEGIN
+    ALTER TABLE StaffNotifications
+    ADD UserId INT NULL;
+END
+
+IF COL_LENGTH('StaffNotifications', 'RecipientRole') IS NULL
+BEGIN
+    ALTER TABLE StaffNotifications
+    ADD RecipientRole NVARCHAR(20) NOT NULL CONSTRAINT DF_StaffNotifications_RecipientRole DEFAULT 'Staff';
+END
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns
+    WHERE object_id = OBJECT_ID('StaffNotifications')
+      AND name = 'AppointmentId'
+      AND is_nullable = 0)
+BEGIN
+    DECLARE @dropAppointmentFkSql NVARCHAR(MAX) = N'';
+    SELECT @dropAppointmentFkSql = @dropAppointmentFkSql +
+        N'ALTER TABLE StaffNotifications DROP CONSTRAINT [' + fk.name + N'];'
+    FROM sys.foreign_keys fk
+    INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+    INNER JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+    WHERE fk.parent_object_id = OBJECT_ID('StaffNotifications')
+      AND c.name = 'AppointmentId';
+
+    IF (@dropAppointmentFkSql <> N'')
+        EXEC sp_executesql @dropAppointmentFkSql;
+
+    ALTER TABLE StaffNotifications
+    ALTER COLUMN AppointmentId INT NULL;
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys fk
+    INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+    INNER JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+    WHERE fk.parent_object_id = OBJECT_ID('StaffNotifications')
+      AND c.name = 'AppointmentId')
+BEGIN
+    ALTER TABLE StaffNotifications
+    ADD CONSTRAINT FK_StaffNotifications_Appointments_AppointmentId FOREIGN KEY (AppointmentId) REFERENCES Appointments(Id);
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys fk
+    INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+    INNER JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+    WHERE fk.parent_object_id = OBJECT_ID('StaffNotifications')
+      AND c.name = 'UserId')
+BEGIN
+    ALTER TABLE StaffNotifications
+    ADD CONSTRAINT FK_StaffNotifications_Users_UserId FOREIGN KEY (UserId) REFERENCES Users(Id);
+END
+
+IF COL_LENGTH('StaffNotifications', 'RecipientRole') IS NOT NULL
+BEGIN
+    EXEC(N'
+        UPDATE StaffNotifications
+        SET RecipientRole = ''Staff''
+        WHERE RecipientRole IS NULL OR LTRIM(RTRIM(RecipientRole)) = '''';
+    ');
+END
+
+IF COL_LENGTH('Appointments', 'PreferredAppointmentDate') IS NOT NULL
+   AND COL_LENGTH('Appointments', 'PreferredAppointmentTime') IS NOT NULL
+   AND COL_LENGTH('Appointments', 'SurgeryCategory') IS NOT NULL
+   AND COL_LENGTH('Appointments', 'SurgeryLoadPoints') IS NOT NULL
+   AND COL_LENGTH('Appointments', 'IsEmergency') IS NOT NULL
+BEGIN
+    EXEC(N'
+        UPDATE a
+        SET
+            PreferredAppointmentDate = ISNULL(a.PreferredAppointmentDate, a.AppointmentDate),
+            PreferredAppointmentTime = ISNULL(a.PreferredAppointmentTime, a.AppointmentTime),
+            SurgeryCategory = CASE
+                WHEN a.SurgeryCategory IS NULL OR LTRIM(RTRIM(a.SurgeryCategory)) = '''' THEN ''Moderate''
+                ELSE a.SurgeryCategory
+            END,
+            SurgeryLoadPoints = CASE
+                WHEN a.IsEmergency = 1 THEN 0
+                WHEN a.SurgeryCategory = ''Minor'' THEN 1
+                WHEN a.SurgeryCategory = ''Major'' THEN 3
+                WHEN a.SurgeryCategory = ''Moderate'' THEN 2
+                WHEN a.SurgeryLoadPoints IS NULL OR a.SurgeryLoadPoints = 0 THEN 2
+                ELSE a.SurgeryLoadPoints
+            END
+        FROM Appointments a
+        INNER JOIN Services s ON s.Id = a.ServiceId
+        WHERE s.ServiceName LIKE ''%Surgery%''
+    ');
+END
+");
 }

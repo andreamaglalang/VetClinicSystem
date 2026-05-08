@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using VetClinicSystem.Helpers;
 using VetClinicSystem.Models;
 using VetClinicSystem.Services.Appointments;
+using VetClinicSystem.Services.Notifications;
 using VetClinicSystem.Services.Pets;
 using VetClinicSystem.Services.Services;
 
@@ -10,20 +11,29 @@ namespace VetClinicSystem.Controllers
 {
     public class AppointmentsController : Controller
     {
-        private const int MaxSurgeryAppointmentsPerDay = 2;
+        private const int MaxDailySurgeryLoadPoints = 5;
+        private static readonly Dictionary<string, int> SurgeryCategoryPoints = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Minor"] = 1,
+            ["Moderate"] = 2,
+            ["Major"] = 3
+        };
 
         private readonly IAppointmentService _appointmentService;
+        private readonly INotificationService _notificationService;
         private readonly IPetService _petService;
         private readonly IServiceManager _serviceManager;
         private readonly VetClinicDbContext _context;
 
         public AppointmentsController(
             IAppointmentService appointmentService,
+            INotificationService notificationService,
             IPetService petService,
             IServiceManager serviceManager,
             VetClinicDbContext context)
         {
             _appointmentService = appointmentService;
+            _notificationService = notificationService;
             _petService = petService;
             _serviceManager = serviceManager;
             _context = context;
@@ -83,6 +93,7 @@ namespace VetClinicSystem.Controllers
             }
 
             ViewBag.Services = new SelectList(GetAppointmentServices(), "Id", "ServiceName");
+            LoadSurgeryCategoryOptions();
 
             return View();
         }
@@ -119,7 +130,7 @@ namespace VetClinicSystem.Controllers
                     booking.ServiceId = service.Id;
             }
 
-            LoadGuestDropdowns(booking.ServiceId);
+            LoadGuestDropdowns(booking.ServiceId, booking.SurgeryCategory);
             return View(booking);
         }
 
@@ -132,21 +143,21 @@ namespace VetClinicSystem.Controllers
 
             if (!ModelState.IsValid)
             {
-                LoadGuestDropdowns(booking.ServiceId);
+                LoadGuestDropdowns(booking.ServiceId, booking.SurgeryCategory);
                 TempData["Error"] = "Please complete all required guest booking fields.";
                 return View(booking);
             }
 
             if (!booking.AppointmentDate.HasValue || !booking.AppointmentTime.HasValue)
             {
-                LoadGuestDropdowns(booking.ServiceId);
+                LoadGuestDropdowns(booking.ServiceId, booking.SurgeryCategory);
                 TempData["Error"] = "Please choose an appointment date and time.";
                 return View(booking);
             }
 
             if (!IsAppointmentService(booking.ServiceId))
             {
-                LoadGuestDropdowns(booking.ServiceId);
+                LoadGuestDropdowns(booking.ServiceId, booking.SurgeryCategory);
                 TempData["Error"] = "Only surgery can be booked by appointment. Other services are walk-in only.";
                 return View(booking);
             }
@@ -155,16 +166,15 @@ namespace VetClinicSystem.Controllers
             var unavailableDateReason = GetUnavailableDateReason(appointmentDate);
             if (unavailableDateReason != null)
             {
-                LoadGuestDropdowns(booking.ServiceId);
+                LoadGuestDropdowns(booking.ServiceId, booking.SurgeryCategory);
                 TempData["Error"] = unavailableDateReason;
                 return View(booking);
             }
 
-            var surgeryRuleError = GetSurgeryBookingRuleError(booking.ServiceId, appointmentDate);
-            if (surgeryRuleError != null)
+            ValidateSurgeryRequest(booking.ServiceId, appointmentDate, booking.SurgeryCategory, booking.IsEmergency);
+            if (!ModelState.IsValid)
             {
-                LoadGuestDropdowns(booking.ServiceId);
-                TempData["Error"] = surgeryRuleError;
+                LoadGuestDropdowns(booking.ServiceId, booking.SurgeryCategory);
                 return View(booking);
             }
 
@@ -177,7 +187,7 @@ namespace VetClinicSystem.Controllers
             }
             catch (Exception ex)
             {
-                LoadGuestDropdowns(booking.ServiceId);
+                LoadGuestDropdowns(booking.ServiceId, booking.SurgeryCategory);
                 TempData["Error"] = ex.Message;
                 return View(booking);
             }
@@ -203,7 +213,7 @@ namespace VetClinicSystem.Controllers
 
             if (!ModelState.IsValid)
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 TempData["Error"] = "Please complete all required appointment fields.";
                 return View(appointment);
             }
@@ -217,7 +227,7 @@ namespace VetClinicSystem.Controllers
 
             if (!IsAppointmentService(appointment.ServiceId))
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 TempData["Error"] = "Only surgery can be booked by appointment. Other services are walk-in only.";
                 return View(appointment);
             }
@@ -225,16 +235,15 @@ namespace VetClinicSystem.Controllers
             var unavailableDateReason = GetUnavailableDateReason(appointment.AppointmentDate);
             if (unavailableDateReason != null)
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 TempData["Error"] = unavailableDateReason;
                 return View(appointment);
             }
 
-            var surgeryRuleError = GetSurgeryBookingRuleError(appointment.ServiceId, appointment.AppointmentDate);
-            if (surgeryRuleError != null)
+            ValidateSurgeryRequest(appointment.ServiceId, appointment.AppointmentDate, appointment.SurgeryCategory, appointment.IsEmergency);
+            if (!ModelState.IsValid)
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
-                TempData["Error"] = surgeryRuleError;
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 return View(appointment);
             }
 
@@ -243,6 +252,11 @@ namespace VetClinicSystem.Controllers
                 appointment.CreatedByUserId = userId.Value;
                 appointment.LastUpdated = DateTime.Now;
                 appointment.IsWalkIn = false;
+                appointment.PreferredAppointmentDate = appointment.AppointmentDate;
+                appointment.PreferredAppointmentTime = appointment.AppointmentTime;
+                appointment.SurgeryCategory = NormalizeSurgeryCategory(appointment.SurgeryCategory);
+                appointment.SurgeryLoadPoints = GetSurgeryLoadPoints(appointment.SurgeryCategory);
+                appointment.IsScheduleFinalized = roleId != 3;
 
                 _appointmentService.Add(appointment);
 
@@ -251,7 +265,7 @@ namespace VetClinicSystem.Controllers
             }
             catch (Exception ex)
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 TempData["Error"] = ex.Message;
                 return View(appointment);
             }
@@ -283,7 +297,7 @@ namespace VetClinicSystem.Controllers
                 }
             }
 
-            LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+            LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
             return View(appointment);
         }
 
@@ -305,6 +319,10 @@ namespace VetClinicSystem.Controllers
             ModelState.Remove("CreatedByUserId");
             ModelState.Remove("LastUpdated");
 
+            var existingAppointment = _appointmentService.GetById(appointment.Id);
+            if (existingAppointment == null)
+                return NotFound();
+
             if (roleId == 3)
             {
                 var myAppointments = _appointmentService.GetByUser(userId.Value);
@@ -325,14 +343,14 @@ namespace VetClinicSystem.Controllers
 
             if (!ModelState.IsValid)
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 TempData["Error"] = "Please complete all required appointment fields.";
                 return View(appointment);
             }
 
             if (!IsAppointmentService(appointment.ServiceId))
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 TempData["Error"] = "Only surgery can be booked by appointment. Other services are walk-in only.";
                 return View(appointment);
             }
@@ -340,16 +358,15 @@ namespace VetClinicSystem.Controllers
             var unavailableDateReason = GetUnavailableDateReason(appointment.AppointmentDate);
             if (unavailableDateReason != null)
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 TempData["Error"] = unavailableDateReason;
                 return View(appointment);
             }
 
-            var surgeryRuleError = GetSurgeryBookingRuleError(appointment.ServiceId, appointment.AppointmentDate, appointment.Id);
-            if (surgeryRuleError != null)
+            ValidateSurgeryRequest(appointment.ServiceId, appointment.AppointmentDate, appointment.SurgeryCategory, appointment.IsEmergency, appointment.Id);
+            if (!ModelState.IsValid)
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
-                TempData["Error"] = surgeryRuleError;
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 return View(appointment);
             }
 
@@ -357,14 +374,51 @@ namespace VetClinicSystem.Controllers
             {
                 appointment.LastUpdated = DateTime.Now;
                 appointment.IsWalkIn = false;
+
+                if (roleId == 3)
+                {
+                    appointment.StatusId = 1;
+                    appointment.PreferredAppointmentDate = appointment.AppointmentDate;
+                    appointment.PreferredAppointmentTime = appointment.AppointmentTime;
+                    appointment.IsScheduleFinalized = false;
+                    appointment.StaffNotes = existingAppointment.StaffNotes;
+                }
+                else
+                {
+                    appointment.PreferredAppointmentDate = existingAppointment.PreferredAppointmentDate ?? existingAppointment.AppointmentDate;
+                    appointment.PreferredAppointmentTime = existingAppointment.PreferredAppointmentTime ?? existingAppointment.AppointmentTime;
+
+                    if (appointment.StatusId == 2 || appointment.StatusId == 4)
+                        appointment.IsScheduleFinalized = true;
+
+                    if (appointment.StatusId == 3)
+                        appointment.IsScheduleFinalized = false;
+                }
+
+                appointment.SurgeryCategory = NormalizeSurgeryCategory(appointment.SurgeryCategory);
+                appointment.SurgeryLoadPoints = GetSurgeryLoadPoints(appointment.SurgeryCategory);
                 _appointmentService.Update(appointment);
+
+                var updatedAppointment = _appointmentService.GetById(appointment.Id);
+
+                if (roleId == 3)
+                {
+                    if (updatedAppointment != null)
+                        _notificationService.CreateStaffNotification(updatedAppointment, BuildStaffScheduleRequestNotificationMessage(updatedAppointment));
+                }
+                else
+                {
+                    var notificationMessage = BuildClientUpdateNotificationMessage(existingAppointment, updatedAppointment);
+                    if (updatedAppointment != null && notificationMessage != null)
+                        _notificationService.CreateClientNotification(updatedAppointment, notificationMessage);
+                }
 
                 TempData["Success"] = "Appointment updated successfully.";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId);
+                LoadDropdowns(userId.Value, roleId, appointment.PetId, appointment.ServiceId, appointment.SurgeryCategory, appointment.StatusId);
                 TempData["Error"] = ex.Message;
                 return View(appointment);
             }
@@ -449,6 +503,13 @@ namespace VetClinicSystem.Controllers
 
             try
             {
+                var appointmentToDelete = _appointmentService.GetById(id);
+                if (appointmentToDelete == null)
+                    return NotFound();
+
+                if (roleId == 1 || roleId == 2)
+                    _notificationService.CreateClientNotification(appointmentToDelete, BuildClientCancellationNotificationMessage(appointmentToDelete));
+
                 _appointmentService.Delete(id);
                 TempData["Success"] = "Appointment cancelled successfully.";
             }
@@ -481,7 +542,11 @@ namespace VetClinicSystem.Controllers
             if (HasProperty(appointment, "AppointmentStatusId"))
                 SetIntPropertyValue(appointment, "AppointmentStatusId", 2);
 
+            appointment.IsScheduleFinalized = true;
             _appointmentService.Update(appointment);
+            var approvedAppointment = _appointmentService.GetById(id);
+            if (approvedAppointment != null)
+                _notificationService.CreateClientNotification(approvedAppointment, BuildClientStatusNotificationMessage(approvedAppointment, "confirmed"));
             TempData["Success"] = "Appointment approved.";
             return RedirectToAction("Index");
         }
@@ -507,12 +572,43 @@ namespace VetClinicSystem.Controllers
             if (HasProperty(appointment, "AppointmentStatusId"))
                 SetIntPropertyValue(appointment, "AppointmentStatusId", 3);
 
+            appointment.IsScheduleFinalized = false;
             _appointmentService.Update(appointment);
+            var rejectedAppointment = _appointmentService.GetById(id);
+            if (rejectedAppointment != null)
+                _notificationService.CreateClientNotification(rejectedAppointment, BuildClientStatusNotificationMessage(rejectedAppointment, "declined"));
             TempData["Success"] = "Appointment rejected.";
             return RedirectToAction("Index");
         }
 
-        private void LoadDropdowns(int userId, int? roleId, int? selectedPetId = null, int? selectedServiceId = null)
+        public IActionResult Complete(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (roleId != 1 && roleId != 2)
+                return Unauthorized();
+
+            var appointment = _appointmentService.GetById(id);
+            if (appointment == null)
+                return NotFound();
+
+            appointment.StatusId = 4;
+            appointment.IsScheduleFinalized = true;
+
+            _appointmentService.Update(appointment);
+            var completedAppointment = _appointmentService.GetById(id);
+            if (completedAppointment != null)
+                _notificationService.CreateClientNotification(completedAppointment, BuildClientStatusNotificationMessage(completedAppointment, "completed"));
+
+            TempData["Success"] = "Appointment marked as completed.";
+            return RedirectToAction("Index");
+        }
+
+        private void LoadDropdowns(int userId, int? roleId, int? selectedPetId = null, int? selectedServiceId = null, string? selectedSurgeryCategory = null, int? selectedStatusId = null)
         {
             if (roleId == 3)
                 ViewBag.Pets = new SelectList(_petService.GetByUser(userId), "Id", "PetName", selectedPetId);
@@ -520,12 +616,23 @@ namespace VetClinicSystem.Controllers
                 ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", selectedPetId);
 
             ViewBag.Services = new SelectList(GetAppointmentServices(), "Id", "ServiceName", selectedServiceId);
+            LoadSurgeryCategoryOptions(selectedSurgeryCategory);
+
+            if (roleId == 1 || roleId == 2)
+            {
+                ViewBag.EditStatuses = new SelectList(
+                    _context.AppointmentStatuses.OrderBy(x => x.Id).ToList(),
+                    "Id",
+                    "StatusName",
+                    selectedStatusId);
+            }
         }
 
-        private void LoadGuestDropdowns(int? selectedServiceId = null)
+        private void LoadGuestDropdowns(int? selectedServiceId = null, string? selectedSurgeryCategory = null)
         {
             ViewBag.Services = new SelectList(GetAppointmentServices(), "Id", "ServiceName", selectedServiceId);
             ViewBag.SexOptions = new SelectList(new[] { "Male", "Female" });
+            LoadSurgeryCategoryOptions(selectedSurgeryCategory);
         }
 
         private void CreateGuestBooking(GuestAppointmentBooking booking)
@@ -608,6 +715,12 @@ namespace VetClinicSystem.Controllers
                 ServiceId = booking.ServiceId,
                 AppointmentDate = booking.AppointmentDate.Value,
                 AppointmentTime = booking.AppointmentTime.Value,
+                PreferredAppointmentDate = booking.AppointmentDate.Value,
+                PreferredAppointmentTime = booking.AppointmentTime.Value,
+                SurgeryCategory = NormalizeSurgeryCategory(booking.SurgeryCategory),
+                SurgeryLoadPoints = GetSurgeryLoadPoints(booking.SurgeryCategory),
+                IsEmergency = booking.IsEmergency,
+                IsScheduleFinalized = false,
                 ReasonForVisit = booking.ReasonForVisit,
                 ClientNotes = booking.ClientNotes,
                 CreatedByUserId = guestUser.Id,
@@ -651,29 +764,66 @@ namespace VetClinicSystem.Controllers
             return service.ServiceName.Contains("Surgery", StringComparison.OrdinalIgnoreCase);
         }
 
-        private string? GetSurgeryBookingRuleError(int serviceId, DateOnly appointmentDate, int? currentAppointmentId = null)
+        private void LoadSurgeryCategoryOptions(string? selectedCategory = null)
+        {
+            ViewBag.SurgeryCategories = new SelectList(
+                SurgeryCategoryPoints.Keys.Select(x => new { Value = x, Text = $"{x} ({SurgeryCategoryPoints[x]} point{(SurgeryCategoryPoints[x] > 1 ? "s" : string.Empty)})" }),
+                "Value",
+                "Text",
+                NormalizeSurgeryCategory(selectedCategory));
+        }
+
+        private void ValidateSurgeryRequest(int serviceId, DateOnly appointmentDate, string? surgeryCategory, bool isEmergency, int? currentAppointmentId = null)
         {
             if (!IsAppointmentService(serviceId))
-                return null;
+                return;
 
             var today = DateOnly.FromDateTime(DateTime.Today);
+            var maxAllowedDate = today.AddDays(6);
             if (appointmentDate < today)
-                return "Surgery appointments cannot be booked in the past.";
+                ModelState.AddModelError(nameof(Appointment.AppointmentDate), $"Surgery requests cannot be booked in the past. Choose a date from {today:MMMM d, yyyy} to {maxAllowedDate:MMMM d, yyyy}.");
 
-            if (appointmentDate > today.AddDays(6))
-                return "Surgery appointments must be scheduled within the same week.";
+            if (appointmentDate > maxAllowedDate)
+                ModelState.AddModelError(nameof(Appointment.AppointmentDate), $"Surgery requests must be scheduled between {today:MMMM d, yyyy} and {maxAllowedDate:MMMM d, yyyy}.");
 
-            var surgeryAppointmentsOnDate = _context.Appointments
-                .Count(x =>
+            var normalizedCategory = NormalizeSurgeryCategory(surgeryCategory);
+            if (normalizedCategory == null)
+            {
+                ModelState.AddModelError(nameof(Appointment.SurgeryCategory), "Please select a surgery category.");
+                return;
+            }
+
+            if (isEmergency)
+                return;
+
+            var selectedLoadPoints = GetSurgeryLoadPoints(normalizedCategory);
+            var currentLoadPoints = _context.Appointments
+                .Where(x =>
+                    x.Id == currentAppointmentId &&
+                    x.Service.ServiceName.Contains("Surgery"))
+                .Select(x => x.SurgeryLoadPoints)
+                .FirstOrDefault();
+
+            var scheduledLoadPoints = _context.Appointments
+                .Where(x =>
                     x.AppointmentDate == appointmentDate &&
                     x.Id != currentAppointmentId &&
                     x.Service.ServiceName.Contains("Surgery") &&
-                    x.StatusId != 3);
+                    x.StatusId != 3 &&
+                    !x.IsEmergency)
+                .Sum(x => x.SurgeryLoadPoints > 0 ? x.SurgeryLoadPoints : 0);
 
-            if (surgeryAppointmentsOnDate >= MaxSurgeryAppointmentsPerDay)
-                return $"Only {MaxSurgeryAppointmentsPerDay} surgery appointments can be scheduled per day. Please choose another date.";
+            var totalLoadPoints = scheduledLoadPoints + selectedLoadPoints;
 
-            return null;
+            if (currentAppointmentId.HasValue && currentLoadPoints > 0 && appointmentDate == _context.Appointments.Where(x => x.Id == currentAppointmentId.Value).Select(x => x.AppointmentDate).FirstOrDefault())
+                totalLoadPoints = scheduledLoadPoints + selectedLoadPoints;
+
+            if (totalLoadPoints > MaxDailySurgeryLoadPoints)
+            {
+                ModelState.AddModelError(
+                    nameof(Appointment.AppointmentDate),
+                    $"This surgery request would bring the day to {totalLoadPoints} load points. The clinic only allows {MaxDailySurgeryLoadPoints} surgery points per day for non-emergency cases.");
+            }
         }
 
         private bool CanClientChangeAppointment(Appointment appointment)
@@ -747,6 +897,101 @@ namespace VetClinicSystem.Controllers
         private bool HasProperty(object obj, string propertyName)
         {
             return obj.GetType().GetProperty(propertyName) != null;
+        }
+
+        private string? BuildClientUpdateNotificationMessage(Appointment? previousAppointment, Appointment? updatedAppointment)
+        {
+            if (previousAppointment == null || updatedAppointment == null)
+                return null;
+
+            if (!previousAppointment.IsEmergency && updatedAppointment.IsEmergency)
+                return BuildClientStatusNotificationMessage(updatedAppointment, "emergency");
+
+            if (previousAppointment.AppointmentDate != updatedAppointment.AppointmentDate ||
+                previousAppointment.AppointmentTime != updatedAppointment.AppointmentTime)
+            {
+                return BuildClientRescheduleNotificationMessage(previousAppointment, updatedAppointment);
+            }
+
+            if (previousAppointment.StatusId != updatedAppointment.StatusId)
+            {
+                return updatedAppointment.StatusId switch
+                {
+                    2 => BuildClientStatusNotificationMessage(updatedAppointment, "confirmed"),
+                    3 => BuildClientStatusNotificationMessage(updatedAppointment, "declined"),
+                    4 => BuildClientStatusNotificationMessage(updatedAppointment, "completed"),
+                    _ => null
+                };
+            }
+
+            return null;
+        }
+
+        private string BuildClientCancellationNotificationMessage(Appointment appointment)
+        {
+            return BuildClientStatusNotificationMessage(appointment, "cancelled");
+        }
+
+        private string BuildStaffScheduleRequestNotificationMessage(Appointment appointment)
+        {
+            var petName = string.IsNullOrWhiteSpace(appointment.Pet?.PetName) ? "the pet" : appointment.Pet.PetName.Trim();
+            var ownerName = appointment.Pet?.Owner == null
+                ? "A client"
+                : $"{appointment.Pet.Owner.FirstName} {appointment.Pet.Owner.LastName}".Trim();
+            var category = NormalizeSurgeryCategory(appointment.SurgeryCategory) ?? "Moderate";
+            var emergencyText = appointment.IsEmergency ? " Emergency priority requested." : string.Empty;
+
+            return $"{ownerName} updated the surgery request for {petName}. Preferred schedule: {FormatSchedule(appointment)}. Category: {category}.{emergencyText}";
+        }
+
+        private string BuildClientRescheduleNotificationMessage(Appointment previousAppointment, Appointment updatedAppointment)
+        {
+            var petName = string.IsNullOrWhiteSpace(updatedAppointment.Pet?.PetName) ? "your pet" : updatedAppointment.Pet.PetName.Trim();
+            return $"Your surgery appointment for {petName} has been rescheduled from {FormatSchedule(previousAppointment)} to {FormatSchedule(updatedAppointment)}.";
+        }
+
+        private string BuildClientStatusNotificationMessage(Appointment appointment, string state)
+        {
+            var petName = string.IsNullOrWhiteSpace(appointment.Pet?.PetName) ? "your pet" : appointment.Pet.PetName.Trim();
+            var schedule = FormatSchedule(appointment);
+            var category = NormalizeSurgeryCategory(appointment.SurgeryCategory) ?? "Surgery";
+            var emergencyPrefix = appointment.IsEmergency ? "emergency " : string.Empty;
+
+            return state switch
+            {
+                "pending" => $"Your {emergencyPrefix}{category.ToLowerInvariant()} surgery request for {petName} on {schedule} has been submitted and is pending clinic approval.",
+                "confirmed" when appointment.IsEmergency => $"Your emergency surgery appointment for {petName} has been prioritized and confirmed for {schedule}.",
+                "confirmed" => $"Your surgery appointment for {petName} on {schedule} has been confirmed.",
+                "declined" => $"Your surgery appointment for {petName} on {schedule} has been declined.",
+                "cancelled" => $"Your surgery appointment for {petName} on {schedule} has been cancelled.",
+                "rescheduled" => $"Your surgery appointment for {petName} on {schedule} has been rescheduled.",
+                "completed" => $"Your surgery appointment for {petName} on {schedule} has been completed.",
+                "emergency" => $"Your surgery appointment for {petName} on {schedule} has been tagged as an emergency priority.",
+                _ => $"Your surgery appointment for {petName} on {schedule} has been updated."
+            };
+        }
+
+        private string? NormalizeSurgeryCategory(string? surgeryCategory)
+        {
+            if (string.IsNullOrWhiteSpace(surgeryCategory))
+                return null;
+
+            return SurgeryCategoryPoints.Keys.FirstOrDefault(x => string.Equals(x, surgeryCategory.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        private int GetSurgeryLoadPoints(string? surgeryCategory)
+        {
+            var normalizedCategory = NormalizeSurgeryCategory(surgeryCategory);
+            if (normalizedCategory == null)
+                return 0;
+
+            return SurgeryCategoryPoints[normalizedCategory];
+        }
+
+        private string FormatSchedule(Appointment appointment)
+        {
+            var scheduleDateTime = appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime);
+            return scheduleDateTime.ToString("MMMM d, yyyy h:mm tt");
         }
 
         private void SetIntPropertyValue(object obj, string propertyName, int value)

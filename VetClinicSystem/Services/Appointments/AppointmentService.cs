@@ -2,24 +2,24 @@ using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using VetClinicSystem.Models;
 using VetClinicSystem.Repositories.Appointments;
-using VetClinicSystem.Repositories.Notifications;
 using VetClinicSystem.Repositories.Users;
+using VetClinicSystem.Services.Notifications;
 
 namespace VetClinicSystem.Services.Appointments
 {
     public class AppointmentService : IAppointmentService
     {
         private readonly IAppointmentRepository _appointmentRepository;
-        private readonly INotificationRepository _notificationRepository;
+        private readonly INotificationService _notificationService;
         private readonly IUserRepository _userRepository;
 
         public AppointmentService(
             IAppointmentRepository appointmentRepository,
-            INotificationRepository notificationRepository,
+            INotificationService notificationService,
             IUserRepository userRepository)
         {
             _appointmentRepository = appointmentRepository;
-            _notificationRepository = notificationRepository;
+            _notificationService = notificationService;
             _userRepository = userRepository;
         }
 
@@ -106,16 +106,8 @@ namespace VetClinicSystem.Services.Appointments
 
                 var savedAppointment = _appointmentRepository.GetById(appointment.Id) ?? appointment;
 
-                var notification = new StaffNotification
-                {
-                    AppointmentId = appointment.Id,
-                    Message = BuildAppointmentNotificationMessage(savedAppointment),
-                    IsRead = false,
-                    DateCreated = DateTime.Now
-                };
-
-                _notificationRepository.Add(notification);
-                _notificationRepository.Save();
+                _notificationService.CreateStaffNotification(savedAppointment, BuildAppointmentNotificationMessage(savedAppointment));
+                _notificationService.CreateClientNotification(savedAppointment, BuildClientPendingNotificationMessage(savedAppointment));
 
                 AddReminderLogs(savedAppointment);
                 _appointmentRepository.Save();
@@ -139,6 +131,12 @@ namespace VetClinicSystem.Services.Appointments
                 existingAppointment.ServiceId = appointment.ServiceId;
                 existingAppointment.AppointmentDate = appointment.AppointmentDate;
                 existingAppointment.AppointmentTime = appointment.AppointmentTime;
+                existingAppointment.PreferredAppointmentDate = appointment.PreferredAppointmentDate;
+                existingAppointment.PreferredAppointmentTime = appointment.PreferredAppointmentTime;
+                existingAppointment.SurgeryCategory = appointment.SurgeryCategory;
+                existingAppointment.SurgeryLoadPoints = appointment.SurgeryLoadPoints;
+                existingAppointment.IsEmergency = appointment.IsEmergency;
+                existingAppointment.IsScheduleFinalized = appointment.IsScheduleFinalized;
                 existingAppointment.ReasonForVisit = appointment.ReasonForVisit;
                 existingAppointment.ClientNotes = appointment.ClientNotes;
                 existingAppointment.StaffNotes = appointment.StaffNotes;
@@ -219,14 +217,33 @@ namespace VetClinicSystem.Services.Appointments
             var serviceName = string.IsNullOrWhiteSpace(appointment.Service?.ServiceName)
                 ? "service"
                 : appointment.Service.ServiceName.Trim();
-            var appointmentDate = appointment.AppointmentDate.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture);
+            var appointmentSchedule = appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime)
+                .ToString("MMMM d, yyyy h:mm tt", CultureInfo.InvariantCulture);
             var statusName = string.IsNullOrWhiteSpace(appointment.Status?.StatusName)
                 ? "Pending"
                 : appointment.Status.StatusName.Trim();
-
-            var message = $"{ownerName} requested a {serviceName} appointment for {petName} on {appointmentDate}. Status: {statusName}.";
+            var category = string.IsNullOrWhiteSpace(appointment.SurgeryCategory)
+                ? "Moderate"
+                : appointment.SurgeryCategory.Trim();
+            var emergencyText = appointment.IsEmergency ? " Emergency priority requested." : string.Empty;
+            var message = $"{ownerName} requested a {category.ToLowerInvariant()} {serviceName} for {petName} on {appointmentSchedule}. Status: {statusName}.{emergencyText}";
 
             return message.Length <= 255 ? message : message[..255];
+        }
+
+        private string BuildClientPendingNotificationMessage(Appointment appointment)
+        {
+            var petName = string.IsNullOrWhiteSpace(appointment.Pet?.PetName)
+                ? "your pet"
+                : appointment.Pet.PetName.Trim();
+            var appointmentSchedule = appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime)
+                .ToString("MMMM d, yyyy h:mm tt", CultureInfo.InvariantCulture);
+            var category = string.IsNullOrWhiteSpace(appointment.SurgeryCategory)
+                ? "surgery"
+                : $"{appointment.SurgeryCategory.Trim().ToLowerInvariant()} surgery";
+            var emergencyText = appointment.IsEmergency ? " It has been flagged as an emergency priority request." : string.Empty;
+
+            return $"Your {category} request for {petName} on {appointmentSchedule} has been submitted and is pending clinic approval.{emergencyText}";
         }
 
         private void AddReminderLogs(Appointment appointment)

@@ -173,15 +173,17 @@
             <article>
                 <img src="~/images/site/article-1.jfif" asp-append-version="true" alt="When to book a consultation" />
                 <h3>When to book a consultation</h3>
+                <a href="https://www.farmingtonvethospital.com/when-to-visit-the-vet-early-warning-signs-for-pets/" target="_blank" rel="noopener noreferrer">Read Article</a>
             </article>
             <article class="featured">
                 <h3>What to do when symptoms appear</h3>
                 <p>Early consultation helps your pet recover faster.</p>
-                <a href="#contact">Read Article</a>
+                <a href="https://www.petrightvet.com/blog/signs-your-pet-needs-to-visit-the-vet-immediately" target="_blank" rel="noopener noreferrer">Read Article</a>
             </article>
             <article>
                 <img src="~/images/site/article-2.jfif" asp-append-version="true" alt="Preparing for a clinic visit" />
                 <h3>Preparing for a clinic visit</h3>
+                <a href="https://jurupahillsanimalhospital.com/pet-routine-checkup/how-to-prepare-your-pet-for-the-vet-visit/" target="_blank" rel="noopener noreferrer">Read Article</a>
             </article>
         </div>
     </div>
@@ -353,29 +355,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const articleData = {
         therapy: [
-            { title: "When to book a consultation", image: "article-1.jfif" },
-            { title: "What to do when symptoms appear", featured: true, text: "Early consultation helps your pet recover faster." },
-            { title: "Preparing for a clinic visit", image: "article-2.jfif" }
+            { title: "When to book a consultation", image: "article-1.jfif", url: "https://www.farmingtonvethospital.com/when-to-visit-the-vet-early-warning-signs-for-pets/" },
+            { title: "What to do when symptoms appear", featured: true, text: "Early consultation helps your pet recover faster.", url: "https://www.petrightvet.com/blog/signs-your-pet-needs-to-visit-the-vet-immediately" },
+            { title: "Preparing for a clinic visit", image: "article-2.jfif", url: "https://jurupahillsanimalhospital.com/pet-routine-checkup/how-to-prepare-your-pet-for-the-vet-visit/" }
         ],
         care: [
-            { title: "How to welcome a puppy home", image: "article-3.jfif" },
-            { title: "Daily care checklist", featured: true, text: "Small routines help pets stay comfortable and healthy." },
-            { title: "Grooming signs to watch", image: "article-4.jfif" }
+            { title: "How to welcome a puppy home", image: "article-3.jfif", url: "https://tractive.com/blog/en/good-to-know/new-puppy-checklist" },
+            { title: "Daily care checklist", featured: true, text: "Small routines help pets stay comfortable and healthy.", url: "https://www.akc.org/expert-advice/home-living/preparing-new-puppy/" },
+            { title: "Grooming signs to watch", image: "article-4.jfif", url: "https://www.petmd.com/dog/general-health/grooming-tips-new-puppy" }
         ],
         nutrition: [
-            { title: "Choosing everyday pet food", image: "article-5.jfif" },
-            { title: "Feeding reminders", featured: true, text: "Consistent meals and clean water support long-term wellness." },
-            { title: "When appetite changes", image: "article-6.jfif" }
+            { title: "Choosing everyday pet food", image: "article-5.jfif", url: "https://www.zoetispetcare.com/blog/article/feeding-new-pet" },
+            { title: "Feeding reminders", featured: true, text: "Consistent meals and clean water support long-term wellness.", url: "https://www.purina.com/articles/dog/feeding/guides/free-feeding-dogs" },
+            { title: "When appetite changes", image: "article-6.jfif", url: "https://petponderosa.com/2025/01/why-consistent-meal-times-matter-for-your-pets-health/" }
         ],
         vaccination: [
-            { title: "Vaccination visit preparation", image: "article-7.jfif" },
-            { title: "Deworming reminders", featured: true, text: "Preventive care helps protect pets from common risks." },
-            { title: "Keeping pet records updated", image: "article-8.jfif" }
+            { title: "Vaccination visit preparation", image: "article-7.jfif", url: "https://thepetsfusion.com/vaccination-and-deworming-schedule-for-puppies/" },
+            { title: "Deworming reminders", featured: true, text: "Preventive care helps protect pets from common risks.", url: "https://cvhcp.com/blog/dog-vaccination-and-deworming-schedule/" },
+            { title: "Keeping pet records updated", image: "article-8.jfif", url: "https://www.nahf.org/article/dog-health-record" }
         ],
         behavior: [
-            { title: "Helping anxious pets settle", image: "article-9.jfif" },
-            { title: "Boarding comfort tips", featured: true, text: "Familiar routines can make temporary stays easier." },
-            { title: "Signs your pet needs attention", image: "article-10.jfif" }
+            { title: "Helping anxious pets settle", image: "article-9.jfif", url: "https://petponderosa.com/2026/03/dog-separation-anxiety-and-pet-boarding-a-complete-guide-to-helping-your-dog-adjust/" },
+            { title: "Boarding comfort tips", featured: true, text: "Familiar routines can make temporary stays easier.", url: "https://www.wagsandwhiskerspetresort.com/dog-boarding-tips-for-anxious-pets" },
+            { title: "Signs your pet needs attention", image: "article-10.jfif", url: "https://animalpeoplecompany.com/the-emotional-side-of-dog-boarding-what-your-pup-feels-when-youre-away/" }
         ]
     };
 
@@ -643,10 +645,10 @@ document.addEventListener("DOMContentLoaded", function () {
             setActiveButton(buttons, activeButton);
             grid.innerHTML = data.map(function (article) {
                 if (article.featured) {
-                    return "<article class=\"featured\"><h3>" + article.title + "</h3><p>" + article.text + "</p><a href=\"#contact\">Read Article</a></article>";
+                    return "<article class=\"featured\"><h3>" + article.title + "</h3><p>" + article.text + "</p><a href=\"" + article.url + "\" target=\"_blank\" rel=\"noopener noreferrer\">Read Article</a></article>";
                 }
 
-                return "<article><img src=\"" + imageBase + article.image + "\" alt=\"" + article.title + "\" /><h3>" + article.title + "</h3></article>";
+                return "<article><img src=\"" + imageBase + article.image + "\" alt=\"" + article.title + "\" /><h3>" + article.title + "</h3><a href=\"" + article.url + "\" target=\"_blank\" rel=\"noopener noreferrer\">Read Article</a></article>";
             }).join("");
         }
 

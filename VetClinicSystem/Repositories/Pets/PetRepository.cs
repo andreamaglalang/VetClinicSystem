@@ -111,11 +111,14 @@ namespace VetClinicSystem.Repositories.Pets
             if (appointmentIds.Any())
             {
                 var staffNotifications = _context.StaffNotifications
-                    .Where(x => appointmentIds.Contains(x.AppointmentId))
+                    .Where(x => x.AppointmentId.HasValue && appointmentIds.Contains(x.AppointmentId.Value))
                     .ToList();
 
                 if (staffNotifications.Any())
-                    _context.StaffNotifications.RemoveRange(staffNotifications);
+                {
+                    foreach (var staffNotification in staffNotifications)
+                        staffNotification.AppointmentId = null;
+                }
 
                 var reminderLogs = _context.ReminderLogs
                     .Where(x => appointmentIds.Contains(x.AppointmentId))

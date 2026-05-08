@@ -141,7 +141,10 @@ namespace VetClinicSystem.Repositories.Appointments
                 .ToList();
 
             if (notifications.Any())
-                _context.StaffNotifications.RemoveRange(notifications);
+            {
+                foreach (var notification in notifications)
+                    notification.AppointmentId = null;
+            }
 
             var reminderLogs = _context.ReminderLogs
                 .Where(x => x.AppointmentId == appointment.Id)

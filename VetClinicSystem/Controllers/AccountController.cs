@@ -296,11 +296,48 @@ namespace VetClinicSystem.Controllers
             if (user == null)
                 return RedirectToAction("Login");
 
+            var deactivateUsername = Request.Form["DeactivateUsername"].ToString().Trim();
+            var deactivatePassword = Request.Form["DeactivatePassword"].ToString();
+            var deactivateConfirmation = Request.Form["DeactivateConfirmation"].ToString().Trim();
+            var hasValidationError = false;
+
+            if (!string.Equals(deactivateUsername, user.Username, StringComparison.Ordinal))
+            {
+                ViewBag.DeactivateUsernameError = "The username does not match your current account.";
+                hasValidationError = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(deactivatePassword))
+            {
+                ViewBag.DeactivatePasswordError = "Please enter your password.";
+                hasValidationError = true;
+            }
+            else if (user.PasswordHash != PasswordHelper.HashPassword(deactivatePassword))
+            {
+                ViewBag.DeactivatePasswordError = "The password you entered is incorrect.";
+                hasValidationError = true;
+            }
+
+            if (!string.Equals(deactivateConfirmation, "DEACTIVATE", StringComparison.Ordinal))
+            {
+                ViewBag.DeactivateConfirmationError = "Please type DEACTIVATE exactly to confirm.";
+                hasValidationError = true;
+            }
+
+            if (hasValidationError)
+            {
+                ViewBag.DeactivateUsername = deactivateUsername;
+                ViewBag.DeactivateConfirmation = deactivateConfirmation;
+                PrepareSettingsViewData(user.Id);
+                return View("Settings", user);
+            }
+
             user.IsActive = false;
             _context.SaveChanges();
 
             HttpContext.Session.Clear();
 
+            TempData["Success"] = "Your account has been deactivated.";
             return RedirectToAction("Login");
         }
 

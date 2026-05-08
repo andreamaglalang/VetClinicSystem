@@ -156,6 +156,10 @@
         </div>
         <div class="reminder-list">
             <h3>Reminders</h3>
+            <a asp-controller="Notifications" asp-action="Client" data-dashboard-item="notifications inbox updates">
+                <i class="fa-regular fa-bell"></i>
+                <span>Notifications<small>@ViewBag.UnreadNotifications unread</small></span>
+            </a>
             @foreach (var appointment in upcomingReminders)
             {
                 <a asp-controller="Appointments" asp-action="Index" data-dashboard-item="appointment reminder scheduled">

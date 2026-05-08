@@ -62,6 +62,14 @@ public class GuestAppointmentBooking
     [Display(Name = "Appointment Time")]
     public TimeOnly? AppointmentTime { get; set; }
 
+    [Required]
+    [StringLength(20)]
+    [Display(Name = "Surgery Category")]
+    public string SurgeryCategory { get; set; } = string.Empty;
+
+    [Display(Name = "Emergency Case")]
+    public bool IsEmergency { get; set; }
+
     [StringLength(255)]
     [Display(Name = "Reason for Visit")]
     public string? ReasonForVisit { get; set; }

@@ -1,22 +1,55 @@
-﻿@model VetClinicSystem.Models.Appointment
+@model VetClinicSystem.Models.Appointment
 
-<h2>Edit Appointment</h2>
+@{
+    var roleId = Context.Session.GetInt32("RoleId");
+    var isClient = roleId == 3;
+    var preferredDate = Model.PreferredAppointmentDate ?? Model.AppointmentDate;
+    var preferredTime = Model.PreferredAppointmentTime ?? Model.AppointmentTime;
+    var minScheduleDate = DateOnly.FromDateTime(DateTime.Today);
+    var maxScheduleDate = minScheduleDate.AddDays(6);
+    var minScheduleDateValue = minScheduleDate.ToString("yyyy-MM-dd");
+    var maxScheduleDateValue = maxScheduleDate.ToString("yyyy-MM-dd");
+    var allowedScheduleRangeMessage = $"Surgery requests must be scheduled between {minScheduleDate:MMMM d, yyyy} and {maxScheduleDate:MMMM d, yyyy}.";
+    var appointmentDateValue = Model.AppointmentDate == default ? string.Empty : Model.AppointmentDate.ToString("yyyy-MM-dd");
+}
 
-<div class="appointment-create-notes" aria-label="Appointment booking reminders">
-    <section>
-        <i class="fa-solid fa-calendar-check"></i>
-        <div>
-            <strong>Appointment availability</strong>
-            <p>Surgery is the only service available for appointment booking. Other services are walk-in only, and the clinic is closed on Tuesdays and selected major holidays.</p>
-        </div>
-    </section>
-    <section>
-        <i class="fa-solid fa-notes-medical"></i>
-        <div>
-            <strong>Before surgery</strong>
-            <p>Pre-op blood test screening is walk-in only. If your pet is fit for surgery, schedule within 1 week. Bathe your pet a day before, withhold food for 8-12 hours, and water for 5 hours.</p>
-        </div>
-    </section>
+<h2>@(isClient ? "Update Surgery Request" : "Manage Surgery Schedule")</h2>
+
+<div class="appointment-create-notes" aria-label="Surgery scheduling reminders">
+    @if (isClient)
+    {
+        <section>
+            <i class="fa-solid fa-calendar-check"></i>
+            <div>
+                <strong>Preferred schedule request</strong>
+                <p>You can update your preferred surgery date and time, but the clinic still reviews availability, complexity, and final schedule confirmation.</p>
+            </div>
+        </section>
+        <section>
+            <i class="fa-solid fa-scale-balanced"></i>
+            <div>
+                <strong>Surgery load planning</strong>
+                <p>Minor surgeries use 1 point, moderate use 2, major use 3, and regular scheduling allows up to 5 points per day. Emergency cases can bypass daily capacity.</p>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section>
+            <i class="fa-solid fa-user-clock"></i>
+            <div>
+                <strong>Client preferred schedule</strong>
+                <p>@preferredDate.ToString("MMMM d, yyyy") at @preferredTime.ToString("h:mm tt")</p>
+            </div>
+        </section>
+        <section>
+            <i class="fa-solid fa-clipboard-check"></i>
+            <div>
+                <strong>Schedule control</strong>
+                <p>Adjust the final surgery date, time, status, and finalization after reviewing complexity, emergency priority, and the clinic's daily load.</p>
+            </div>
+        </section>
+    }
 </div>
 
 <form method="post">
@@ -26,46 +59,123 @@
     <div class="mb-3">
         <label asp-for="PetId"></label>
         <select asp-for="PetId" asp-items="ViewBag.Pets" class="form-control"></select>
+        <span asp-validation-for="PetId" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="ServiceId">Appointment Service</label>
+        <label asp-for="ServiceId">Surgery Service</label>
         <select asp-for="ServiceId" asp-items="ViewBag.Services" class="form-control"></select>
+        <span asp-validation-for="ServiceId" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="AppointmentDate"></label>
-        <input asp-for="AppointmentDate" type="date" class="form-control" data-appointment-date />
-        <span class="text-danger" data-unavailable-date-message></span>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label asp-for="AppointmentDate">@(isClient ? "Preferred Surgery Date" : "Final Surgery Date")</label>
+            <input id="AppointmentDate" name="AppointmentDate" value="@appointmentDateValue" type="date" lang="en-US" class="form-control" data-appointment-date data-min-date="@minScheduleDateValue" data-max-date="@maxScheduleDateValue" data-range-message="@allowedScheduleRangeMessage" />
+            <span class="text-danger" data-unavailable-date-message></span>
+            <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="AppointmentTime">@(isClient ? "Preferred Surgery Time" : "Final Surgery Time")</label>
+            <input asp-for="AppointmentTime" type="time" class="form-control" />
+            <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="SurgeryCategory">Surgery Category</label>
+            <select asp-for="SurgeryCategory" asp-items="ViewBag.SurgeryCategories" class="form-control">
+                <option value="">Select category</option>
+            </select>
+            <span asp-validation-for="SurgeryCategory" class="text-danger"></span>
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="AppointmentTime"></label>
-        <input asp-for="AppointmentTime" type="time" class="form-control" />
+    <div class="appointment-emergency-toggle mt-3 mb-3">
+        <div class="appointment-emergency-toggle__copy">
+            <label asp-for="IsEmergency" class="form-check-label">Mark this surgery request as emergency priority</label>
+            <p class="appointment-emergency-toggle__hint">Emergency cases can bypass the usual daily surgery load when the clinic confirms urgent care is needed.</p>
+        </div>
+        <div class="appointment-emergency-toggle__switch">
+            <input asp-for="IsEmergency" class="form-check-input" />
+        </div>
     </div>
 
     <div class="mb-3">
         <label asp-for="ReasonForVisit"></label>
         <input asp-for="ReasonForVisit" class="form-control" />
+        <span asp-validation-for="ReasonForVisit" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="ClientNotes"></label>
+        <label asp-for="ClientNotes">Client Notes / Reason</label>
         <textarea asp-for="ClientNotes" class="form-control"></textarea>
+        <span asp-validation-for="ClientNotes" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-success">Update</button>
+    @if (!isClient)
+    {
+        <div class="mb-3">
+            <label asp-for="StaffNotes">Staff Notes</label>
+            <textarea asp-for="StaffNotes" class="form-control"></textarea>
+            <span asp-validation-for="StaffNotes" class="text-danger"></span>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="StatusId">Appointment Status</label>
+                <select asp-for="StatusId" asp-items="ViewBag.EditStatuses" class="form-control"></select>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-center">
+                <div class="form-check mt-4">
+                    <input asp-for="IsScheduleFinalized" class="form-check-input" />
+                    <label asp-for="IsScheduleFinalized" class="form-check-label">Finalize this surgery schedule</label>
+                </div>
+            </div>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-success">@(isClient ? "Update Surgery Request" : "Save Schedule Changes")</button>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dateInput = document.querySelector("[data-appointment-date]");
             const message = document.querySelector("[data-unavailable-date-message]");
             const form = dateInput?.closest("form");
+            const rangeMessage = dateInput?.dataset.rangeMessage || "";
+            const minDateValue = dateInput?.dataset.minDate || "";
+            const maxDateValue = dateInput?.dataset.maxDate || "";
 
             if (!dateInput || !message || !form) return;
+
+            dateInput.addEventListener("keydown", function (event) {
+                if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+                const allowedKeys = [
+                    "Tab",
+                    "Shift",
+                    "ArrowLeft",
+                    "ArrowRight",
+                    "ArrowUp",
+                    "ArrowDown",
+                    "Home",
+                    "End",
+                    "Escape"
+                ];
+
+                if (allowedKeys.includes(event.key)) return;
+
+                if (typeof dateInput.showPicker === "function") {
+                    dateInput.showPicker();
+                }
+
+                event.preventDefault();
+            });
 
             function getEasterSunday(year) {
                 const a = year % 19;
@@ -103,8 +213,14 @@
                 if (!value) return "";
 
                 const selectedDate = new Date(value + "T00:00:00");
+                const minDate = minDateValue ? new Date(minDateValue + "T00:00:00") : null;
+                const maxDate = maxDateValue ? new Date(maxDateValue + "T00:00:00") : null;
                 const month = selectedDate.getMonth() + 1;
                 const day = selectedDate.getDate();
+
+                if ((minDate && selectedDate < minDate) || (maxDate && selectedDate > maxDate)) {
+                    return rangeMessage;
+                }
 
                 if (selectedDate.getDay() === 2) {
                     return "The clinic is closed every Tuesday. Please choose another date.";

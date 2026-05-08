@@ -3,8 +3,10 @@
 <h2>Cancel Appointment</h2>
 
 <table class="table table-bordered">
-    <tr><th>Date</th><td>@Model.AppointmentDate</td></tr>
-    <tr><th>Time</th><td>@Model.AppointmentTime</td></tr>
+    <tr><th>Pet</th><td>@Model.Pet?.PetName</td></tr>
+    <tr><th>Current Schedule</th><td>@Model.AppointmentDate.ToString("MMMM d, yyyy") @Model.AppointmentTime.ToString("h:mm tt")</td></tr>
+    <tr><th>Surgery Category</th><td>@(Model.SurgeryCategory ?? "Not set")</td></tr>
+    <tr><th>Emergency Priority</th><td>@(Model.IsEmergency ? "Yes" : "No")</td></tr>
 </table>
 
 <form method="post" data-confirm-message="Are you sure you want to cancel this appointment?">

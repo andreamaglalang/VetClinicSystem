@@ -1,13 +1,33 @@
-﻿@model VetClinicSystem.Models.Appointment
+@model VetClinicSystem.Models.Appointment
 
-<h2>Create Appointment</h2>
+@{
+    var roleId = Context.Session.GetInt32("RoleId");
+    var isClient = roleId == 3;
+    var minScheduleDate = DateOnly.FromDateTime(DateTime.Today);
+    var maxScheduleDate = minScheduleDate.AddDays(6);
+    var minScheduleDateValue = minScheduleDate.ToString("yyyy-MM-dd");
+    var maxScheduleDateValue = maxScheduleDate.ToString("yyyy-MM-dd");
+    var allowedScheduleRangeMessage = $"Surgery requests must be scheduled between {minScheduleDate:MMMM d, yyyy} and {maxScheduleDate:MMMM d, yyyy}.";
+    var appointmentDateValue = Model == null || Model.AppointmentDate == default
+        ? string.Empty
+        : Model.AppointmentDate.ToString("yyyy-MM-dd"); 
+}
 
-<div class="appointment-create-notes" aria-label="Appointment booking reminders">
+<h2>@(isClient ? "Request Surgery Appointment" : "Create Surgery Appointment")</h2>
+
+<div class="appointment-create-notes" aria-label="Surgery scheduling reminders">
     <section>
-        <i class="fa-solid fa-calendar-check"></i>
+        <i class="fa-solid fa-hospital-user"></i>
         <div>
-            <strong>Appointment availability</strong>
-            <p>Surgery is the only service available for appointment booking. Other services are walk-in only, and the clinic is closed on Tuesdays and selected major holidays.</p>
+            <strong>Clinic scheduling workflow</strong>
+            <p>Clients may request a preferred surgery date and time, but the clinic finalizes the actual surgery schedule after review and approval.</p>
+        </div>
+    </section>
+    <section>
+        <i class="fa-solid fa-scale-balanced"></i>
+        <div>
+            <strong>Surgery load planning</strong>
+            <p>Minor surgeries use 1 point, moderate use 2, major use 3, and regular scheduling allows up to 5 points per day. Emergency cases can bypass daily capacity.</p>
         </div>
     </section>
     <section>
@@ -19,52 +39,106 @@
     </section>
 </div>
 
-<form method="post">
+<form method="post" class="appointment-request-form">
     @Html.AntiForgeryToken()
 
     <div class="mb-3">
         <label asp-for="PetId"></label>
         <select asp-for="PetId" asp-items="ViewBag.Pets" class="form-control"></select>
-    </div>
+        <span asp-validation-for="PetId" class="text-danger"></span>
+    </div>  
 
     <div class="mb-3">
-        <label asp-for="ServiceId">Appointment Service</label>
+        <label asp-for="ServiceId">Surgery Service</label>
         <select asp-for="ServiceId" asp-items="ViewBag.Services" class="form-control"></select>
+        <span asp-validation-for="ServiceId" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="AppointmentDate"></label>
-        <input asp-for="AppointmentDate" type="date" class="form-control" data-appointment-date />
-        <span class="text-danger" data-unavailable-date-message></span>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label asp-for="AppointmentDate">Preferred Surgery Date</label>
+            <input id="AppointmentDate" name="AppointmentDate" value="@appointmentDateValue" type="date" lang="en-US" class="form-control" data-appointment-date data-min-date="@minScheduleDateValue" data-max-date="@maxScheduleDateValue" data-range-message="@allowedScheduleRangeMessage" />
+            <span class="text-danger" data-unavailable-date-message></span>
+            <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="AppointmentTime">Preferred Surgery Time</label>
+            <input asp-for="AppointmentTime" type="time" class="form-control" />
+            <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="SurgeryCategory">Surgery Category</label>
+            <select asp-for="SurgeryCategory" asp-items="ViewBag.SurgeryCategories" class="form-control">
+                <option value="">Select category</option>
+            </select>
+            <span asp-validation-for="SurgeryCategory" class="text-danger"></span>
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="AppointmentTime"></label>
-        <input asp-for="AppointmentTime" type="time" class="form-control" />
+    <div class="appointment-emergency-toggle mt-3 mb-3">
+        <div class="appointment-emergency-toggle__copy">
+            <label asp-for="IsEmergency" class="form-check-label">Mark this surgery request as emergency priority</label>
+            <p class="appointment-emergency-toggle__hint">Emergency cases can bypass the usual daily surgery load when the clinic confirms urgent care is needed.</p>
+        </div>
+        <div class="form-check form-switch appointment-emergency-toggle__switch">
+            <input asp-for="IsEmergency" class="form-check-input" />
+        </div>
     </div>
 
     <div class="mb-3">
         <label asp-for="ReasonForVisit"></label>
         <input asp-for="ReasonForVisit" class="form-control" />
+        <span asp-validation-for="ReasonForVisit" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="ClientNotes"></label>
+        <label asp-for="ClientNotes">Notes / Reason</label>
         <textarea asp-for="ClientNotes" class="form-control"></textarea>
+        <span asp-validation-for="ClientNotes" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-success">Save</button>
+    <button type="submit" class="btn btn-success">Submit Surgery Request</button>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dateInput = document.querySelector("[data-appointment-date]");
             const message = document.querySelector("[data-unavailable-date-message]");
             const form = dateInput?.closest("form");
+            const rangeMessage = dateInput?.dataset.rangeMessage || "";
+            const minDateValue = dateInput?.dataset.minDate || "";
+            const maxDateValue = dateInput?.dataset.maxDate || "";
 
             if (!dateInput || !message || !form) return;
+
+            dateInput.addEventListener("keydown", function (event) {
+                if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+                const allowedKeys = [
+                    "Tab",
+                    "Shift",
+                    "ArrowLeft",
+                    "ArrowRight",
+                    "ArrowUp",
+                    "ArrowDown",
+                    "Home",
+                    "End",
+                    "Escape"
+                ];
+
+                if (allowedKeys.includes(event.key)) return;
+
+                if (typeof dateInput.showPicker === "function") {
+                    dateInput.showPicker();
+                }
+
+                event.preventDefault();
+            });
 
             function getEasterSunday(year) {
                 const a = year % 19;
@@ -102,8 +176,14 @@
                 if (!value) return "";
 
                 const selectedDate = new Date(value + "T00:00:00");
+                const minDate = minDateValue ? new Date(minDateValue + "T00:00:00") : null;
+                const maxDate = maxDateValue ? new Date(maxDateValue + "T00:00:00") : null;
                 const month = selectedDate.getMonth() + 1;
                 const day = selectedDate.getDate();
+
+                if ((minDate && selectedDate < minDate) || (maxDate && selectedDate > maxDate)) {
+                    return rangeMessage;
+                }
 
                 if (selectedDate.getDay() === 2) {
                     return "The clinic is closed every Tuesday. Please choose another date.";

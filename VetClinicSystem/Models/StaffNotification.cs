@@ -11,10 +11,15 @@ public partial class StaffNotification
     [Key]
     public int Id { get; set; }
 
-    public int AppointmentId { get; set; }
+    public int? UserId { get; set; }
+
+    public int? AppointmentId { get; set; }
 
     [StringLength(255)]
     public string Message { get; set; } = null!;
+
+    [StringLength(20)]
+    public string RecipientRole { get; set; } = "Staff";
 
     public bool IsRead { get; set; }
 
@@ -23,5 +28,8 @@ public partial class StaffNotification
 
     [ForeignKey("AppointmentId")]
     [InverseProperty("StaffNotifications")]
-    public virtual Appointment Appointment { get; set; } = null!;
+    public virtual Appointment? Appointment { get; set; }
+
+    [ForeignKey("UserId")]
+    public virtual User? User { get; set; }
 }

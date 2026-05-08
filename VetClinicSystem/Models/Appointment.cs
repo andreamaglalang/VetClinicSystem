@@ -22,7 +22,20 @@ public partial class Appointment
 
     public TimeOnly AppointmentTime { get; set; }
 
+    public DateOnly? PreferredAppointmentDate { get; set; }
+
+    public TimeOnly? PreferredAppointmentTime { get; set; }
+
     public int StatusId { get; set; }
+
+    [StringLength(20)]
+    public string? SurgeryCategory { get; set; }
+
+    public int SurgeryLoadPoints { get; set; }
+
+    public bool IsEmergency { get; set; }
+
+    public bool IsScheduleFinalized { get; set; }
 
     [StringLength(255)]
     public string? ReasonForVisit { get; set; }

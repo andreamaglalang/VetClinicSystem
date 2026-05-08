@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Appointments";
+    var roleId = Context.Session.GetInt32("RoleId");
+    var isClient = roleId == 3;
 }
 
 <h2>Appointments</h2>
@@ -32,7 +34,7 @@
     <a asp-action="Create" class="btn btn-primary">Create Appointment</a>
 </p>
 
-<table class="table table-bordered">
+<table class="table table-bordered table-appointments">
     <thead>
         <tr>
             <th>Pet</th>
@@ -49,6 +51,8 @@
         @foreach (var item in Model)
         {
             var statusName = item.Status?.StatusName ?? "Unknown";
+            var appointmentDateTime = item.AppointmentDate.ToDateTime(item.AppointmentTime);
+            var canChangeAppointment = !isClient || appointmentDateTime >= DateTime.Now.AddDays(1);
             var statusClass = statusName.ToLowerInvariant() switch
             {
                 "approved" or "completed" or "confirmed" => "status-pill--success",
@@ -59,9 +63,33 @@
 
             <tr>
                 <td>@item.Pet?.PetName</td>
-                <td>@item.Service?.ServiceName</td>
-                <td>@item.AppointmentDate.ToString("MMM d, yyyy")</td>
-                <td>@item.AppointmentTime.ToString("h:mm tt")</td>
+                <td>
+                    <div>@item.Service?.ServiceName</div>
+                    @if (!string.IsNullOrWhiteSpace(item.SurgeryCategory))
+                    {
+                        <div class="table-action-note">
+                            @item.SurgeryCategory surgery@(item.IsEmergency ? " · Emergency" : string.Empty)
+                        </div>
+                    }
+                </td>
+                <td>
+                    <div>@item.AppointmentDate.ToString("MMM d, yyyy")</div>
+                    @if (item.PreferredAppointmentDate.HasValue && item.PreferredAppointmentDate.Value != item.AppointmentDate)
+                    {
+                        <div class="table-action-note">Client requested @item.PreferredAppointmentDate.Value.ToString("MMM d, yyyy")</div>
+                    }
+                </td>
+                <td class="table-appointments-time">
+                    <div class="table-appointments-time__value">@item.AppointmentTime.ToString("h:mm tt")</div>
+                    @if (item.PreferredAppointmentTime.HasValue && item.PreferredAppointmentTime.Value != item.AppointmentTime)
+                    {
+                        <div class="table-action-note">Requested @item.PreferredAppointmentTime.Value.ToString("h:mm tt")</div>
+                    }
+                    else if (!item.IsScheduleFinalized)
+                    {
+                        <div class="table-action-note">Awaiting clinic final schedule</div>
+                    }
+                </td>
                 <td>@item.ReasonForVisit</td>
                 <td>@(item.IsGuestBooking ? "Guest" : "Client")</td>
                 <td><span class="status-pill @statusClass">@statusName</span></td>
@@ -70,14 +98,26 @@
                         <a asp-action="Details" asp-route-id="@item.Id" class="table-action-icon table-action-icon--details" title="Details" aria-label="View appointment details">
                             <i class="fa-solid fa-eye"></i>
                         </a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="table-action-icon table-action-icon--edit" title="Edit" aria-label="Edit appointment">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--delete" title="Cancel appointment" aria-label="Cancel appointment">
-                            <i class="fa-solid fa-calendar-xmark"></i>
-                        </a>
+                        @if (canChangeAppointment)
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="table-action-icon table-action-icon--edit" title="Edit" aria-label="Edit appointment">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--delete" title="Cancel appointment" aria-label="Cancel appointment">
+                                <i class="fa-solid fa-calendar-xmark"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="table-action-icon table-action-icon--edit table-action-icon--disabled" title="Appointments cannot be edited less than 1 day before the schedule." aria-label="Edit unavailable">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </span>
+                            <span class="table-action-icon table-action-icon--delete table-action-icon--disabled" title="Appointments cannot be cancelled less than 1 day before the schedule." aria-label="Cancel unavailable">
+                                <i class="fa-solid fa-calendar-xmark"></i>
+                            </span>
+                        }
 
-                        @if (Context.Session.GetInt32("RoleId") == 1 || Context.Session.GetInt32("RoleId") == 2)
+                        @if (roleId == 1 || roleId == 2)
                         {
                                 <a asp-action="Approve" asp-route-id="@item.Id" class="table-action-icon table-action-icon--approve" title="Approve" aria-label="Approve appointment">
                                     <i class="fa-solid fa-check"></i>
@@ -85,8 +125,20 @@
                                 <a asp-action="Reject" asp-route-id="@item.Id" class="table-action-icon table-action-icon--reject" title="Reject" aria-label="Reject appointment">
                                     <i class="fa-solid fa-ban"></i>
                                 </a>
+                                @if (item.StatusId != 3 && item.StatusId != 4)
+                                {
+                                    <a asp-action="Complete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--approve" title="Complete" aria-label="Mark appointment completed">
+                                        <i class="fa-solid fa-check-double"></i>
+                                    </a>
+                                }
                         }
                     </div>
+                    @if (!canChangeAppointment && isClient)
+                    {
+                        <div class="table-action-note">
+                            Appointments cannot be edited or cancelled less than 1 day before the schedule.
+                        </div>
+                    }
                 </td>
             </tr>
         }

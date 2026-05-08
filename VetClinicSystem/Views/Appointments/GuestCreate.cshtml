@@ -2,6 +2,12 @@
 
 @{
     ViewData["Title"] = "Guest Surgery Booking";
+    var minScheduleDate = DateOnly.FromDateTime(DateTime.Today);
+    var maxScheduleDate = minScheduleDate.AddDays(6);
+    var minScheduleDateValue = minScheduleDate.ToString("yyyy-MM-dd");
+    var maxScheduleDateValue = maxScheduleDate.ToString("yyyy-MM-dd");
+    var allowedScheduleRangeMessage = $"Surgery requests must be scheduled between {minScheduleDate:MMMM d, yyyy} and {maxScheduleDate:MMMM d, yyyy}.";
+    var appointmentDateValue = Model.AppointmentDate?.ToString("yyyy-MM-dd") ?? string.Empty;
 }
 
 <section class="guest-booking-shell">
@@ -19,8 +25,8 @@
                 <div>
                     <span><i class="fa-solid fa-calendar-check"></i></span>
                     <div>
-                        <strong>Surgery booking only</strong>
-                        <p>Surgery is the only service available for appointment booking. All other services are walk-in only.</p>
+                        <strong>Surgery request only</strong>
+                        <p>Surgery is the only service available for appointment booking. Guests submit a preferred schedule and the clinic finalizes the actual surgery slot after review.</p>
                     </div>
                 </div>
                 <div>
@@ -117,15 +123,33 @@
                     <span asp-validation-for="ServiceId" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="AppointmentDate"></label>
-                    <input asp-for="AppointmentDate" type="date" class="form-control" data-appointment-date />
+                    <label asp-for="AppointmentDate">Preferred Surgery Date</label>
+                    <input id="AppointmentDate" name="AppointmentDate" value="@appointmentDateValue" type="date" lang="en-US" class="form-control" data-appointment-date data-min-date="@minScheduleDateValue" data-max-date="@maxScheduleDateValue" data-range-message="@allowedScheduleRangeMessage" />
                     <span class="text-danger" data-unavailable-date-message></span>
                     <span asp-validation-for="AppointmentDate" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="AppointmentTime"></label>
+                    <label asp-for="AppointmentTime">Preferred Surgery Time</label>
                     <input asp-for="AppointmentTime" type="time" class="form-control" />
                     <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="SurgeryCategory"></label>
+                    <select asp-for="SurgeryCategory" asp-items="ViewBag.SurgeryCategories" class="form-control">
+                        <option value="">Select category</option>
+                    </select>
+                    <span asp-validation-for="SurgeryCategory" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <div class="appointment-emergency-toggle appointment-emergency-toggle--guest">
+                        <div class="appointment-emergency-toggle__copy">
+                            <label asp-for="IsEmergency" class="form-check-label">Mark this surgery request as emergency priority</label>
+                            <p class="appointment-emergency-toggle__hint">Emergency cases can bypass the usual daily surgery load when the clinic confirms urgent care is needed.</p>
+                        </div>
+                        <div class="appointment-emergency-toggle__switch">
+                            <input asp-for="IsEmergency" class="form-check-input" />
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label asp-for="ReasonForVisit"></label>
@@ -155,8 +179,35 @@
             const dateInput = document.querySelector("[data-appointment-date]");
             const message = document.querySelector("[data-unavailable-date-message]");
             const form = dateInput?.closest("form");
+            const rangeMessage = dateInput?.dataset.rangeMessage || "";
+            const minDateValue = dateInput?.dataset.minDate || "";
+            const maxDateValue = dateInput?.dataset.maxDate || "";
 
             if (!dateInput || !message || !form) return;
+
+            dateInput.addEventListener("keydown", function (event) {
+                if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+                const allowedKeys = [
+                    "Tab",
+                    "Shift",
+                    "ArrowLeft",
+                    "ArrowRight",
+                    "ArrowUp",
+                    "ArrowDown",
+                    "Home",
+                    "End",
+                    "Escape"
+                ];
+
+                if (allowedKeys.includes(event.key)) return;
+
+                if (typeof dateInput.showPicker === "function") {
+                    dateInput.showPicker();
+                }
+
+                event.preventDefault();
+            });
 
             function getEasterSunday(year) {
                 const a = year % 19;
@@ -194,8 +245,14 @@
                 if (!value) return "";
 
                 const selectedDate = new Date(value + "T00:00:00");
+                const minDate = minDateValue ? new Date(minDateValue + "T00:00:00") : null;
+                const maxDate = maxDateValue ? new Date(maxDateValue + "T00:00:00") : null;
                 const month = selectedDate.getMonth() + 1;
                 const day = selectedDate.getDate();
+
+                if ((minDate && selectedDate < minDate) || (maxDate && selectedDate > maxDate)) {
+                    return rangeMessage;
+                }
 
                 if (selectedDate.getDay() === 2) {
                     return "The clinic is closed every Tuesday. Please choose another date.";
