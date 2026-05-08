@@ -65,6 +65,7 @@ namespace VetClinicSystem.Controllers
 
             ModelState.Remove("Pet");
             ModelState.Remove("CreatedByUser");
+            NormalizeVaccinationRecord(vaccinationRecord);
 
             if (roleId == 3)
             {
@@ -131,6 +132,7 @@ namespace VetClinicSystem.Controllers
 
             ModelState.Remove("Pet");
             ModelState.Remove("CreatedByUser");
+            NormalizeVaccinationRecord(vaccinationRecord);
 
             if (roleId == 3)
             {
@@ -222,6 +224,12 @@ namespace VetClinicSystem.Controllers
             _vaccinationService.Delete(id);
             TempData["Success"] = "Vaccination record deleted successfully.";
             return RedirectToAction("Index");
+        }
+
+        private static void NormalizeVaccinationRecord(VaccinationRecord vaccinationRecord)
+        {
+            vaccinationRecord.VaccineName = vaccinationRecord.VaccineName?.Trim() ?? string.Empty;
+            vaccinationRecord.Notes = string.IsNullOrWhiteSpace(vaccinationRecord.Notes) ? null : vaccinationRecord.Notes.Trim();
         }
     }
 }

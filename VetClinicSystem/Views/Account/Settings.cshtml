@@ -14,6 +14,7 @@
     <div class="account-settings-card">
         <form asp-action="Settings" asp-controller="Account" method="post">
             @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
             <input type="hidden" asp-for="Id" />
 
@@ -25,7 +26,7 @@
                 <div class="account-settings-grid">
                     <div class="mb-3">
                         <label class="form-label">First Name</label>
-                        <input type="text" name="FirstName" class="form-control" value="@ViewBag.FirstName" />
+                        <input type="text" name="FirstName" class="form-control" value="@ViewBag.FirstName" maxlength="100" />
                         @if (ViewBag.FirstNameError != null)
                         {
                             <span class="text-danger">@ViewBag.FirstNameError</span>
@@ -34,7 +35,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Last Name</label>
-                        <input type="text" name="LastName" class="form-control" value="@ViewBag.LastName" />
+                        <input type="text" name="LastName" class="form-control" value="@ViewBag.LastName" maxlength="100" />
                         @if (ViewBag.LastNameError != null)
                         {
                             <span class="text-danger">@ViewBag.LastNameError</span>

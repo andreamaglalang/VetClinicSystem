@@ -54,6 +54,7 @@
 
 <form method="post">
     @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
     <input type="hidden" asp-for="Id" />
 
     <div class="mb-3">
@@ -103,13 +104,13 @@
 
     <div class="mb-3">
         <label asp-for="ReasonForVisit"></label>
-        <input asp-for="ReasonForVisit" class="form-control" />
+        <input asp-for="ReasonForVisit" class="form-control" maxlength="255" />
         <span asp-validation-for="ReasonForVisit" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="ClientNotes">Client Notes / Reason</label>
-        <textarea asp-for="ClientNotes" class="form-control"></textarea>
+        <textarea asp-for="ClientNotes" class="form-control" maxlength="255"></textarea>
         <span asp-validation-for="ClientNotes" class="text-danger"></span>
     </div>
 
@@ -117,7 +118,7 @@
     {
         <div class="mb-3">
             <label asp-for="StaffNotes">Staff Notes</label>
-            <textarea asp-for="StaffNotes" class="form-control"></textarea>
+            <textarea asp-for="StaffNotes" class="form-control" maxlength="255"></textarea>
             <span asp-validation-for="StaffNotes" class="text-danger"></span>
         </div>
 

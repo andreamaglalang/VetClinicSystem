@@ -7,13 +7,15 @@ using Microsoft.EntityFrameworkCore;
 namespace VetClinicSystem.Models;
 
 [Index("PetId", Name = "IX_VaccinationRecords_PetId")]
-public partial class VaccinationRecord
+public partial class VaccinationRecord : IValidatableObject
 {
     [Key]
     public int Id { get; set; }
 
+    [Range(1, int.MaxValue, ErrorMessage = "Please select a valid pet.")]
     public int PetId { get; set; }
 
+    [Required(ErrorMessage = "Vaccine name is required.")]
     [StringLength(100)]
     public string VaccineName { get; set; } = null!;
 
@@ -21,7 +23,7 @@ public partial class VaccinationRecord
 
     public DateOnly? NextDueDate { get; set; }
 
-    [StringLength(255)]
+    [StringLength(255, ErrorMessage = "Notes must not exceed 255 characters.")]
     public string? Notes { get; set; }
 
     public int CreatedByUserId { get; set; }
@@ -36,4 +38,14 @@ public partial class VaccinationRecord
     [ForeignKey("PetId")]
     [InverseProperty("VaccinationRecords")]
     public virtual Pet Pet { get; set; } = null!;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (NextDueDate.HasValue && NextDueDate.Value <= VaccinationDate)
+        {
+            yield return new ValidationResult(
+                "Next due date must be after vaccination date.",
+                new[] { nameof(NextDueDate) });
+        }
+    }
 }

@@ -11,10 +11,11 @@ public partial class Service
     [Key]
     public int Id { get; set; }
 
+    [Required(ErrorMessage = "Service name is required.")]
     [StringLength(100)]
     public string ServiceName { get; set; } = null!;
 
-    [StringLength(255)]
+    [StringLength(255, ErrorMessage = "Description must not exceed 255 characters.")]
     public string? Description { get; set; }
 
     public bool IsWalkInOnly { get; set; }

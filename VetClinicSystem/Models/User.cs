@@ -13,9 +13,14 @@ public partial class User
     [Key]
     public int Id { get; set; }
 
+    [Required(ErrorMessage = "Username is required.")]
+    [MinLength(4, ErrorMessage = "Username must be at least 4 characters.")]
+    [RegularExpression(@"^\S+$", ErrorMessage = "Username must not contain spaces.")]
     [StringLength(50)]
     public string Username { get; set; } = null!;
 
+    [Required(ErrorMessage = "Email address is required.")]
+    [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
     [StringLength(100)]
     public string Email { get; set; } = null!;
 

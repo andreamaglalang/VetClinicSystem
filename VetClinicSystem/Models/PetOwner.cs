@@ -15,12 +15,15 @@ public partial class PetOwner
 
     public int UserId { get; set; }
 
+    [Required(ErrorMessage = "First name is required.")]
     [StringLength(100)]
     public string FirstName { get; set; } = null!;
 
+    [Required(ErrorMessage = "Last name is required.")]
     [StringLength(100)]
     public string LastName { get; set; } = null!;
 
+    [Required(ErrorMessage = "Contact number is required.")]
     [StringLength(20)]
     [PhilippineMobileNumber]
     public string ContactNumber { get; set; } = null!;

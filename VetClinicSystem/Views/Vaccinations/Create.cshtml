@@ -4,28 +4,38 @@
 
 <form method="post">
     @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
     <div class="mb-3">
         <label asp-for="PetId"></label>
         <select asp-for="PetId" asp-items="ViewBag.Pets" class="form-control"></select>
+        <span asp-validation-for="PetId" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="VaccineName"></label>
         <input asp-for="VaccineName" class="form-control" />
+        <span asp-validation-for="VaccineName" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="VaccinationDate"></label>
         <input asp-for="VaccinationDate" type="date" class="form-control" />
+        <span asp-validation-for="VaccinationDate" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="NextDueDate"></label>
         <input asp-for="NextDueDate" type="date" class="form-control" />
+        <span asp-validation-for="NextDueDate" class="text-danger"></span>
     </div>
     <div class="mb-3">
         <label asp-for="Notes"></label>
         <textarea asp-for="Notes" class="form-control"></textarea>
+        <span asp-validation-for="Notes" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-success">Save</button>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

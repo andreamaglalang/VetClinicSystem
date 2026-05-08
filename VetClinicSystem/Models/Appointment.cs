@@ -14,8 +14,10 @@ public partial class Appointment
     [Key]
     public int Id { get; set; }
 
+    [Range(1, int.MaxValue, ErrorMessage = "Please select a valid pet.")]
     public int PetId { get; set; }
 
+    [Range(1, int.MaxValue, ErrorMessage = "Please select a valid service.")]
     public int ServiceId { get; set; }
 
     public DateOnly AppointmentDate { get; set; }
@@ -37,13 +39,13 @@ public partial class Appointment
 
     public bool IsScheduleFinalized { get; set; }
 
-    [StringLength(255)]
+    [StringLength(255, ErrorMessage = "Reason for visit must not exceed 255 characters.")]
     public string? ReasonForVisit { get; set; }
 
-    [StringLength(255)]
+    [StringLength(255, ErrorMessage = "Client notes must not exceed 255 characters.")]
     public string? ClientNotes { get; set; }
 
-    [StringLength(255)]
+    [StringLength(255, ErrorMessage = "Staff notes must not exceed 255 characters.")]
     public string? StaffNotes { get; set; }
 
     public bool IsWalkIn { get; set; }

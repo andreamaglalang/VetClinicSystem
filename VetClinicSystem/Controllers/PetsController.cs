@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using VetClinicSystem.Helpers;
 using VetClinicSystem.Models;
 using VetClinicSystem.Services.Pets;
 
@@ -37,6 +39,7 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Login", "Account");
 
             LoadSexOptions();
+            LoadSpeciesAndBreedOptions();
             return View();
         }
 
@@ -51,11 +54,13 @@ namespace VetClinicSystem.Controllers
 
             ModelState.Remove("Owner");
             ModelState.Remove("OwnerId");
+            NormalizePetFields(pet);
 
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Please complete all required pet fields.";
                 LoadSexOptions();
+                LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
                 return View(pet);
             }
 
@@ -69,6 +74,7 @@ namespace VetClinicSystem.Controllers
             {
                 TempData["Error"] = ex.Message;
                 LoadSexOptions();
+                LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
                 return View(pet);
             }
         }
@@ -92,6 +98,8 @@ namespace VetClinicSystem.Controllers
                     return Unauthorized();
             }
 
+            LoadSexOptions();
+            LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
             return View(pet);
         }
 
@@ -107,6 +115,7 @@ namespace VetClinicSystem.Controllers
 
             ModelState.Remove("Owner");
             ModelState.Remove("OwnerId");
+            NormalizePetFields(pet);
 
             if (roleId == 3)
             {
@@ -118,6 +127,8 @@ namespace VetClinicSystem.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Please complete all required pet fields.";
+                LoadSexOptions();
+                LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
                 return View(pet);
             }
 
@@ -130,6 +141,8 @@ namespace VetClinicSystem.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
+                LoadSexOptions();
+                LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
                 return View(pet);
             }
         }
@@ -211,6 +224,27 @@ namespace VetClinicSystem.Controllers
         private void LoadSexOptions()
         {
             ViewBag.SexOptions = SexOptions;
+        }
+
+        private void LoadSpeciesAndBreedOptions(string? selectedSpecies = null, string? selectedBreed = null)
+        {
+            var speciesOptions = PetValidationHelper.GetAllowedSpecies();
+            ViewBag.SpeciesOptions = new SelectList(speciesOptions, selectedSpecies);
+            ViewBag.BreedOptions = new SelectList(PetValidationHelper.GetAllowedBreeds(selectedSpecies), selectedBreed);
+            ViewBag.BreedMap = speciesOptions.ToDictionary(
+                species => species,
+                species => PetValidationHelper.GetAllowedBreeds(species).ToArray(),
+                StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static void NormalizePetFields(Pet pet)
+        {
+            pet.PetName = pet.PetName?.Trim() ?? string.Empty;
+            pet.Species = pet.Species?.Trim() ?? string.Empty;
+            pet.Breed = string.IsNullOrWhiteSpace(pet.Breed) ? null : pet.Breed.Trim();
+            pet.Color = string.IsNullOrWhiteSpace(pet.Color) ? null : pet.Color.Trim();
+            pet.Notes = string.IsNullOrWhiteSpace(pet.Notes) ? null : pet.Notes.Trim();
+            pet.Sex = string.IsNullOrWhiteSpace(pet.Sex) ? null : pet.Sex.Trim();
         }
     }
 }

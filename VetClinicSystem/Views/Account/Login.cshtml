@@ -1,4 +1,6 @@
-﻿@{
+@model VetClinicSystem.ViewModels.LoginViewModel
+
+@{
     ViewData["Title"] = "Login";
 }
 
@@ -10,14 +12,19 @@
             <p class="auth-subtitle">Access your Thrive Animal Specialist & Grooming Hub account.</p>
 
             <form method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
                 <div class="mb-3">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control auth-input" />
+                    <label asp-for="Username" class="form-label"></label>
+                    <input asp-for="Username" class="form-control auth-input" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control auth-input" />
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control auth-input" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
                 <button type="submit" class="btn btn-vet-primary auth-main-btn">Login</button>
@@ -39,3 +46,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

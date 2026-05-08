@@ -65,6 +65,7 @@ namespace VetClinicSystem.Controllers
 
             ModelState.Remove("Pet");
             ModelState.Remove("CreatedByUser");
+            NormalizeMedicalRecord(medicalRecord);
 
             if (roleId == 3)
             {
@@ -131,6 +132,7 @@ namespace VetClinicSystem.Controllers
 
             ModelState.Remove("Pet");
             ModelState.Remove("CreatedByUser");
+            NormalizeMedicalRecord(medicalRecord);
 
             if (roleId == 3)
             {
@@ -222,6 +224,14 @@ namespace VetClinicSystem.Controllers
             _medicalRecordService.Delete(id);
             TempData["Success"] = "Medical record deleted successfully.";
             return RedirectToAction("Index");
+        }
+
+        private static void NormalizeMedicalRecord(MedicalRecord medicalRecord)
+        {
+            medicalRecord.Diagnosis = string.IsNullOrWhiteSpace(medicalRecord.Diagnosis) ? null : medicalRecord.Diagnosis.Trim();
+            medicalRecord.Treatment = string.IsNullOrWhiteSpace(medicalRecord.Treatment) ? null : medicalRecord.Treatment.Trim();
+            medicalRecord.Prescription = string.IsNullOrWhiteSpace(medicalRecord.Prescription) ? null : medicalRecord.Prescription.Trim();
+            medicalRecord.Findings = string.IsNullOrWhiteSpace(medicalRecord.Findings) ? null : medicalRecord.Findings.Trim();
         }
     }
 }

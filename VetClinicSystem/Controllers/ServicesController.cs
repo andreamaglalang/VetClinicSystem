@@ -37,6 +37,8 @@ namespace VetClinicSystem.Controllers
             if (HttpContext.Session.GetInt32("UserId") == null)
                 return RedirectToAction("Login", "Account");
 
+            NormalizeService(service);
+
             if (!ModelState.IsValid)
                 return View(service);
 
@@ -62,6 +64,8 @@ namespace VetClinicSystem.Controllers
         {
             if (HttpContext.Session.GetInt32("UserId") == null)
                 return RedirectToAction("Login", "Account");
+
+            NormalizeService(service);
 
             if (!ModelState.IsValid)
                 return View(service);
@@ -114,6 +118,12 @@ namespace VetClinicSystem.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        private static void NormalizeService(Service service)
+        {
+            service.ServiceName = service.ServiceName?.Trim() ?? string.Empty;
+            service.Description = string.IsNullOrWhiteSpace(service.Description) ? null : service.Description.Trim();
         }
     }
 }

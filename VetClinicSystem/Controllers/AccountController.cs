@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using VetClinicSystem.Helpers;
 using VetClinicSystem.Models;
 using VetClinicSystem.Services.Users;
+using VetClinicSystem.ViewModels;
 
 namespace VetClinicSystem.Controllers
 {
@@ -36,26 +37,32 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            return View();
+            return View(new LoginViewModel());
         }
 
         [HttpPost]
-        public IActionResult Login(string username, string password)
+        [ValidateAntiForgeryToken]
+        public IActionResult Login(LoginViewModel model)
         {
-            var existingUser = _context.Users.FirstOrDefault(x => x.Username == username);
+            model.Username = model.Username?.Trim() ?? string.Empty;
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var existingUser = _context.Users.FirstOrDefault(x => x.Username == model.Username);
 
             if (existingUser != null && !existingUser.IsActive)
             {
                 ViewBag.Error = "Your account has been deactivated. Please contact the clinic.";
-                return View();
+                return View(model);
             }
 
-            var user = _userService.Login(username, password);
+            var user = _userService.Login(model.Username, model.Password);
 
             if (user == null)
             {
                 ViewBag.Error = "Invalid username or password.";
-                return View();
+                return View(model);
             }
 
             HttpContext.Session.SetInt32("UserId", user.Id);
@@ -77,33 +84,38 @@ namespace VetClinicSystem.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            return View();
+            return View(new RegisterViewModel());
         }
 
         [HttpPost]
-        public IActionResult Register(
-            string username,
-            string email,
-            string password,
-            string firstName,
-            string lastName,
-            string contactNumber,
-            string address)
+        [ValidateAntiForgeryToken]
+        public IActionResult Register(RegisterViewModel model)
         {
-            contactNumber = PhoneNumberHelper.Normalize(contactNumber);
+            model.Username = model.Username?.Trim() ?? string.Empty;
+            model.Email = model.Email?.Trim() ?? string.Empty;
+            model.FirstName = model.FirstName?.Trim() ?? string.Empty;
+            model.LastName = model.LastName?.Trim() ?? string.Empty;
+            model.ContactNumber = PhoneNumberHelper.Normalize(model.ContactNumber);
+            model.Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address.Trim();
 
-            if (!PhoneNumberHelper.IsValidPhilippineMobileNumber(contactNumber))
-            {
-                ViewBag.ContactNumberError = PhoneNumberHelper.ValidationMessage;
-                return View();
-            }
+            if (!ModelState.IsValid)
+                return View(model);
 
-            var success = _userService.Register(username, email, password, firstName, lastName, contactNumber, address);
+            if (_context.Users.Any(x => x.Username == model.Username))
+                ModelState.AddModelError(nameof(RegisterViewModel.Username), "Username is already taken.");
+
+            if (_context.Users.Any(x => x.Email == model.Email))
+                ModelState.AddModelError(nameof(RegisterViewModel.Email), "Email is already registered.");
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var success = _userService.Register(model.Username, model.Email, model.Password, model.FirstName, model.LastName, model.ContactNumber, model.Address ?? string.Empty);
 
             if (!success)
             {
                 ViewBag.Error = "Username or email already exists, or Client role is missing.";
-                return View();
+                return View(model);
             }
 
             TempData["Success"] = "Registration successful. Please login.";
@@ -148,6 +160,7 @@ namespace VetClinicSystem.Controllers
             var lastName = Request.Form["LastName"].ToString().Trim();
             var contactNumber = Request.Form["ContactNumber"].ToString().Trim();
             var normalizedUsername = model.Username?.Trim() ?? string.Empty;
+            var normalizedEmail = model.Email?.Trim() ?? string.Empty;
             var petOwner = _context.PetOwners.FirstOrDefault(x => x.UserId == user.Id);
             var hasValidationError = false;
 
@@ -207,6 +220,17 @@ namespace VetClinicSystem.Controllers
                 ModelState.AddModelError("Email", "Please enter a valid Gmail address.");
                 hasValidationError = true;
             }
+            else
+            {
+                var emailExists = _context.Users
+                    .Any(u => u.Email == normalizedEmail && u.Id != user.Id);
+
+                if (emailExists)
+                {
+                    ModelState.AddModelError("Email", "Email is already registered.");
+                    hasValidationError = true;
+                }
+            }
 
             bool changingPassword =
                 !string.IsNullOrWhiteSpace(currentPassword) ||
@@ -250,6 +274,9 @@ namespace VetClinicSystem.Controllers
                 }
             }
 
+            if (!ModelState.IsValid)
+                hasValidationError = true;
+
             if (hasValidationError)
             {
                 PrepareSettingsViewData(user.Id, firstName, lastName, contactNumber);
@@ -257,7 +284,7 @@ namespace VetClinicSystem.Controllers
             }
 
             user.Username = normalizedUsername;
-            user.Email = model.Email.Trim();
+            user.Email = normalizedEmail;
 
             if (petOwner != null)
             {

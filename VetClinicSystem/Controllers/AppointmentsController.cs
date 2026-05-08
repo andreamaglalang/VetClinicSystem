@@ -141,6 +141,8 @@ namespace VetClinicSystem.Controllers
             if (HttpContext.Session.GetInt32("UserId") != null)
                 return RedirectToAction("Create");
 
+            NormalizeGuestBooking(booking);
+
             if (!ModelState.IsValid)
             {
                 LoadGuestDropdowns(booking.ServiceId, booking.SurgeryCategory);
@@ -210,6 +212,7 @@ namespace VetClinicSystem.Controllers
             ModelState.Remove("Status");
             ModelState.Remove("CreatedByUserId");
             ModelState.Remove("LastUpdated");
+            NormalizeAppointmentFields(appointment);
 
             if (!ModelState.IsValid)
             {
@@ -318,6 +321,7 @@ namespace VetClinicSystem.Controllers
             ModelState.Remove("Status");
             ModelState.Remove("CreatedByUserId");
             ModelState.Remove("LastUpdated");
+            NormalizeAppointmentFields(appointment);
 
             var existingAppointment = _appointmentService.GetById(appointment.Id);
             if (existingAppointment == null)
@@ -702,6 +706,7 @@ namespace VetClinicSystem.Controllers
                 Breed = booking.Breed,
                 Sex = booking.Sex,
                 Age = booking.Age,
+                Weight = booking.Weight,
                 Notes = booking.PetNotes,
                 DateCreated = DateTime.Now
             };
@@ -999,6 +1004,31 @@ namespace VetClinicSystem.Controllers
             var prop = obj.GetType().GetProperty(propertyName);
             if (prop != null && prop.CanWrite)
                 prop.SetValue(obj, value);
+        }
+
+        private static void NormalizeAppointmentFields(Appointment appointment)
+        {
+            appointment.ReasonForVisit = string.IsNullOrWhiteSpace(appointment.ReasonForVisit) ? null : appointment.ReasonForVisit.Trim();
+            appointment.ClientNotes = string.IsNullOrWhiteSpace(appointment.ClientNotes) ? null : appointment.ClientNotes.Trim();
+            appointment.StaffNotes = string.IsNullOrWhiteSpace(appointment.StaffNotes) ? null : appointment.StaffNotes.Trim();
+            appointment.SurgeryCategory = string.IsNullOrWhiteSpace(appointment.SurgeryCategory) ? null : appointment.SurgeryCategory.Trim();
+        }
+
+        private static void NormalizeGuestBooking(GuestAppointmentBooking booking)
+        {
+            booking.FirstName = booking.FirstName?.Trim() ?? string.Empty;
+            booking.LastName = booking.LastName?.Trim() ?? string.Empty;
+            booking.ContactNumber = PhoneNumberHelper.Normalize(booking.ContactNumber);
+            booking.Email = booking.Email?.Trim() ?? string.Empty;
+            booking.Address = string.IsNullOrWhiteSpace(booking.Address) ? null : booking.Address.Trim();
+            booking.PetName = booking.PetName?.Trim() ?? string.Empty;
+            booking.Species = booking.Species?.Trim() ?? string.Empty;
+            booking.Breed = string.IsNullOrWhiteSpace(booking.Breed) ? null : booking.Breed.Trim();
+            booking.Sex = string.IsNullOrWhiteSpace(booking.Sex) ? null : booking.Sex.Trim();
+            booking.PetNotes = string.IsNullOrWhiteSpace(booking.PetNotes) ? null : booking.PetNotes.Trim();
+            booking.SurgeryCategory = booking.SurgeryCategory?.Trim() ?? string.Empty;
+            booking.ReasonForVisit = string.IsNullOrWhiteSpace(booking.ReasonForVisit) ? null : booking.ReasonForVisit.Trim();
+            booking.ClientNotes = string.IsNullOrWhiteSpace(booking.ClientNotes) ? null : booking.ClientNotes.Trim();
         }
     }
 }

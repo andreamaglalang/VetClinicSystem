@@ -1,0 +1,2203 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Length 2761 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+/F2 12 Tf (VETCLINICSYSTEM FUNCTIONALITY DOCUMENTATION) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (1. WEBSITE OVERVIEW) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Item | Details) Tj
+T*
+(Project Name | VetClinicSystem) Tj
+T*
+(System Type | Veterinary clinic management website) Tj
+T*
+(Main Purpose | To manage clinic users, pets, surgery appointments, vaccination records, medical) Tj
+T*
+(records, clinic information, and notifications) Tj
+T*
+(Main Users | Client, Staff, Admin) Tj
+T*
+(Core Workflow | Clients or guests request surgery appointments, clinic staff/admin review and) Tj
+T*
+(finalize schedules, records and notifications are updated accordingly) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (BRIEF DESCRIPTION) Tj
+/F1 11 Tf
+T*
+(VetClinicSystem is a role-based veterinary clinic website built to support clinic operations and) Tj
+T*
+(client-facing pet management. It allows clients to register, manage their pets, request surgery) Tj
+T*
+(appointments, view records, and receive notifications. Staff and admin users can manage) Tj
+T*
+(appointments, pets, records, vaccinations, clinic information, and notifications. Admin users also) Tj
+T*
+(manage user accounts and monitor overall system activity through the dashboard.) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (MAIN SYSTEM FOCUS) Tj
+/F1 11 Tf
+T*
+(- Surgery appointment request and approval workflow) Tj
+T*
+(- Pet record management) Tj
+T*
+(- Vaccination and medical history tracking) Tj
+T*
+(- User account and role handling) Tj
+T*
+(- Notification updates for clinic and client activity) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (2. USER ROLES) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (2.1 CLIENT) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Access Area | What Client Can Do) Tj
+T*
+(Account | Register, log in, log out, update profile, change password, deactivate own account) Tj
+T*
+(Dashboard | View personal dashboard with reminders, follow-ups, overdue vaccines, recent records,) Tj
+T*
+(and calendar) Tj
+T*
+(Pets | Create, view, edit, delete only their own pets) Tj
+T*
+(Appointments | Create surgery requests, view own appointments, edit/cancel own appointments only) Tj
+T*
+(when allowed) Tj
+T*
+(Notifications | View own notifications and mark them as read) Tj
+T*
+(Medical Records | View records tied to their own pets; current code also allows create/edit/delete) Tj
+T*
+(for owned pets) Tj
+T*
+(Vaccinations | View records tied to their own pets; current code also allows create/edit/delete for) Tj
+T*
+(owned pets) Tj
+T*
+(Clinic | View clinic information) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (2.2 STAFF) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Access Area | What Staff Can Do) Tj
+T*
+(Dashboard | View total appointments and unread notification count) Tj
+ET
+endstream
+endobj
+4 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 3 0 R >>
+endobj
+5 0 obj
+<< /Length 2857 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(Pets | View/search/manage pet records) Tj
+T*
+(Appointments | View all, filter, approve, reject, reschedule, edit, complete, cancel) Tj
+T*
+(Medical Records | Create, edit, view, delete records) Tj
+T*
+(Vaccinations | Create, edit, view, delete records) Tj
+T*
+(Services | Manage services) Tj
+T*
+(Clinic | View clinic information) Tj
+T*
+(Notifications | View staff notifications and mark them as read) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (2.3 ADMIN) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Access Area | What Admin Can Do) Tj
+T*
+(Dashboard | View total pets, appointments, users, unread notifications, and chart data) Tj
+T*
+(Users | View all users, deactivate accounts, restore accounts) Tj
+T*
+(Pets | Same operational access as staff) Tj
+T*
+(Appointments | Same operational access as staff) Tj
+T*
+(Medical Records | Same operational access as staff) Tj
+T*
+(Vaccinations | Same operational access as staff) Tj
+T*
+(Services | Same operational access as staff) Tj
+T*
+(Clinic | View and edit clinic information) Tj
+T*
+(Notifications | View staff notifications and mark them as read) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (3. SYSTEM ARCHITECTURE SUMMARY) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Layer | Purpose) Tj
+T*
+(Controllers | Handle HTTP requests, role checks, validation flow, and page actions) Tj
+T*
+(Services | Contain business logic and workflow behavior) Tj
+T*
+(Repositories | Perform database read/write operations) Tj
+T*
+(Models | Represent database tables and request models) Tj
+T*
+(Views | User interface pages) Tj
+T*
+(Program.cs | Configures services, session, database connection, and startup schema updates) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (4. CONTROLLERS AND MAIN RESPONSIBILITIES) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Controller | Main Responsibilities) Tj
+T*
+(`AccountController` | Login, register, account settings, password change, deactivate account, logout) Tj
+T*
+(`AppointmentsController` | Appointment list, create, guest create, edit, delete/cancel, details,) Tj
+T*
+(approve, reject, complete) Tj
+T*
+(`ClinicController` | View clinic information, admin edit clinic info) Tj
+T*
+(`DashboardController` | Admin dashboard, staff dashboard, client dashboard, admin users page,) Tj
+T*
+(deactivate/restore users) Tj
+T*
+(`HomeController` | Public home page) Tj
+T*
+(`MedicalRecordsController` | Medical record CRUD with ownership filtering) Tj
+T*
+(`NotificationsController` | Staff/admin notifications, client notifications, mark-as-read) Tj
+T*
+(`PetsController` | Pet CRUD with ownership filtering) Tj
+T*
+(`ServicesController` | Service CRUD) Tj
+T*
+(`VaccinationsController` | Vaccination record CRUD with ownership filtering) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 5 0 R >>
+endobj
+7 0 obj
+<< /Length 3511 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (5. COMPLETE FEATURE LIST) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (5.1 PUBLIC WEBSITE FEATURES) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature Name | Who Can Use It | View/Page | Controller/Action | What It Does | Data Used |) Tj
+T*
+(Restrictions | Manual Testing) Tj
+T*
+(Landing Page | Public | `Views/Home/Index.cshtml` | `Home/Index` | Shows hero section, services,) Tj
+T*
+(prices, articles, contacts, request form | Mostly static content | None | Open homepage and verify) Tj
+T*
+(all sections load) Tj
+T*
+(Service Carousel | Public | Home page | Client-side JS | Rotates service cards | Static image/text) Tj
+T*
+(content | None | Click left/right arrows) Tj
+T*
+(Price Tabs | Public | Home page | Client-side JS | Switches displayed service pricing info | Static) Tj
+T*
+(price data in view script | None | Switch among all tabs) Tj
+T*
+(Useful Articles | Public | Home page | Client-side JS | Opens external pet-care article links by) Tj
+T*
+(category | Hard-coded article links | None | Click each `Read Article` button) Tj
+T*
+(Contact Section | Public | Home page | N/A | Shows address, phone, email, schedule, map links |) Tj
+T*
+(Static content | None | Click Google Maps and Facebook buttons) Tj
+T*
+(Leave a Request Form | Public | Home page | Client-side JS + `Appointments/GuestCreate` redirect |) Tj
+T*
+(Allows selecting a service and continuing only if surgery is chosen | Form values passed as query) Tj
+T*
+(string | Walk-in services do not continue to appointment form | Choose surgery vs walk-in services) Tj
+T*
+(and compare behavior) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (5.2 AUTHENTICATION AND ACCOUNT FEATURES) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature Name | Who Can Use It | View/Page | Controller/Action | What It Does | Data Used |) Tj
+T*
+(Restrictions | Manual Testing) Tj
+T*
+(Login | Registered users | `Views/Account/Login.cshtml` | `Account/Login` | Authenticates and) Tj
+T*
+(redirects by role | `User` | Inactive accounts blocked | Test client/staff/admin login) Tj
+T*
+(Register | Public | `Views/Account/Register.cshtml` | `Account/Register` | Creates client account) Tj
+T*
+(and linked pet owner | `User`, `PetOwner`, `Role` | Username/email unique, valid PH number | Create) Tj
+T*
+(a new client account) Tj
+T*
+(Logout | Logged-in users | Navbar | `Account/Logout` | Clears session | Session | None | Log out and) Tj
+T*
+(verify redirect) Tj
+T*
+(Account Settings | Logged-in users | `Views/Account/Settings.cshtml` | `Account/Settings` | Update) Tj
+T*
+(username, email, profile details, password | `User`, `PetOwner` | Gmail-only email, username rules,) Tj
+T*
+(strong password rules | Edit fields and save) Tj
+T*
+(Deactivate Own Account | Logged-in users | Settings page | `Account/Deactivate` | Soft-deactivates) Tj
+T*
+(own account | `User` | Must confirm username, password, and `DEACTIVATE` text | Try wrong values) Tj
+T*
+(then correct values) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (6. DASHBOARD FEATURES) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (6.1 CLIENT DASHBOARD) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Dashboard Feature | Description | Data Used | How to Test) Tj
+T*
+(Greeting + date | Shows client greeting and todays date | `User`, `PetOwner` | Log in as client) Tj
+T*
+(Pet count | Shows total pets owned by client | `Pet` | Add/remove pets and refresh) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 7 0 R >>
+endobj
+9 0 obj
+<< /Length 3487 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(Appointment count | Shows total client appointments | `Appointment` | Create appointments and) Tj
+T*
+(refresh) Tj
+T*
+(Calendar | Shows appointment days and click-to-view popover | Serialized client appointment data |) Tj
+T*
+(Click highlighted dates) Tj
+T*
+(Notifications shortcut | Shows unread client notifications count | `StaffNotification` | Trigger) Tj
+T*
+(notifications and open dashboard) Tj
+T*
+(Appointment reminders | Shows appointments within next 2 days | `Appointment` | Create upcoming) Tj
+T*
+(appointments) Tj
+T*
+(Follow-up reminders | Shows completed appointments | `Appointment` | Mark an appointment completed) Tj
+T*
+(Overdue vaccinations | Shows vaccines with past due dates | `VaccinationRecord` | Create past-due) Tj
+T*
+(vaccine record) Tj
+T*
+(Recent treatment history | Shows recent medical records | `MedicalRecord` | Add medical records) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (6.2 STAFF DASHBOARD) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Dashboard Feature | Description | Data Used | How to Test) Tj
+T*
+(Total appointments | Shows appointment count | `Appointment` | Open staff dashboard) Tj
+T*
+(Unread notifications | Shows unread staff notifications count | `StaffNotification` | Trigger) Tj
+T*
+(surgery request/update) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (6.3 ADMIN DASHBOARD) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Dashboard Feature | Description | Data Used | How to Test) Tj
+T*
+(Total pets | Shows overall pet count | `Pet` | Open admin dashboard) Tj
+T*
+(Total appointments | Shows overall appointment count | `Appointment` | Open admin dashboard) Tj
+T*
+(Total users | Shows all users | `User` | Register new account and refresh) Tj
+T*
+(Unread notifications | Shows staff unread notifications count | `StaffNotification` | Trigger) Tj
+T*
+(notifications) Tj
+T*
+(Appointments per day chart | Displays line chart of appointment volume | `Appointment` | Add) Tj
+T*
+(appointments on multiple dates) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (7. PET MANAGEMENT) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature Name | Who Can Use It | View/Page | Controller/Action | What It Does | Data Used |) Tj
+T*
+(Restrictions | Manual Testing) Tj
+T*
+(View Pets | Client, Staff, Admin | `Views/Pets/Index.cshtml` | `Pets/Index` | Lists pets | `Pet` |) Tj
+T*
+(Clients see only own pets | Compare client vs staff/admin views) Tj
+T*
+(Search Pets | Client, Staff, Admin | Pets index | `Pets/Index\(search\)` | Searches by pet) Tj
+T*
+(name/species/breed | `Pet` | Client search limited to owned pets | Search pet name/species) Tj
+T*
+(Add Pet | Client, Staff, Admin | `Views/Pets/Create.cshtml` | `Pets/Create` | Creates pet record |) Tj
+T*
+(`Pet`, `PetOwner` | Client pet is auto-linked to owner profile | Add a pet while logged in as client) Tj
+T*
+(Edit Pet | Client, Staff, Admin | `Views/Pets/Edit.cshtml` | `Pets/Edit` | Updates pet data | `Pet`) Tj
+T*
+(| Clients can edit only own pets | Edit a pet) Tj
+T*
+(Pet Details | Client, Staff, Admin | `Views/Pets/Details.cshtml` | `Pets/Details` | Shows pet) Tj
+T*
+(information | `Pet` | Clients limited to own pets | Open details) Tj
+T*
+(Delete Pet | Client, Staff, Admin | `Views/Pets/Delete.cshtml` | `Pets/Delete` | Deletes pet and) Tj
+T*
+(linked operational data | `Pet`, `Appointment`, `MedicalRecord`, `VaccinationRecord`,) Tj
+T*
+(`StaffNotification`, `ReminderLog` | Clients limited to own pets | Delete a pet with related data) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 9 0 R >>
+endobj
+11 0 obj
+<< /Length 3121 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+/F2 12 Tf (PET DELETE BEHAVIOR) Tj
+/F1 11 Tf
+T*
+(When a pet is deleted:) Tj
+T*
+(- linked appointments are removed) Tj
+T*
+(- linked medical records are removed) Tj
+T*
+(- linked vaccination records are removed) Tj
+T*
+(- linked reminder logs are removed) Tj
+T*
+(- linked notifications have `AppointmentId` cleared first) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8. APPOINTMENT FUNCTIONALITY) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (8.1 APPOINTMENT SYSTEM OVERVIEW) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Item | Current Behavior) Tj
+T*
+(Appointment-based service | Surgery only) Tj
+T*
+(Other services | Walk-in only) Tj
+T*
+(Booking types | Logged-in client booking and guest booking) Tj
+T*
+(Final schedule control | Admin/staff finalizes actual surgery schedule) Tj
+T*
+(Status workflow | Pending -> Approved / Rejected / Completed) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8.2 APPOINTMENT LIST AND FILTERING) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature | Who Can Use It | View/Page | Controller/Action | Description | Restrictions | Manual) Tj
+T*
+(Testing) Tj
+T*
+(View appointment list | Client, Staff, Admin | `Views/Appointments/Index.cshtml` |) Tj
+T*
+(`Appointments/Index` | Lists appointments with actions | Clients see only own appointments | Open) Tj
+T*
+(appointment list as each role) Tj
+T*
+(Search appointments | Client, Staff, Admin | Appointment list | `Appointments/Index\(search\)` |) Tj
+T*
+(Search by pet, service, or reason | Client results limited to own data | Search by pet name or) Tj
+T*
+(reason) Tj
+T*
+(Filter by status | Client, Staff, Admin | Appointment list | `Appointments/Index\(statusId\)` |) Tj
+T*
+(Filters by Pending/Approved/Rejected/Completed | None beyond ownership | Use each status filter) Tj
+T*
+(Filter by date | Client, Staff, Admin | Appointment list | `Appointments/Index\(appointmentDate\)` |) Tj
+T*
+(Filters by exact date | None beyond ownership | Pick a date with known appointment) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8.3 CLIENT SURGERY REQUEST BOOKING) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature | Who Can Use It | View/Page | Controller/Action | Description | Data Used | Restrictions |) Tj
+T*
+(Manual Testing) Tj
+T*
+(Request Surgery Appointment | Logged-in clients | `Views/Appointments/Create.cshtml` |) Tj
+T*
+(`Appointments/Create` | Submits surgery request with preferred date/time/category/emergency/notes |) Tj
+T*
+(`Appointment`, `Pet`, `Service` | Must own selected pet; only surgery services allowed | Submit a) Tj
+T*
+(surgery request) Tj
+T*
+(Preferred schedule capture | Logged-in clients | Create page | `Appointments/Create` | Stores) Tj
+T*
+(requested date/time as preferred schedule | `PreferredAppointmentDate`, `PreferredAppointmentTime` |) Tj
+T*
+(None beyond surgery rules | Submit request and inspect saved record) Tj
+T*
+(Emergency request flag | Logged-in clients | Create page | `Appointments/Create` | Marks request as) Tj
+T*
+(emergency priority | `Appointment.IsEmergency` | Only affects capacity check and notifications |) Tj
+T*
+(Toggle emergency and submit) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 11 0 R >>
+endobj
+13 0 obj
+<< /Length 2937 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+/F2 12 Tf (8.4 GUEST SURGERY REQUEST BOOKING) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature | Who Can Use It | View/Page | Controller/Action | Description | Data Used | Restrictions |) Tj
+T*
+(Manual Testing) Tj
+T*
+(Guest surgery booking form | Public | `Views/Appointments/GuestCreate.cshtml` |) Tj
+T*
+(`Appointments/GuestCreate` | Allows non-logged-in user to request surgery |) Tj
+T*
+(`GuestAppointmentBooking`, `User`, `PetOwner`, `Pet`, `Appointment` | Existing non-guest email) Tj
+T*
+(cannot be reused | Submit guest booking) Tj
+T*
+(Guest account generation | Public | GuestCreate submit | `CreateGuestBooking\(\)` | Creates guest user) Tj
+T*
+(if needed | `User.IsGuest` | Username auto-generated | Inspect created guest user in DB/admin users) Tj
+T*
+(Guest pet creation | Public | GuestCreate submit | `CreateGuestBooking\(\)` | Creates pet for guest) Tj
+T*
+(owner | `Pet` | Always creates a new pet record | Submit repeated guest requests and compare) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8.5 SURGERY CAPACITY / LOAD SYSTEM) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Surgery Category | Load Points) Tj
+T*
+(Minor | 1) Tj
+T*
+(Moderate | 2) Tj
+T*
+(Major | 3) Tj
+T*
+(Emergency | Bypasses load limit) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Rule | Current Logic) Tj
+T*
+(Daily max load | 5 points/day) Tj
+T*
+(Included appointments | Surgery appointments that are not rejected and not emergency) Tj
+T*
+(Rejected status | Not counted in capacity) Tj
+T*
+(Emergency requests | Skip capacity limit) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8.6 DATE AND AVAILABILITY RESTRICTIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Restriction | Current Rule) Tj
+T*
+(Past date | Not allowed) Tj
+T*
+(Same-week rule | Must be between today and today + 6 days) Tj
+T*
+(Closed day | Tuesday) Tj
+T*
+(Fixed holidays | New Years Day, All Saints Day, Christmas Eve, Christmas Day, New Years Eve) Tj
+T*
+(Holy Week blocked days | Maundy Thursday, Good Friday, Black Saturday) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8.7 APPOINTMENT EDITING AND SCHEDULING) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature | Who Can Use It | View/Page | Controller/Action | Description | Restrictions | Manual) Tj
+T*
+(Testing) Tj
+T*
+(Edit appointment | Client, Staff, Admin | `Views/Appointments/Edit.cshtml` | `Appointments/Edit` |) Tj
+T*
+(Updates appointment details | Clients only own appointments and only if at least 1 day away | Edit) Tj
+T*
+(appointment as client and staff) Tj
+T*
+(Client reschedule request | Client | Edit page | `Appointments/Edit` | Client changes preferred) Tj
+T*
+(date/time and request returns to pending | Status reset to Pending; finalized set false | Edit as) Tj
+T*
+(client) Tj
+T*
+(Staff/admin schedule finalization | Staff, Admin | Edit page | `Appointments/Edit` | Staff/admin) Tj
+T*
+(adjust actual schedule and status | Staff/admin only | Change date/time as staff/admin) Tj
+T*
+(Finalization flag | Staff, Admin | Edit flow | `Appointments/Edit` | Approved/completed appointments) Tj
+ET
+endstream
+endobj
+14 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 13 0 R >>
+endobj
+15 0 obj
+<< /Length 2526 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(marked finalized | Rejected becomes not finalized | Change status and inspect flags) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8.8 APPOINTMENT APPROVAL AND STATUS ACTIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Action | Who Can Use It | Controller/Action | What It Does | Notifications) Tj
+T*
+(Approve | Staff, Admin | `Appointments/Approve` | Sets status to approved/confirmed and finalized |) Tj
+T*
+(Sends client confirmation notification) Tj
+T*
+(Reject | Staff, Admin | `Appointments/Reject` | Sets status to rejected and not finalized | Sends) Tj
+T*
+(client decline notification) Tj
+T*
+(Complete | Staff, Admin | `Appointments/Complete` | Marks appointment completed and finalized |) Tj
+T*
+(Sends client completed notification) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8.9 APPOINTMENT CANCELLATION) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature | Who Can Use It | View/Page | Controller/Action | Description | Restrictions | Manual) Tj
+T*
+(Testing) Tj
+T*
+(Cancel appointment | Client, Staff, Admin | `Views/Appointments/Delete.cshtml` |) Tj
+T*
+(`Appointments/Delete`, `DeleteConfirmed` | Removes appointment | Clients cannot cancel within 1 day) Tj
+T*
+(of schedule | Cancel as client and staff/admin) Tj
+T*
+(Staff/admin cancellation notice | Staff, Admin | Delete action | `DeleteConfirmed` | Creates) Tj
+T*
+(cancellation notification before deletion | None beyond role | Delete staff-side appointment and) Tj
+T*
+(check client notification) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8.10 UI ACTIONS ON APPOINTMENT TABLE) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Button/Icon | Meaning) Tj
+T*
+(Eye | View details) Tj
+T*
+(Pencil | Edit appointment) Tj
+T*
+(Calendar X | Cancel appointment) Tj
+T*
+(Check | Approve appointment) Tj
+T*
+(Ban | Reject appointment) Tj
+T*
+(Double check | Mark completed) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (8.11 CLIENT APPOINTMENT RESTRICTIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Restriction | How It Works) Tj
+T*
+(Own appointments only | Filtered through owner relationship) Tj
+T*
+(Edit blocked within 1 day | `CanClientChangeAppointment\(\)`) Tj
+T*
+(Cancel blocked within 1 day | `CanClientChangeAppointment\(\)`) Tj
+T*
+(Disabled UI icons still visible | Index view shows disabled icons with explanation message) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (9. NOTIFICATIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (9.1 NOTIFICATION SYSTEM OVERVIEW) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Item | Details) Tj
+T*
+(Main table/model | `StaffNotification`) Tj
+ET
+endstream
+endobj
+16 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 15 0 R >>
+endobj
+17 0 obj
+<< /Length 2491 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(Used for | Staff/admin notifications and client notifications) Tj
+T*
+(Read state | `IsRead`) Tj
+T*
+(Recipient separation | `RecipientRole` + optional `UserId`) Tj
+T*
+(Linked appointment | Optional `AppointmentId`) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (9.2 STAFF/ADMIN NOTIFICATIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature | View/Page | Controller/Action | Trigger) Tj
+T*
+(Notification list | `Views/Notifications/Index.cshtml` | `Notifications/Index` | Shows staff-facing) Tj
+T*
+(notifications) Tj
+T*
+(Mark as read | Same page | `Notifications/MarkAsRead` | AJAX or normal request) Tj
+T*
+(Emergency highlight | Same page | View logic | Highlights emergency notifications) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (9.3 CLIENT NOTIFICATIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature | View/Page | Controller/Action | Trigger) Tj
+T*
+(Notification list | `Views/Notifications/Client.cshtml` | `Notifications/Client` | Shows logged-in) Tj
+T*
+(clients notifications) Tj
+T*
+(Mark as read | Same page | `Notifications/MarkAsReadClient` | AJAX or normal request) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (9.4 NOTIFICATION EVENTS FOUND IN CODE) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Event | Recipient) Tj
+T*
+(New surgery request submitted | Staff) Tj
+T*
+(New surgery request submitted and pending | Client) Tj
+T*
+(Client updated surgery request | Staff) Tj
+T*
+(Surgery approved/confirmed | Client) Tj
+T*
+(Surgery declined/rejected | Client) Tj
+T*
+(Surgery rescheduled | Client) Tj
+T*
+(Surgery completed | Client) Tj
+T*
+(Surgery cancelled by clinic/staff/admin | Client) Tj
+T*
+(Surgery tagged as emergency priority | Client) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (9.5 NOTIFICATION UI BEHAVIOR) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Notification State | UI Behavior) Tj
+T*
+(Unread | Normal/highlighted row) Tj
+T*
+(Read | Faded row, softer styling, still readable) Tj
+T*
+(Emergency | `Emergency Priority` label shown in staff/admin notifications) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (10. MEDICAL RECORDS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature Name | Who Can Use It | View/Page | Controller/Action | What It Does | Data Used |) Tj
+T*
+(Restrictions | Manual Testing) Tj
+T*
+(View records | Client, Staff, Admin | `Views/MedicalRecords/Index.cshtml` | `MedicalRecords/Index` |) Tj
+T*
+(Lists medical records | `MedicalRecord`, `Pet`, `Appointment` | Client only sees records for own) Tj
+T*
+(pets | Compare client/staff views) Tj
+ET
+endstream
+endobj
+18 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 17 0 R >>
+endobj
+19 0 obj
+<< /Length 3683 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(Add record | Client, Staff, Admin | `Views/MedicalRecords/Create.cshtml` | `MedicalRecords/Create` |) Tj
+T*
+(Creates record for selected pet | `MedicalRecord` | Client must choose owned pet | Create record) Tj
+T*
+(Edit record | Client, Staff, Admin | `Views/MedicalRecords/Edit.cshtml` | `MedicalRecords/Edit` |) Tj
+T*
+(Updates record | `MedicalRecord` | Client limited to owned-pet records | Edit record) Tj
+T*
+(View details | Client, Staff, Admin | `Views/MedicalRecords/Details.cshtml` |) Tj
+T*
+(`MedicalRecords/Details` | Shows record details | `MedicalRecord` | Client limited to owned-pet) Tj
+T*
+(records | Open details) Tj
+T*
+(Delete record | Client, Staff, Admin | `Views/MedicalRecords/Delete.cshtml` |) Tj
+T*
+(`MedicalRecords/Delete` | Deletes record | `MedicalRecord` | Client limited to owned-pet records |) Tj
+T*
+(Delete record) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (11. VACCINATION WORKFLOW) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature Name | Who Can Use It | View/Page | Controller/Action | What It Does | Data Used |) Tj
+T*
+(Restrictions | Manual Testing) Tj
+T*
+(View vaccination records | Client, Staff, Admin | `Views/Vaccinations/Index.cshtml` |) Tj
+T*
+(`Vaccinations/Index` | Lists vaccination records | `VaccinationRecord`, `Pet` | Client sees only own) Tj
+T*
+(pet records | Compare role views) Tj
+T*
+(Add vaccination record | Client, Staff, Admin | `Views/Vaccinations/Create.cshtml` |) Tj
+T*
+(`Vaccinations/Create` | Creates record | `VaccinationRecord` | Client limited to owned pets | Add) Tj
+T*
+(vaccination) Tj
+T*
+(Edit vaccination record | Client, Staff, Admin | `Views/Vaccinations/Edit.cshtml` |) Tj
+T*
+(`Vaccinations/Edit` | Updates record | `VaccinationRecord` | Client limited to owned pet records |) Tj
+T*
+(Edit record) Tj
+T*
+(Vaccination details | Client, Staff, Admin | `Views/Vaccinations/Details.cshtml` |) Tj
+T*
+(`Vaccinations/Details` | Shows record details | `VaccinationRecord` | Client limited to owned pet) Tj
+T*
+(records | Open details) Tj
+T*
+(Delete vaccination record | Client, Staff, Admin | `Views/Vaccinations/Delete.cshtml` |) Tj
+T*
+(`Vaccinations/Delete` | Deletes record | `VaccinationRecord` | Client limited to owned pet records |) Tj
+T*
+(Delete record) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (DASHBOARD VACCINATION BEHAVIOR) Tj
+/F1 11 Tf
+T*
+(- Overdue vaccinations are shown on the client dashboard when `NextDueDate` is earlier than today.) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (12. SERVICES MANAGEMENT) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature Name | Who Can Use It in Current Code | View/Page | Controller/Action | What It Does |) Tj
+T*
+(Restrictions | Manual Testing) Tj
+T*
+(View services | Any logged-in user | `Views/Services/Index.cshtml` | `Services/Index` | Lists) Tj
+T*
+(services | Login required only | Open service list as each role) Tj
+T*
+(Add service | Any logged-in user | `Views/Services/Create.cshtml` | `Services/Create` | Creates new) Tj
+T*
+(service | Login required only | Create service) Tj
+T*
+(Edit service | Any logged-in user | `Views/Services/Edit.cshtml` | `Services/Edit` | Updates service) Tj
+T*
+(| Login required only | Edit service) Tj
+T*
+(Service details | Any logged-in user | `Views/Services/Details.cshtml` | `Services/Details` | Shows) Tj
+T*
+(service info | Login required only | Open details) Tj
+T*
+(Delete service | Any logged-in user | `Views/Services/Delete.cshtml` | `Services/Delete` | Deletes) Tj
+T*
+(service | Blocked if used by appointment | Try deleting used service) Tj
+ET
+endstream
+endobj
+20 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 19 0 R >>
+endobj
+21 0 obj
+<< /Length 2816 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+() Tj
+T*
+/F2 12 Tf (SERVICE BEHAVIOR NOTES) Tj
+/F1 11 Tf
+T*
+(- New services are created as active.) Tj
+T*
+(- `IsWalkInOnly` and `RequiresAppointment` exist on the model.) Tj
+T*
+(- Appointment booking logic currently ignores most service settings and instead checks whether) Tj
+T*
+(service name contains `"Surgery"`.) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (13. CLINIC INFORMATION) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Feature Name | Who Can Use It | View/Page | Controller/Action | What It Does | Data Used |) Tj
+T*
+(Restrictions | Manual Testing) Tj
+T*
+(View clinic page | Logged-in users | `Views/Clinic/Index.cshtml` | `Clinic/Index` | Displays clinic) Tj
+T*
+(information | `ClinicInfo` model is passed, but page currently uses hard-coded display values |) Tj
+T*
+(Login required | Open as different roles) Tj
+T*
+(Edit clinic info | Admin | `Views/Clinic/Edit.cshtml` | `Clinic/Edit` | Saves clinic information |) Tj
+T*
+(`ClinicInfo` | Admin only | Edit and save) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (14. CLIENT-SIDE RESTRICTIONS AND SECURITY) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (14.1 SESSION HANDLING) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Session Key | Purpose) Tj
+T*
+(`UserId` | Identifies logged-in user) Tj
+T*
+(`Username` | Displays/logically tracks current username) Tj
+T*
+(`RoleId` | Determines role-based access) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (14.2 OWNERSHIP FILTERING LOGIC) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Data Type | How Access Is Restricted for Clients) Tj
+T*
+(Pets | Only pets where `Pet.OwnerId` belongs to logged-in users `PetOwner`) Tj
+T*
+(Appointments | Only appointments whose pet belongs to logged-in client) Tj
+T*
+(Medical Records | Only records whose `PetId` belongs to clients pets) Tj
+T*
+(Vaccinations | Only records whose `PetId` belongs to clients pets) Tj
+T*
+(Notifications | Only notifications with matching `UserId` and `RecipientRole = Client`) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (14.3 RELATIONSHIP CHAIN USED FOR CLIENT DATA ISOLATION) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+(`User -> PetOwner -> Pet -> Appointment / MedicalRecord / VaccinationRecord`) Tj
+T*
+() Tj
+T*
+(Beginner-friendly explanation:) Tj
+T*
+(- The logged-in client account is stored in the `Users` table.) Tj
+T*
+(- That user is connected to one `PetOwner` profile.) Tj
+T*
+(- That pet owner profile owns one or more pets.) Tj
+T*
+(- Appointments, medical records, and vaccination records are connected to pets.) Tj
+T*
+(- Because of that chain, the system can find only the data that belongs to that client.) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+ET
+endstream
+endobj
+22 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 21 0 R >>
+endobj
+23 0 obj
+<< /Length 2770 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+() Tj
+T*
+/F2 12 Tf (15. DATABASE RELATIONSHIPS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (15.1 MAIN TABLES AND RELATIONSHIPS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Table/Model | Important Connections) Tj
+T*
+(`Role` | One role can have many users) Tj
+T*
+(`User` | Belongs to one role; may have one `PetOwner`; may create many appointments, medical) Tj
+T*
+(records, vaccinations) Tj
+T*
+(`PetOwner` | Belongs to one user; can own many pets) Tj
+T*
+(`Pet` | Belongs to one pet owner; can have many appointments, medical records, vaccinations) Tj
+T*
+(`Service` | Can be used by many appointments) Tj
+T*
+(`AppointmentStatus` | Can be used by many appointments) Tj
+T*
+(`Appointment` | Belongs to one pet, one service, one status, one creator user) Tj
+T*
+(`MedicalRecord` | Belongs to one pet; optionally linked to an appointment) Tj
+T*
+(`VaccinationRecord` | Belongs to one pet; belongs to creator user) Tj
+T*
+(`StaffNotification` | Optional appointment link; optional client user link) Tj
+T*
+(`ReminderLog` | Belongs to one appointment) Tj
+T*
+(`ClinicInfo` | Stores clinic details) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (15.2 BEGINNER-FRIENDLY RELATIONSHIP EXPLANATION) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+(1. A user account is created first.) Tj
+T*
+(2. If the user is a client, the system also creates a pet owner profile for them.) Tj
+T*
+(3. Pets are attached to the pet owner profile.) Tj
+T*
+(4. Appointments are attached to a specific pet and service.) Tj
+T*
+(5. Medical and vaccination records are attached to a specific pet.) Tj
+T*
+(6. Notifications can point either to staff as a role or to a specific client user.) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (16. VALIDATION RULES FOUND IN CODE) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (16.1 REGISTRATION AND ACCOUNT VALIDATION) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Field | Rule) Tj
+T*
+(Username | Required, unique, at least 4 characters in settings, no spaces in settings) Tj
+T*
+(Email | Unique at registration, Gmail-only in settings update) Tj
+T*
+(Contact Number | Must be valid Philippine mobile number) Tj
+T*
+(Password | Must match login hash; strong password required for change) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (16.2 APPOINTMENT VALIDATION) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Rule | Description) Tj
+T*
+(Surgery only | Only surgery services can be booked as appointments) Tj
+T*
+(Date required | Appointment/guest booking requires date) Tj
+T*
+(Time required | Appointment/guest booking requires time) Tj
+T*
+(No past dates | Surgery request cannot be booked in the past) Tj
+T*
+(1-week window | Surgery date must be today through today + 6 days) Tj
+T*
+(Closed Tuesdays | Not allowed) Tj
+T*
+(Holiday closure | Selected holidays are blocked) Tj
+ET
+endstream
+endobj
+24 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 23 0 R >>
+endobj
+25 0 obj
+<< /Length 2396 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(Category required | Surgery category is required) Tj
+T*
+(Capacity check | Non-emergency daily points cannot exceed 5) Tj
+T*
+(Client edit/cancel restriction | Changes blocked less than 1 day before appointment) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (16.3 DEACTIVATION VALIDATION) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Field | Rule) Tj
+T*
+(Confirm Username | Must match current username) Tj
+T*
+(Confirm Password | Must match current password hash) Tj
+T*
+(Confirmation Text | Must exactly equal `DEACTIVATE`) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (17. UI BUTTONS AND ACTIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (17.1 SHARED UI BEHAVIOR) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(UI Element | Behavior) Tj
+T*
+(Navbar | Role-based links shown depending on login state) Tj
+T*
+(Logout button | Shown in top header for logged-in users) Tj
+T*
+(Toast messages | Success, error, warning, and notice popups via TempData/ViewBag) Tj
+T*
+(Table action links | Details/Edit/Delete open inside modal via `site.js`) Tj
+T*
+(Confirmation overlays | Used for destructive actions) Tj
+T*
+(Table pagination | Standard tables paginate automatically after 8 rows) Tj
+T*
+(Mobile nav | Toggle menu for smaller screens) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (17.2 NOTIFICATIONS UI) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Action | Result) Tj
+T*
+(Mark as read | Status changes to `Read`, row fades visually) Tj
+T*
+(Emergency notification | Highlighted with `Emergency Priority` label) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (18. REMINDER LOGS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+(When a new appointment is created, the system automatically creates reminder log entries:) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Reminder Type | Purpose) Tj
+T*
+(Confirmation | Confirms appointment request was received) Tj
+T*
+(Reminder 2 Days Before | Pre-appointment reminder) Tj
+T*
+(Reminder 1 Day Before | Day-before reminder) Tj
+T*
+(Follow-up After Visit | Post-visit follow-up reminder) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (IMPORTANT NOTE) Tj
+/F1 11 Tf
+T*
+(The code creates reminder log records, but no automated sending job was found in the inspected) Tj
+T*
+(project files.) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+26 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 25 0 R >>
+endobj
+27 0 obj
+<< /Length 2041 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+/F2 12 Tf (19. TESTING CHECKLIST) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+/F2 12 Tf (19.1 AUTHENTICATION) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+([ ] Register a client account) Tj
+T*
+(**Steps:** Open Register page, fill all fields, submit.) Tj
+T*
+(**Expected result:** New client user and pet owner are created.) Tj
+T*
+() Tj
+T*
+([ ] Log in as client) Tj
+T*
+(**Steps:** Enter client credentials.) Tj
+T*
+(**Expected result:** Redirect to client dashboard.) Tj
+T*
+() Tj
+T*
+([ ] Log in as staff) Tj
+T*
+(**Steps:** Enter staff credentials.) Tj
+T*
+(**Expected result:** Redirect to staff dashboard.) Tj
+T*
+() Tj
+T*
+([ ] Log in as admin) Tj
+T*
+(**Steps:** Enter admin credentials.) Tj
+T*
+(**Expected result:** Redirect to admin dashboard.) Tj
+T*
+() Tj
+T*
+([ ] Block inactive account login) Tj
+T*
+(**Steps:** Deactivate an account, then try logging in.) Tj
+T*
+(**Expected result:** Login fails with deactivated-account message.) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (19.2 ACCOUNT SETTINGS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+([ ] Update personal information) Tj
+T*
+(**Steps:** Change name/contact/username/email and save.) Tj
+T*
+(**Expected result:** New values persist.) Tj
+T*
+() Tj
+T*
+([ ] Change password) Tj
+T*
+(**Steps:** Enter current password, strong new password, confirm.) Tj
+T*
+(**Expected result:** Password successfully changes.) Tj
+T*
+() Tj
+T*
+([ ] Reject weak password) Tj
+T*
+(**Steps:** Enter a weak password.) Tj
+T*
+(**Expected result:** Validation error appears.) Tj
+T*
+() Tj
+T*
+([ ] Deactivate account) Tj
+T*
+(**Steps:** Enter matching username, password, and `DEACTIVATE`.) Tj
+T*
+(**Expected result:** Account becomes inactive and user is logged out.) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (19.3 PET MANAGEMENT) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+([ ] Add pet) Tj
+T*
+(**Steps:** Open Pets > Create and submit.) Tj
+T*
+(**Expected result:** Pet appears in pet list.) Tj
+T*
+() Tj
+T*
+([ ] Edit pet) Tj
+T*
+(**Steps:** Open pet edit page, change details, save.) Tj
+T*
+(**Expected result:** Pet details update.) Tj
+T*
+() Tj
+T*
+([ ] Delete pet) Tj
+T*
+(**Steps:** Delete a pet.) Tj
+ET
+endstream
+endobj
+28 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 27 0 R >>
+endobj
+29 0 obj
+<< /Length 2322 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(**Expected result:** Pet and linked operational data are removed correctly.) Tj
+T*
+() Tj
+T*
+([ ] Client ownership restriction on pets) Tj
+T*
+(**Steps:** Try opening another clients pet URL.) Tj
+T*
+(**Expected result:** Access is blocked.) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (19.4 SURGERY APPOINTMENT WORKFLOW) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+([ ] Create surgery request as client) Tj
+T*
+(**Steps:** Open Appointments > Create, submit all fields.) Tj
+T*
+(**Expected result:** Pending surgery request is created.) Tj
+T*
+() Tj
+T*
+([ ] Create surgery request as guest) Tj
+T*
+(**Steps:** Use guest booking form and submit.) Tj
+T*
+(**Expected result:** Guest user, pet, and appointment are created.) Tj
+T*
+() Tj
+T*
+([ ] Reject non-surgery booking) Tj
+T*
+(**Steps:** Try non-surgery selection in appointment flow.) Tj
+T*
+(**Expected result:** System blocks booking and says other services are walk-in only.) Tj
+T*
+() Tj
+T*
+([ ] Block Tuesday booking) Tj
+T*
+(**Steps:** Choose Tuesday date.) Tj
+T*
+(**Expected result:** Validation error appears.) Tj
+T*
+() Tj
+T*
+([ ] Block holiday booking) Tj
+T*
+(**Steps:** Choose listed holiday.) Tj
+T*
+(**Expected result:** Validation error appears.) Tj
+T*
+() Tj
+T*
+([ ] Block date outside 1-week range) Tj
+T*
+(**Steps:** Choose date beyond 6 days ahead.) Tj
+T*
+(**Expected result:** Validation error appears.) Tj
+T*
+() Tj
+T*
+([ ] Enforce surgery category) Tj
+T*
+(**Steps:** Submit with no category.) Tj
+T*
+(**Expected result:** Category validation error.) Tj
+T*
+() Tj
+T*
+([ ] Enforce capacity points) Tj
+T*
+(**Steps:** Fill a day beyond 5 non-emergency surgery points.) Tj
+T*
+(**Expected result:** Capacity validation error.) Tj
+T*
+() Tj
+T*
+([ ] Emergency bypass) Tj
+T*
+(**Steps:** Submit emergency request on fully loaded day.) Tj
+T*
+(**Expected result:** Request still accepted.) Tj
+T*
+() Tj
+T*
+([ ] Client edit allowed before 1 day) Tj
+T*
+(**Steps:** Edit own future appointment more than 1 day away.) Tj
+T*
+(**Expected result:** Edit works and request returns to pending.) Tj
+T*
+() Tj
+T*
+([ ] Client edit blocked within 1 day) Tj
+T*
+(**Steps:** Try editing own appointment less than 1 day away.) Tj
+T*
+(**Expected result:** Edit is blocked.) Tj
+T*
+() Tj
+T*
+([ ] Client cancel blocked within 1 day) Tj
+T*
+(**Steps:** Try deleting own appointment less than 1 day away.) Tj
+ET
+endstream
+endobj
+30 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 29 0 R >>
+endobj
+31 0 obj
+<< /Length 2158 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(**Expected result:** Cancel is blocked.) Tj
+T*
+() Tj
+T*
+([ ] Staff approve appointment) Tj
+T*
+(**Steps:** Click Approve in appointments list.) Tj
+T*
+(**Expected result:** Status changes and client gets notification.) Tj
+T*
+() Tj
+T*
+([ ] Staff reject appointment) Tj
+T*
+(**Steps:** Click Reject.) Tj
+T*
+(**Expected result:** Status changes and client gets notification.) Tj
+T*
+() Tj
+T*
+([ ] Staff complete appointment) Tj
+T*
+(**Steps:** Click Complete.) Tj
+T*
+(**Expected result:** Status changes and client gets notification.) Tj
+T*
+() Tj
+T*
+([ ] Staff/admin reschedule appointment) Tj
+T*
+(**Steps:** Edit actual appointment date/time.) Tj
+T*
+(**Expected result:** Client sees updated schedule and gets reschedule notification.) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (19.5 NOTIFICATIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+([ ] Staff notification on new request) Tj
+T*
+(**Steps:** Submit new surgery request.) Tj
+T*
+(**Expected result:** Staff notification appears.) Tj
+T*
+() Tj
+T*
+([ ] Client notification on pending request) Tj
+T*
+(**Steps:** Submit request as client.) Tj
+T*
+(**Expected result:** Client sees pending notification.) Tj
+T*
+() Tj
+T*
+([ ] Client notification on approve/reject/complete/reschedule/cancel) Tj
+T*
+(**Steps:** Perform each staff/admin action.) Tj
+T*
+(**Expected result:** Correct client message appears.) Tj
+T*
+() Tj
+T*
+([ ] Mark notification as read) Tj
+T*
+(**Steps:** Click check icon.) Tj
+T*
+(**Expected result:** Badge changes to Read and row becomes faded.) Tj
+T*
+() Tj
+T*
+([ ] Emergency highlight) Tj
+T*
+(**Steps:** Submit emergency surgery request.) Tj
+T*
+(**Expected result:** Staff/admin notification shows `Emergency Priority`.) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (19.6 MEDICAL RECORDS AND VACCINATIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+([ ] Create medical record) Tj
+T*
+(**Steps:** Add a record for a pet.) Tj
+T*
+(**Expected result:** Record saved and listed.) Tj
+T*
+() Tj
+T*
+([ ] Edit medical record) Tj
+T*
+(**Steps:** Update fields and save.) Tj
+T*
+(**Expected result:** Changes persist.) Tj
+T*
+() Tj
+T*
+([ ] Delete medical record) Tj
+T*
+(**Steps:** Delete a record.) Tj
+T*
+(**Expected result:** Record removed.) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+32 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 31 0 R >>
+endobj
+33 0 obj
+<< /Length 2081 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+([ ] Create vaccination record) Tj
+T*
+(**Steps:** Add vaccine entry.) Tj
+T*
+(**Expected result:** Record saved.) Tj
+T*
+() Tj
+T*
+([ ] Edit vaccination record) Tj
+T*
+(**Steps:** Change vaccine details and save.) Tj
+T*
+(**Expected result:** Record updated.) Tj
+T*
+() Tj
+T*
+([ ] Delete vaccination record) Tj
+T*
+(**Steps:** Delete a vaccination record.) Tj
+T*
+(**Expected result:** Record removed.) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (19.7 ADMIN AND STAFF OPERATIONS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+([ ] Open admin users page) Tj
+T*
+(**Steps:** Log in as admin and click `Users`.) Tj
+T*
+(**Expected result:** User table appears.) Tj
+T*
+() Tj
+T*
+([ ] Deactivate another user) Tj
+T*
+(**Steps:** Click deactivate on a user.) Tj
+T*
+(**Expected result:** User status becomes inactive.) Tj
+T*
+() Tj
+T*
+([ ] Restore inactive user) Tj
+T*
+(**Steps:** Click restore.) Tj
+T*
+(**Expected result:** User status becomes active.) Tj
+T*
+() Tj
+T*
+([ ] Prevent admin self-deactivation) Tj
+T*
+(**Steps:** Check current account row.) Tj
+T*
+(**Expected result:** It shows `Current account`, not deactivate button.) Tj
+T*
+() Tj
+T*
+([ ] Edit clinic info as admin) Tj
+T*
+(**Steps:** Open clinic page and edit.) Tj
+T*
+(**Expected result:** Data saves successfully.) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (19.8 RESPONSIVE / ACCESSIBILITY CHECKS) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+([ ] Desktop layout) Tj
+T*
+(**Steps:** Test around 1366px and 1920px width.) Tj
+T*
+(**Expected result:** Navigation, sections, tables, and forms display properly.) Tj
+T*
+() Tj
+T*
+([ ] Laptop layout) Tj
+T*
+(**Steps:** Test around 1024px and 1280px width.) Tj
+T*
+(**Expected result:** No broken alignment or hidden key actions.) Tj
+T*
+() Tj
+T*
+([ ] Tablet layout) Tj
+T*
+(**Steps:** Test around 768px width.) Tj
+T*
+(**Expected result:** Navbar collapses properly, pages stay usable.) Tj
+T*
+() Tj
+T*
+([ ] Mobile layout) Tj
+T*
+(**Steps:** Test around 375px width.) Tj
+T*
+(**Expected result:** Navigation, forms, and cards remain usable.) Tj
+T*
+() Tj
+T*
+([ ] Mobile booking form) Tj
+T*
+(**Steps:** Open surgery booking page on phone width.) Tj
+ET
+endstream
+endobj
+34 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 33 0 R >>
+endobj
+35 0 obj
+<< /Length 3672 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(**Expected result:** Form fields stack properly and remain readable.) Tj
+T*
+() Tj
+T*
+([ ] Mobile modal) Tj
+T*
+(**Steps:** Open details/edit/delete modal on phone width.) Tj
+T*
+(**Expected result:** Modal fits screen and actions are clickable.) Tj
+T*
+() Tj
+T*
+([ ] Mobile tables) Tj
+T*
+(**Steps:** Open appointments/pets/records lists on phone width.) Tj
+T*
+(**Expected result:** Pagination and table panels remain usable.) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (20. POSSIBLE ISSUES OR MISSING FEATURES) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+() Tj
+T*
+(Issue / Concern | Details) Tj
+T*
+(Service management access is broad | `ServicesController` currently allows any logged-in user,) Tj
+T*
+(including clients, to access service CRUD) Tj
+T*
+(Medical/vaccination CRUD for clients may be too broad | Clients are ownership-limited but still) Tj
+T*
+(allowed to create/edit/delete these records in current code) Tj
+T*
+(Clinic display is hard-coded | `Views/Clinic/Index.cshtml` currently displays hard-coded clinic) Tj
+T*
+(values instead of fully using the saved `ClinicInfo` model) Tj
+T*
+(Landing page is mostly static | Services, prices, contacts, and articles are not driven from) Tj
+T*
+(database) Tj
+T*
+(Service appointment logic depends on service name | Appointment eligibility checks if service name) Tj
+T*
+(contains `"Surgery"` instead of using only model flags) Tj
+T*
+(Reminder logs are not actually sent | Records are created, but no sending scheduler/service was) Tj
+T*
+(found in inspected files) Tj
+T*
+(Guest booking duplicates pets | Repeated guest bookings create new pet records instead of reusing) Tj
+T*
+(existing ones) Tj
+T*
+(Role checks use numeric IDs directly | Admin=1, Staff=2, Client=3 is assumed throughout code) Tj
+T*
+(Manual authorization style | Access control is repeated in many controllers instead of centralized) Tj
+T*
+(policies) Tj
+T*
+(Terminology varies | Approved/Confirmed and Rejected/Declined are both used in different places) Tj
+T*
+() Tj
+T*
+(==========================================================================================) Tj
+T*
+() Tj
+T*
+/F2 12 Tf (21. DOCUMENTATION-FRIENDLY SUMMARY) Tj
+/F1 11 Tf
+T*
+() Tj
+T*
+(VetClinicSystem is a role-based veterinary clinic management website that supports public visitors,) Tj
+T*
+(clients, staff, and administrators. The system focuses on surgery request scheduling, pet) Tj
+T*
+(management, medical history tracking, vaccination record management, user account handling, clinic) Tj
+T*
+(notifications, and role-based dashboards. Clients can register, maintain their pet information,) Tj
+T*
+(request surgery appointments, monitor reminders and updates, and access records related to their own) Tj
+T*
+(pets. Staff and admins manage operational clinic tasks such as appointment approval, scheduling,) Tj
+T*
+(records, vaccination data, and notifications. Admins additionally manage user accounts and overall) Tj
+T*
+(dashboard reporting.) Tj
+T*
+() Tj
+T*
+(The appointment workflow is centered on surgery requests. Clients or guests submit a preferred) Tj
+T*
+(surgery date and time, a surgery category, an emergency priority option, and case notes. The clinic) Tj
+T*
+(then reviews and finalizes the actual schedule. Surgery requests are controlled by availability) Tj
+T*
+(rules such as closed Tuesdays, holiday blocks, a one-week booking window, and a daily surgery load) Tj
+T*
+(system. Non-emergency requests are limited to 5 surgery points per day, where minor, moderate, and) Tj
+T*
+(major surgeries consume 1, 2, and 3 points respectively. Emergency requests bypass that capacity) Tj
+ET
+endstream
+endobj
+36 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 35 0 R >>
+endobj
+37 0 obj
+<< /Length 693 >>
+stream
+BT
+/F1 11 Tf
+14 TL
+42 798 Td
+(rule.) Tj
+T*
+() Tj
+T*
+(The system uses a relational data structure where users are connected to pet owner profiles, pet) Tj
+T*
+(owners are connected to pets, and pets are connected to appointments, medical records, and) Tj
+T*
+(vaccination records. This relationship is used to make sure clients only see their own data.) Tj
+T*
+(Notifications are also separated by role, allowing staff/admin users to receive clinic operation) Tj
+T*
+(alerts while clients receive appointment status and scheduling updates. Overall, the system combines) Tj
+T*
+(clinic operations, client communication, and pet record management into one centralized website.) Tj
+T*
+() Tj
+T*
+() Tj
+ET
+endstream
+endobj
+38 0 obj
+<< /Type /Page /Parent 39 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 37 0 R >>
+endobj
+39 0 obj
+<< /Type /Pages /Count 18 /Kids [4 0 R 6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R 26 0 R 28 0 R 30 0 R 32 0 R 34 0 R 36 0 R 38 0 R] >>
+endobj
+40 0 obj
+<< /Type /Catalog /Pages 39 0 R >>
+endobj
+xref
+0 41
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000000154 00000 n 
+0000002967 00000 n 
+0000003104 00000 n 
+0000006013 00000 n 
+0000006150 00000 n 
+0000009713 00000 n 
+0000009850 00000 n 
+0000013389 00000 n 
+0000013527 00000 n 
+0000016701 00000 n 
+0000016840 00000 n 
+0000019830 00000 n 
+0000019969 00000 n 
+0000022548 00000 n 
+0000022687 00000 n 
+0000025231 00000 n 
+0000025370 00000 n 
+0000029106 00000 n 
+0000029245 00000 n 
+0000032114 00000 n 
+0000032253 00000 n 
+0000035076 00000 n 
+0000035215 00000 n 
+0000037664 00000 n 
+0000037803 00000 n 
+0000039897 00000 n 
+0000040036 00000 n 
+0000042411 00000 n 
+0000042550 00000 n 
+0000044761 00000 n 
+0000044900 00000 n 
+0000047034 00000 n 
+0000047173 00000 n 
+0000050898 00000 n 
+0000051037 00000 n 
+0000051782 00000 n 
+0000051921 00000 n 
+0000052097 00000 n 
+trailer
+<< /Size 41 /Root 40 0 R >>
+startxref
+52148
+%%EOF
