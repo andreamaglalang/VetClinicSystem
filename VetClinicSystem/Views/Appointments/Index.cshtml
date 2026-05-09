@@ -67,8 +67,12 @@
                     @if (!string.IsNullOrWhiteSpace(item.SurgeryCategory))
                     {
                         <div class="table-action-note">
-                            @item.SurgeryCategory surgery@(item.IsEmergency ? " · Emergency" : string.Empty)
+                            @item.SurgeryCategory surgery
                         </div>
+                    }
+                    @if (item.IsEmergency)
+                    {
+                        <div class="table-emergency-badge">Emergency</div>
                     }
                 </td>
                 <td>

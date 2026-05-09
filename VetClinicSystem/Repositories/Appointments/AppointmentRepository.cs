@@ -164,47 +164,20 @@ namespace VetClinicSystem.Repositories.Appointments
 
         private static List<Appointment> OrderForManagement(IEnumerable<Appointment> appointments)
         {
-            var now = DateTime.Now;
-
             return appointments
-                .OrderBy(x => x.StatusId == 1 ? 0 : IsUpcomingOperational(x, now) ? 1 : 2)
-                .ThenBy(x => (x.StatusId == 1 || IsUpcomingOperational(x, now)) && x.IsEmergency ? 0 : 1)
-                .ThenBy(x => x.StatusId == 1 || IsUpcomingOperational(x, now) ? GetAppointmentDateTime(x) : DateTime.MaxValue)
-                .ThenByDescending(x => x.StatusId == 1 || IsUpcomingOperational(x, now) ? DateTime.MinValue : GetAppointmentDateTime(x))
+                .OrderBy(x => x.AppointmentDate)
+                .ThenBy(x => x.AppointmentTime)
                 .ThenByDescending(x => x.LastUpdated)
                 .ToList();
         }
 
         private static List<Appointment> OrderForClient(IEnumerable<Appointment> appointments)
         {
-            var now = DateTime.Now;
-
             return appointments
-                .OrderBy(x => IsUpcomingForClient(x, now) ? 0 : 1)
-                .ThenBy(x => IsUpcomingForClient(x, now) ? GetAppointmentDateTime(x) : DateTime.MaxValue)
-                .ThenByDescending(x => IsUpcomingForClient(x, now) ? DateTime.MinValue : GetAppointmentDateTime(x))
+                .OrderBy(x => x.AppointmentDate)
+                .ThenBy(x => x.AppointmentTime)
                 .ThenByDescending(x => x.LastUpdated)
                 .ToList();
-        }
-
-        private static bool IsUpcomingOperational(Appointment appointment, DateTime now)
-        {
-            return !IsClosed(appointment) && GetAppointmentDateTime(appointment) >= now;
-        }
-
-        private static bool IsUpcomingForClient(Appointment appointment, DateTime now)
-        {
-            return appointment.StatusId == 1 || (!IsClosed(appointment) && GetAppointmentDateTime(appointment) >= now);
-        }
-
-        private static bool IsClosed(Appointment appointment)
-        {
-            return appointment.StatusId == 3 || appointment.StatusId == 4;
-        }
-
-        private static DateTime GetAppointmentDateTime(Appointment appointment)
-        {
-            return appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime);
         }
     }
 }
