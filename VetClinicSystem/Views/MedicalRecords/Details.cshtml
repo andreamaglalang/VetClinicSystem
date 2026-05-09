@@ -1,4 +1,8 @@
-﻿@model VetClinicSystem.Models.MedicalRecord
+@model VetClinicSystem.Models.MedicalRecord
+@{
+    var roleId = Context.Session.GetInt32("RoleId");
+    var canManageMedicalRecords = roleId == 1 || roleId == 2;
+}
 
 <h2>Medical Record Details</h2>
 
@@ -11,5 +15,9 @@
     <tr><th>Record Date</th><td>@Model.RecordDate</td></tr>
 </table>
 
-<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+@if (canManageMedicalRecords)
+{
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+}
 <a asp-action="Index" class="btn btn-secondary">Back</a>

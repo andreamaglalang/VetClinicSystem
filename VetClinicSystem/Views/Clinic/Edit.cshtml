@@ -2,7 +2,7 @@
 
 <h2>Edit Clinic Information</h2>
 
-<form method="post">
+<form asp-action="Edit" asp-controller="Clinic" method="post">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
     <input type="hidden" asp-for="Id" />

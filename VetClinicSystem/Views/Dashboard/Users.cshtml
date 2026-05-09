@@ -8,7 +8,6 @@
     <div class="admin-users-panel__header">
         <div>
             <h4>Users</h4>
-            <p>Manage active, inactive, and archived accounts without deleting related clinic records.</p>
         </div>
         <span>@Model.Users.Count shown</span>
     </div>
@@ -16,6 +15,14 @@
     <div class="admin-users-filters" role="tablist" aria-label="User status filters">
         <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="all" class="admin-users-filter @(Model.Filter == "all" ? "is-active" : null)">
             All
+        </a>
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="client" class="admin-users-filter @(Model.Filter == "client" ? "is-active" : null)">
+            Client
+            <span>@Model.ClientCount</span>
+        </a>
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="staff" class="admin-users-filter @(Model.Filter == "staff" ? "is-active" : null)">
+            Staff
+            <span>@Model.StaffCount</span>
         </a>
         <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="active" class="admin-users-filter @(Model.Filter == "active" ? "is-active" : null)">
             Active

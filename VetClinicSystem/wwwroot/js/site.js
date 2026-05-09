@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setupTablePagination(document);
     setupConfirmationForms();
     setupActionModals();
+    setupInputSanitizers(document);
 });
 
 function setupMobileNavigation() {
@@ -269,6 +270,7 @@ function setupActionModals() {
         normalizeModalForms(actionUrl);
         setupTablePanels(bodyElement);
         setupTablePagination(bodyElement);
+        setupInputSanitizers(bodyElement);
     }
 
     function normalizeModalForms(actionUrl) {
@@ -432,3 +434,64 @@ function escapeHtml(value) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+function setupInputSanitizers(root) {
+    const container = root || document;
+
+    container.querySelectorAll("[data-letters-only='true']").forEach(function (input) {
+        if (input.dataset.sanitizerBound === "true") {
+            return;
+        }
+
+        input.dataset.sanitizerBound = "true";
+        input.addEventListener("input", function () {
+            input.value = input.value.replace(/[^A-Za-z ]+/g, "").replace(/\s{2,}/g, " ");
+        });
+    });
+
+    container.querySelectorAll("[data-person-name='true']").forEach(function (input) {
+        if (input.dataset.sanitizerBound === "true") {
+            return;
+        }
+
+        input.dataset.sanitizerBound = "true";
+        input.addEventListener("input", function () {
+            input.value = input.value.replace(/[^A-Za-z' -]+/g, "").replace(/\s{2,}/g, " ");
+        });
+    });
+
+    container.querySelectorAll("[data-username-only='true']").forEach(function (input) {
+        if (input.dataset.sanitizerBound === "true") {
+            return;
+        }
+
+        input.dataset.sanitizerBound = "true";
+        input.addEventListener("input", function () {
+            input.value = input.value.replace(/[^A-Za-z0-9_]+/g, "");
+        });
+    });
+
+    container.querySelectorAll("[data-phone-only='true']").forEach(function (input) {
+        if (input.dataset.sanitizerBound === "true") {
+            return;
+        }
+
+        input.dataset.sanitizerBound = "true";
+        input.addEventListener("input", function () {
+            input.value = input.value.replace(/\D+/g, "").slice(0, 11);
+        });
+    });
+
+    container.querySelectorAll("[data-address-safe='true']").forEach(function (input) {
+        if (input.dataset.sanitizerBound === "true") {
+            return;
+        }
+
+        input.dataset.sanitizerBound = "true";
+        input.addEventListener("input", function () {
+            input.value = input.value.replace(/[^A-Za-z0-9#.,/\- ]+/g, "").replace(/\s{2,}/g, " ");
+        });
+    });
+}
+
+window.setupInputSanitizers = setupInputSanitizers;

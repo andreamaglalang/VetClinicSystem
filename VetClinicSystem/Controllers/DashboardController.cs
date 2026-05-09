@@ -87,9 +87,11 @@ namespace VetClinicSystem.Controllers
                 Users = filteredUsers,
                 Filter = normalizedFilter,
                 CurrentUserId = currentUserId.Value,
+                ClientCount = allUsers.Count(user => user.RoleId == 3),
                 ActiveCount = allUsers.Count(user => !user.IsDeleted && user.IsActive),
                 InactiveCount = allUsers.Count(user => !user.IsDeleted && !user.IsActive),
-                ArchivedCount = allUsers.Count(user => user.IsDeleted)
+                ArchivedCount = allUsers.Count(user => user.IsDeleted),
+                StaffCount = allUsers.Count(user => user.RoleId == 2)
             };
 
             return View(model);
@@ -293,9 +295,11 @@ namespace VetClinicSystem.Controllers
         {
             return filter?.Trim().ToLowerInvariant() switch
             {
+                "client" => "client",
                 "active" => "active",
                 "inactive" => "inactive",
                 "archived" => "archived",
+                "staff" => "staff",
                 _ => "all"
             };
         }
@@ -304,9 +308,11 @@ namespace VetClinicSystem.Controllers
         {
             return filter switch
             {
+                "client" => user.RoleId == 3,
                 "active" => !user.IsDeleted && user.IsActive,
                 "inactive" => !user.IsDeleted && !user.IsActive,
                 "archived" => user.IsDeleted,
+                "staff" => user.RoleId == 2,
                 _ => true
             };
         }

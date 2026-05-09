@@ -18,7 +18,7 @@
             <p>Share your contact and pet details so the clinic can confirm the surgery schedule with you.</p>
         </div>
 
-        <form method="post" class="guest-booking-card">
+        <form asp-action="GuestCreate" asp-controller="Appointments" method="post" class="guest-booking-card">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -51,17 +51,17 @@
                 <div class="row g-3">
                 <div class="col-md-6">
                     <label asp-for="FirstName"></label>
-                    <input asp-for="FirstName" class="form-control" />
+                    <input asp-for="FirstName" class="form-control" data-person-name="true" />
                     <span asp-validation-for="FirstName" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
                     <label asp-for="LastName"></label>
-                    <input asp-for="LastName" class="form-control" />
+                    <input asp-for="LastName" class="form-control" data-person-name="true" />
                     <span asp-validation-for="LastName" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
                     <label asp-for="ContactNumber"></label>
-                        <input asp-for="ContactNumber" class="form-control" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="14" pattern="09[0-9\s-]{9,12}" title="Enter an 11-digit mobile number starting with 09." />
+                        <input asp-for="ContactNumber" class="form-control" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="09\d{9}" title="Enter an 11-digit mobile number starting with 09." autocomplete="tel-national" data-phone-only="true" />
                     <span asp-validation-for="ContactNumber" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
@@ -71,7 +71,7 @@
                 </div>
                 <div class="col-12">
                     <label asp-for="Address"></label>
-                    <input asp-for="Address" class="form-control" maxlength="255" />
+                    <input asp-for="Address" class="form-control" maxlength="150" data-address-safe="true" />
                     <span asp-validation-for="Address" class="text-danger"></span>
                 </div>
                 </div>
@@ -82,17 +82,17 @@
                 <div class="row g-3">
                 <div class="col-md-6">
                     <label asp-for="PetName"></label>
-                    <input asp-for="PetName" class="form-control" />
+                    <input asp-for="PetName" class="form-control" data-letters-only="true" />
                     <span asp-validation-for="PetName" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
                     <label asp-for="Species"></label>
-                    <input asp-for="Species" class="form-control" maxlength="50" pattern="[A-Za-z][A-Za-z\s'\-]*" title="Species must contain letters only and may include spaces, apostrophes, or hyphens." />
+                    <input asp-for="Species" class="form-control" maxlength="50" pattern="[A-Za-z]+(?:\s[A-Za-z]+)*" title="Species must contain letters and spaces only." data-letters-only="true" />
                     <span asp-validation-for="Species" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
                     <label asp-for="Breed"></label>
-                    <input asp-for="Breed" class="form-control" maxlength="100" pattern="[A-Za-z][A-Za-z\s'\-]*" title="Breed must contain letters only and may include spaces, apostrophes, or hyphens." />
+                    <input asp-for="Breed" class="form-control" maxlength="100" pattern="[A-Za-z]+(?:\s[A-Za-z]+)*" title="Breed must contain letters and spaces only." data-letters-only="true" />
                     <span asp-validation-for="Breed" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">

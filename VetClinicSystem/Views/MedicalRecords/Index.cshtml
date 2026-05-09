@@ -1,11 +1,17 @@
-﻿@model IEnumerable<VetClinicSystem.Models.MedicalRecord>
+@model IEnumerable<VetClinicSystem.Models.MedicalRecord>
+@{
+    var roleId = Context.Session.GetInt32("RoleId");
+    var canManageMedicalRecords = roleId == 1 || roleId == 2;
+}
 
 <h2>Medical Records</h2>
-<p class="text-muted">Chronological treatment history, newest records first.</p>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Add Record</a>
-</p>
+@if (canManageMedicalRecords)
+{
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Add Record</a>
+    </p>
+}
 
 <table class="table table-bordered table-medical-records">
     <thead>
@@ -15,7 +21,10 @@
             <th>Treatment</th>
             <th>Appointment</th>
             <th>Record Date</th>
-            <th>Actions</th>
+            @if (canManageMedicalRecords)
+            {
+                <th>Actions</th>
+            }
         </tr>
     </thead>
     <tbody>
@@ -27,19 +36,22 @@
                 <td>@item.Treatment</td>
                 <td>@(item.Appointment?.Service?.ServiceName ?? "Walk-in / record only")</td>
                 <td>@item.RecordDate.ToString("MMM d, yyyy")</td>
-                <td>
-                    <div class="table-actions">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="table-action-icon table-action-icon--details" title="Details" aria-label="View medical record details">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="table-action-icon table-action-icon--edit" title="Edit" aria-label="Edit medical record">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--delete" title="Delete" aria-label="Delete medical record">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </a>
-                    </div>
-                </td>
+                @if (canManageMedicalRecords)
+                {
+                    <td>
+                        <div class="table-actions">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="table-action-icon table-action-icon--details" title="Details" aria-label="View medical record details">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="table-action-icon table-action-icon--edit" title="Edit" aria-label="Edit medical record">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--delete" title="Delete" aria-label="Delete medical record">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </a>
+                        </div>
+                    </td>
+                }
             </tr>
         }
     </tbody>

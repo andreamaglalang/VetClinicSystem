@@ -9,7 +9,7 @@
     <tr><th>Emergency Priority</th><td>@(Model.IsEmergency ? "Yes" : "No")</td></tr>
 </table>
 
-<form method="post" data-confirm-message="Are you sure you want to cancel this appointment?">
+<form asp-action="Delete" asp-controller="Appointments" method="post" data-confirm-message="Are you sure you want to cancel this appointment?">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <button type="submit" class="btn btn-danger">Cancel Appointment</button>

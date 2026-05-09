@@ -16,15 +16,18 @@ public partial class Pet : IValidatableObject
     public int OwnerId { get; set; }
 
     [Required(ErrorMessage = "Pet name is required.")]
-    [StringLength(100)]
+    [StringLength(100, ErrorMessage = "Pet name must not exceed 100 characters.")]
+    [RegularExpression(InputValidationHelper.PetNamePattern, ErrorMessage = InputValidationHelper.PetNameMessage)]
     public string PetName { get; set; } = null!;
 
     [Required(ErrorMessage = "Species is required.")]
-    [StringLength(50)]
+    [StringLength(50, ErrorMessage = "Species must not exceed 50 characters.")]
+    [RegularExpression(InputValidationHelper.SpeciesPattern, ErrorMessage = InputValidationHelper.SpeciesMessage)]
     public string Species { get; set; } = null!;
 
     [Required(ErrorMessage = "Breed is required.")]
-    [StringLength(100)]
+    [StringLength(100, ErrorMessage = "Breed must not exceed 100 characters.")]
+    [RegularExpression(InputValidationHelper.BreedPattern, ErrorMessage = InputValidationHelper.BreedMessage)]
     public string? Breed { get; set; }
 
     [RegularExpression(@"^(Male|Female)$", ErrorMessage = "Sex must be Male or Female.")]
@@ -37,6 +40,7 @@ public partial class Pet : IValidatableObject
     public int? Age { get; set; }
 
     [StringLength(50)]
+    [RegularExpression(InputValidationHelper.ColorPattern, ErrorMessage = InputValidationHelper.ColorMessage)]
     public string? Color { get; set; }
 
     [Column(TypeName = "decimal(10, 2)")]
@@ -48,6 +52,11 @@ public partial class Pet : IValidatableObject
 
     [Column(TypeName = "datetime")]
     public DateTime DateCreated { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? DeletedAt { get; set; }
 
     [InverseProperty("Pet")]
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
@@ -67,14 +76,14 @@ public partial class Pet : IValidatableObject
         if (!PetValidationHelper.IsValidSpecies(Species))
         {
             yield return new ValidationResult(
-                "Please select a valid species.",
+                "Please enter a valid species.",
                 new[] { nameof(Species) });
         }
 
         if (!PetValidationHelper.IsValidBreed(Species, Breed))
         {
             yield return new ValidationResult(
-                "Please select a valid breed for the chosen species.",
+                "Please enter a valid breed for the chosen species.",
                 new[] { nameof(Breed) });
         }
     }

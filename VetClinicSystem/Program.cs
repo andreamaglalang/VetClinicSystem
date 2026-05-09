@@ -172,6 +172,18 @@ BEGIN
     ADD IsScheduleFinalized BIT NOT NULL CONSTRAINT DF_Appointments_IsScheduleFinalized DEFAULT 0;
 END
 
+IF COL_LENGTH('Pets', 'IsDeleted') IS NULL
+BEGIN
+    ALTER TABLE Pets
+    ADD IsDeleted BIT NOT NULL CONSTRAINT DF_Pets_IsDeleted DEFAULT 0;
+END
+
+IF COL_LENGTH('Pets', 'DeletedAt') IS NULL
+BEGIN
+    ALTER TABLE Pets
+    ADD DeletedAt DATETIME NULL;
+END
+
 IF COL_LENGTH('StaffNotifications', 'UserId') IS NULL
 BEGIN
     ALTER TABLE StaffNotifications

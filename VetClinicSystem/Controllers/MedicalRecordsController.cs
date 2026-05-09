@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using VetClinicSystem.Models;
 using VetClinicSystem.Services.MedicalRecords;
@@ -8,6 +8,10 @@ namespace VetClinicSystem.Controllers
 {
     public class MedicalRecordsController : Controller
     {
+        private const int AdminRoleId = 1;
+        private const int StaffRoleId = 2;
+        private const int ClientRoleId = 3;
+
         private readonly IMedicalRecordService _medicalRecordService;
         private readonly IPetService _petService;
 
@@ -27,7 +31,7 @@ namespace VetClinicSystem.Controllers
 
             var records = _medicalRecordService.GetAll();
 
-            if (roleId == 3)
+            if (roleId == ClientRoleId)
             {
                 var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
                 records = records.Where(r => myPetIds.Contains(r.PetId)).ToList();
@@ -45,11 +49,10 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            if (roleId == 3)
-                ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName");
-            else
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
+            if (!CanManageMedicalRecords(roleId))
+                return RedirectRestrictedClient();
 
+            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
             return View();
         }
 
@@ -63,24 +66,16 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
+            if (!CanManageMedicalRecords(roleId))
+                return RedirectRestrictedClient();
+
             ModelState.Remove("Pet");
             ModelState.Remove("CreatedByUser");
             NormalizeMedicalRecord(medicalRecord);
 
-            if (roleId == 3)
-            {
-                var myPets = _petService.GetByUser(userId.Value);
-                if (!myPets.Any(p => p.Id == medicalRecord.PetId))
-                    return Unauthorized();
-            }
-
             if (!ModelState.IsValid)
             {
-                if (roleId == 3)
-                    ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", medicalRecord.PetId);
-                else
-                    ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
-
+                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
                 TempData["Error"] = "Please complete all required medical record fields.";
                 return View(medicalRecord);
             }
@@ -101,22 +96,14 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
+            if (!CanManageMedicalRecords(roleId))
+                return RedirectRestrictedClient();
+
             var record = _medicalRecordService.GetById(id);
-            if (record == null) return NotFound();
+            if (record == null)
+                return NotFound();
 
-            if (roleId == 3)
-            {
-                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
-                if (!myPetIds.Contains(record.PetId))
-                    return Unauthorized();
-
-                ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", record.PetId);
-            }
-            else
-            {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", record.PetId);
-            }
-
+            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", record.PetId);
             return View(record);
         }
 
@@ -130,24 +117,16 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
+            if (!CanManageMedicalRecords(roleId))
+                return RedirectRestrictedClient();
+
             ModelState.Remove("Pet");
             ModelState.Remove("CreatedByUser");
             NormalizeMedicalRecord(medicalRecord);
 
-            if (roleId == 3)
-            {
-                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
-                if (!myPetIds.Contains(medicalRecord.PetId))
-                    return Unauthorized();
-            }
-
             if (!ModelState.IsValid)
             {
-                if (roleId == 3)
-                    ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", medicalRecord.PetId);
-                else
-                    ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
-
+                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
                 TempData["Error"] = "Please complete all required medical record fields.";
                 return View(medicalRecord);
             }
@@ -167,9 +146,10 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Login", "Account");
 
             var record = _medicalRecordService.GetById(id);
-            if (record == null) return NotFound();
+            if (record == null)
+                return NotFound();
 
-            if (roleId == 3)
+            if (roleId == ClientRoleId)
             {
                 var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
                 if (!myPetIds.Contains(record.PetId))
@@ -188,15 +168,12 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            var record = _medicalRecordService.GetById(id);
-            if (record == null) return NotFound();
+            if (!CanManageMedicalRecords(roleId))
+                return RedirectRestrictedClient();
 
-            if (roleId == 3)
-            {
-                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
-                if (!myPetIds.Contains(record.PetId))
-                    return Unauthorized();
-            }
+            var record = _medicalRecordService.GetById(id);
+            if (record == null)
+                return NotFound();
 
             return View(record);
         }
@@ -211,19 +188,27 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            var record = _medicalRecordService.GetById(id);
-            if (record == null) return NotFound();
+            if (!CanManageMedicalRecords(roleId))
+                return RedirectRestrictedClient();
 
-            if (roleId == 3)
-            {
-                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
-                if (!myPetIds.Contains(record.PetId))
-                    return Unauthorized();
-            }
+            var record = _medicalRecordService.GetById(id);
+            if (record == null)
+                return NotFound();
 
             _medicalRecordService.Delete(id);
             TempData["Success"] = "Medical record deleted successfully.";
             return RedirectToAction("Index");
+        }
+
+        private IActionResult RedirectRestrictedClient()
+        {
+            TempData["Error"] = "Only admin and staff can add, edit, or delete medical records.";
+            return RedirectToAction("Index");
+        }
+
+        private static bool CanManageMedicalRecords(int? roleId)
+        {
+            return roleId == AdminRoleId || roleId == StaffRoleId;
         }
 
         private static void NormalizeMedicalRecord(MedicalRecord medicalRecord)

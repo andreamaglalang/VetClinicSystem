@@ -5,42 +5,50 @@ namespace VetClinicSystem.Models;
 
 public class GuestAppointmentBooking : IValidatableObject
 {
-    [Required]
-    [StringLength(100)]
+    [Required(ErrorMessage = "First name is required.")]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "First name must be 2-50 characters long.")]
+    [RegularExpression(InputValidationHelper.PersonNamePattern, ErrorMessage = InputValidationHelper.PersonNameMessage)]
     [Display(Name = "First Name")]
     public string FirstName { get; set; } = string.Empty;
 
-    [Required]
-    [StringLength(100)]
+    [Required(ErrorMessage = "Last name is required.")]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "Last name must be 2-50 characters long.")]
+    [RegularExpression(InputValidationHelper.PersonNamePattern, ErrorMessage = InputValidationHelper.PersonNameMessage)]
     [Display(Name = "Last Name")]
     public string LastName { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(20)]
+    [StringLength(11, MinimumLength = 11, ErrorMessage = "Contact number must be 11 digits and start with 09.")]
+    [RegularExpression(@"^09\d{9}$", ErrorMessage = "Contact number must be 11 digits and start with 09.")]
     [PhilippineMobileNumber]
     [Display(Name = "Contact Number")]
     public string ContactNumber { get; set; } = string.Empty;
 
-    [Required]
-    [EmailAddress]
+    [Required(ErrorMessage = "Email address is required.")]
+    [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
     [StringLength(100)]
+    [RegularExpression(InputValidationHelper.GmailPattern, ErrorMessage = InputValidationHelper.GmailMessage)]
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Address is required.")]
-    [StringLength(255, ErrorMessage = "Address must not exceed 255 characters.")]
+    [StringLength(150, MinimumLength = 5, ErrorMessage = "Address must be 5-150 characters long.")]
+    [RegularExpression(InputValidationHelper.AddressPattern, ErrorMessage = InputValidationHelper.AddressMessage)]
     public string? Address { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Pet name is required.")]
     [StringLength(100)]
+    [RegularExpression(InputValidationHelper.PetNamePattern, ErrorMessage = InputValidationHelper.PetNameMessage)]
     [Display(Name = "Pet Name")]
     public string PetName { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Species is required.")]
     [StringLength(50)]
+    [RegularExpression(InputValidationHelper.SpeciesPattern, ErrorMessage = InputValidationHelper.SpeciesMessage)]
     public string Species { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Breed is required.")]
     [StringLength(100)]
+    [RegularExpression(InputValidationHelper.BreedPattern, ErrorMessage = InputValidationHelper.BreedMessage)]
     public string? Breed { get; set; }
 
     [RegularExpression(@"^(Male|Female)$", ErrorMessage = "Sex must be Male or Female.")]

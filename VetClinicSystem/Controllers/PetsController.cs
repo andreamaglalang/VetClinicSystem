@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using VetClinicSystem.Helpers;
 using VetClinicSystem.Models;
 using VetClinicSystem.Services.Pets;
@@ -39,7 +38,6 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Login", "Account");
 
             LoadSexOptions();
-            LoadSpeciesAndBreedOptions();
             return View();
         }
 
@@ -55,12 +53,12 @@ namespace VetClinicSystem.Controllers
             ModelState.Remove("Owner");
             ModelState.Remove("OwnerId");
             NormalizePetFields(pet);
+            ValidatePetInput(pet);
 
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Please complete all required pet fields.";
                 LoadSexOptions();
-                LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
                 return View(pet);
             }
 
@@ -74,7 +72,6 @@ namespace VetClinicSystem.Controllers
             {
                 TempData["Error"] = ex.Message;
                 LoadSexOptions();
-                LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
                 return View(pet);
             }
         }
@@ -99,7 +96,6 @@ namespace VetClinicSystem.Controllers
             }
 
             LoadSexOptions();
-            LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
             return View(pet);
         }
 
@@ -116,6 +112,7 @@ namespace VetClinicSystem.Controllers
             ModelState.Remove("Owner");
             ModelState.Remove("OwnerId");
             NormalizePetFields(pet);
+            ValidatePetInput(pet);
 
             if (roleId == 3)
             {
@@ -128,7 +125,6 @@ namespace VetClinicSystem.Controllers
             {
                 TempData["Error"] = "Please complete all required pet fields.";
                 LoadSexOptions();
-                LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
                 return View(pet);
             }
 
@@ -142,7 +138,6 @@ namespace VetClinicSystem.Controllers
             {
                 TempData["Error"] = ex.Message;
                 LoadSexOptions();
-                LoadSpeciesAndBreedOptions(pet.Species, pet.Breed);
                 return View(pet);
             }
         }
@@ -226,25 +221,43 @@ namespace VetClinicSystem.Controllers
             ViewBag.SexOptions = SexOptions;
         }
 
-        private void LoadSpeciesAndBreedOptions(string? selectedSpecies = null, string? selectedBreed = null)
-        {
-            var speciesOptions = PetValidationHelper.GetAllowedSpecies();
-            ViewBag.SpeciesOptions = new SelectList(speciesOptions, selectedSpecies);
-            ViewBag.BreedOptions = new SelectList(PetValidationHelper.GetAllowedBreeds(selectedSpecies), selectedBreed);
-            ViewBag.BreedMap = speciesOptions.ToDictionary(
-                species => species,
-                species => PetValidationHelper.GetAllowedBreeds(species).ToArray(),
-                StringComparer.OrdinalIgnoreCase);
-        }
-
         private static void NormalizePetFields(Pet pet)
         {
-            pet.PetName = pet.PetName?.Trim() ?? string.Empty;
-            pet.Species = pet.Species?.Trim() ?? string.Empty;
-            pet.Breed = string.IsNullOrWhiteSpace(pet.Breed) ? null : pet.Breed.Trim();
-            pet.Color = string.IsNullOrWhiteSpace(pet.Color) ? null : pet.Color.Trim();
-            pet.Notes = string.IsNullOrWhiteSpace(pet.Notes) ? null : pet.Notes.Trim();
-            pet.Sex = string.IsNullOrWhiteSpace(pet.Sex) ? null : pet.Sex.Trim();
+            pet.PetName = InputValidationHelper.NormalizeTrimmed(pet.PetName);
+            pet.Species = InputValidationHelper.NormalizeTrimmed(pet.Species);
+            pet.Breed = string.IsNullOrWhiteSpace(pet.Breed) ? null : InputValidationHelper.NormalizeTrimmed(pet.Breed);
+            pet.Color = string.IsNullOrWhiteSpace(pet.Color) ? null : InputValidationHelper.NormalizeTrimmed(pet.Color);
+            pet.Notes = string.IsNullOrWhiteSpace(pet.Notes) ? null : InputValidationHelper.NormalizeTrimmed(pet.Notes);
+            pet.Sex = string.IsNullOrWhiteSpace(pet.Sex) ? null : InputValidationHelper.NormalizeTrimmed(pet.Sex);
+        }
+
+        private void ValidatePetInput(Pet pet)
+        {
+            AddModelErrorIfMissing(nameof(Pet.PetName), InputValidationHelper.IsValidPetName(pet.PetName), InputValidationHelper.PetNameMessage);
+            AddModelErrorIfMissing(nameof(Pet.Species), InputValidationHelper.IsValidSpeciesName(pet.Species), InputValidationHelper.SpeciesMessage);
+            AddModelErrorIfMissing(nameof(Pet.Breed), InputValidationHelper.IsValidBreedName(pet.Breed), InputValidationHelper.BreedMessage);
+            AddModelErrorIfMissing(nameof(Pet.Color), InputValidationHelper.IsValidColorName(pet.Color), InputValidationHelper.ColorMessage);
+
+            if (!string.IsNullOrWhiteSpace(pet.Species) && !PetValidationHelper.IsValidSpecies(pet.Species))
+            {
+                AddModelErrorIfMissing(nameof(Pet.Species), false, "Please enter a recognized species.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(pet.Breed) && !PetValidationHelper.IsValidBreed(pet.Species, pet.Breed))
+            {
+                AddModelErrorIfMissing(nameof(Pet.Breed), false, "Please enter a recognized breed for the selected species.");
+            }
+        }
+
+        private void AddModelErrorIfMissing(string key, bool isValid, string message)
+        {
+            if (isValid)
+                return;
+
+            if (!ModelState.TryGetValue(key, out var entry) || entry.Errors.Count == 0)
+            {
+                ModelState.AddModelError(key, message);
+            }
         }
     }
 }

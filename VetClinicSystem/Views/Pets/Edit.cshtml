@@ -8,26 +8,26 @@
 
 <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-<form method="post">
+<form asp-action="Edit" asp-controller="Pets" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="OwnerId" />
 
     <div class="mb-3">
         <label asp-for="PetName"></label>
-        <input asp-for="PetName" class="form-control" maxlength="100" />
+        <input asp-for="PetName" class="form-control" maxlength="100" pattern="[A-Za-z]+(?:\s[A-Za-z]+)*" title="Pet name must contain letters and spaces only." data-letters-only="true" />
         <span asp-validation-for="PetName" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Species"></label>
-        <input asp-for="Species" class="form-control" maxlength="50" pattern="[A-Za-z][A-Za-z\s'\-]*" title="Species must contain letters only and may include spaces, apostrophes, or hyphens." />
+        <input asp-for="Species" class="form-control" maxlength="50" pattern="[A-Za-z]+(?:\s[A-Za-z]+)*" title="Species must contain letters and spaces only." data-letters-only="true" />
         <span asp-validation-for="Species" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Breed"></label>
-        <input asp-for="Breed" class="form-control" maxlength="100" pattern="[A-Za-z][A-Za-z\s'\-]*" title="Breed must contain letters only and may include spaces, apostrophes, or hyphens." />
+        <input asp-for="Breed" class="form-control" maxlength="100" pattern="[A-Za-z]+(?:\s[A-Za-z]+)*" title="Breed must contain letters and spaces only." data-letters-only="true" />
         <span asp-validation-for="Breed" class="text-danger"></span>
     </div>
 
@@ -57,7 +57,7 @@
 
     <div class="mb-3">
         <label asp-for="Color"></label>
-        <input asp-for="Color" class="form-control" maxlength="50" />
+        <input asp-for="Color" class="form-control" maxlength="50" pattern="[A-Za-z]+(?:\s[A-Za-z]+)*" title="Color must contain letters and spaces only." data-letters-only="true" />
         <span asp-validation-for="Color" class="text-danger"></span>
     </div>
 
@@ -79,4 +79,11 @@
 
 @section Scripts {
         <partial name="_ValidationScriptsPartial" />
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                if (window.setupInputSanitizers) {
+                    window.setupInputSanitizers(document);
+                }
+            });
+        </script>
 }

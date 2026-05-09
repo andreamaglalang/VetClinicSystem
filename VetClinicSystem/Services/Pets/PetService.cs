@@ -62,6 +62,9 @@ namespace VetClinicSystem.Services.Pets
             if (pet.DateCreated == default)
                 pet.DateCreated = DateTime.Now;
 
+            pet.IsDeleted = false;
+            pet.DeletedAt = null;
+
             _petRepository.Add(pet);
             _petRepository.Save();
         }

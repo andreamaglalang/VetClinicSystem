@@ -15,5 +15,9 @@ namespace VetClinicSystem.ViewModels
         public int InactiveCount { get; set; }
 
         public int ArchivedCount { get; set; }
+
+        public int ClientCount { get; set; }
+
+        public int StaffCount { get; set; }
     }
 }

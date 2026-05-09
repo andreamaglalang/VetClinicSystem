@@ -332,6 +332,7 @@ namespace VetClinicSystem.Controllers
             var existingAppointment = _appointmentService.GetById(appointment.Id);
             if (existingAppointment == null)
                 return NotFound();
+            var previousAppointmentSnapshot = CreateAppointmentSnapshot(existingAppointment);
 
             if (roleId == 3)
             {
@@ -419,7 +420,7 @@ namespace VetClinicSystem.Controllers
                 }
                 else
                 {
-                    var notificationMessage = BuildClientUpdateNotificationMessage(existingAppointment, updatedAppointment);
+                    var notificationMessage = BuildClientUpdateNotificationMessage(previousAppointmentSnapshot, updatedAppointment);
                     if (updatedAppointment != null && notificationMessage != null)
                         _notificationService.CreateClientNotification(updatedAppointment, notificationMessage);
                 }
@@ -960,8 +961,20 @@ namespace VetClinicSystem.Controllers
             if (!previousAppointment.IsEmergency && updatedAppointment.IsEmergency)
                 return BuildClientStatusNotificationMessage(updatedAppointment, "emergency");
 
-            if (previousAppointment.AppointmentDate != updatedAppointment.AppointmentDate ||
-                previousAppointment.AppointmentTime != updatedAppointment.AppointmentTime)
+            var finalScheduleChanged =
+                previousAppointment.AppointmentDate != updatedAppointment.AppointmentDate ||
+                previousAppointment.AppointmentTime != updatedAppointment.AppointmentTime;
+
+            var previousPreferredDate = previousAppointment.PreferredAppointmentDate ?? previousAppointment.AppointmentDate;
+            var previousPreferredTime = previousAppointment.PreferredAppointmentTime ?? previousAppointment.AppointmentTime;
+            var updatedPreferredDate = updatedAppointment.PreferredAppointmentDate ?? updatedAppointment.AppointmentDate;
+            var updatedPreferredTime = updatedAppointment.PreferredAppointmentTime ?? updatedAppointment.AppointmentTime;
+
+            var preferredScheduleChanged =
+                previousPreferredDate != updatedPreferredDate ||
+                previousPreferredTime != updatedPreferredTime;
+
+            if (finalScheduleChanged || preferredScheduleChanged)
             {
                 return BuildClientRescheduleNotificationMessage(previousAppointment, updatedAppointment);
             }
@@ -999,8 +1012,7 @@ namespace VetClinicSystem.Controllers
 
         private string BuildClientRescheduleNotificationMessage(Appointment previousAppointment, Appointment updatedAppointment)
         {
-            var petName = string.IsNullOrWhiteSpace(updatedAppointment.Pet?.PetName) ? "your pet" : updatedAppointment.Pet.PetName.Trim();
-            return $"Your surgery appointment for {petName} has been rescheduled from {FormatSchedule(previousAppointment)} to {FormatSchedule(updatedAppointment)}.";
+            return $"Your appointment schedule has been updated by the clinic. The clinic has adjusted your appointment date/time from {FormatSchedule(previousAppointment)} to {FormatSchedule(updatedAppointment)}. If you are not available at this schedule, please contact the clinic using the contact information provided on the Clinic Information page.";
         }
 
         private string BuildClientStatusNotificationMessage(Appointment appointment, string state)
@@ -1045,6 +1057,37 @@ namespace VetClinicSystem.Controllers
         {
             var scheduleDateTime = appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime);
             return scheduleDateTime.ToString("MMMM d, yyyy h:mm tt");
+        }
+
+        private Appointment CreateAppointmentSnapshot(Appointment appointment)
+        {
+            return new Appointment
+            {
+                Id = appointment.Id,
+                PetId = appointment.PetId,
+                ServiceId = appointment.ServiceId,
+                AppointmentDate = appointment.AppointmentDate,
+                AppointmentTime = appointment.AppointmentTime,
+                PreferredAppointmentDate = appointment.PreferredAppointmentDate,
+                PreferredAppointmentTime = appointment.PreferredAppointmentTime,
+                StatusId = appointment.StatusId,
+                SurgeryCategory = appointment.SurgeryCategory,
+                SurgeryLoadPoints = appointment.SurgeryLoadPoints,
+                IsEmergency = appointment.IsEmergency,
+                IsScheduleFinalized = appointment.IsScheduleFinalized,
+                ReasonForVisit = appointment.ReasonForVisit,
+                ClientNotes = appointment.ClientNotes,
+                StaffNotes = appointment.StaffNotes,
+                IsWalkIn = appointment.IsWalkIn,
+                IsGuestBooking = appointment.IsGuestBooking,
+                CreatedByUserId = appointment.CreatedByUserId,
+                DateCreated = appointment.DateCreated,
+                LastUpdated = appointment.LastUpdated,
+                Pet = appointment.Pet,
+                Service = appointment.Service,
+                Status = appointment.Status,
+                CreatedByUser = appointment.CreatedByUser
+            };
         }
 
         private void SetIntPropertyValue(object obj, string propertyName, int value)

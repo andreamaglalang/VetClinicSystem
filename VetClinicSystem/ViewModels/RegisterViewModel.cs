@@ -6,7 +6,7 @@ namespace VetClinicSystem.ViewModels
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "Username is required.")]
-        [StringLength(30, MinimumLength = 4, ErrorMessage = "Username must be 4-30 characters and may only contain letters, numbers, dots, or underscores.")]
+        [StringLength(20, MinimumLength = 4, ErrorMessage = "Username must be 4-20 characters and may only contain letters, numbers, or underscores.")]
         [RegularExpression(InputValidationHelper.UsernamePattern, ErrorMessage = InputValidationHelper.UsernameMessage)]
         public string Username { get; set; } = string.Empty;
 

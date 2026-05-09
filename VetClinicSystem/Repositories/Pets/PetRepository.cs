@@ -14,6 +14,7 @@ namespace VetClinicSystem.Repositories.Pets
         public List<Pet> GetAll()
         {
             return _context.Pets
+                .Where(x => !x.IsDeleted)
                 .OrderBy(x => x.PetName)
                 .ThenBy(x => x.Id)
                 .ToList();
@@ -22,7 +23,7 @@ namespace VetClinicSystem.Repositories.Pets
         public List<Pet> GetByOwnerId(int ownerId)
         {
             return _context.Pets
-                .Where(x => x.OwnerId == ownerId)
+                .Where(x => x.OwnerId == ownerId && !x.IsDeleted)
                 .OrderBy(x => x.PetName)
                 .ThenBy(x => x.Id)
                 .ToList();
@@ -31,6 +32,7 @@ namespace VetClinicSystem.Repositories.Pets
         public List<Pet> GetPaged(int page, int pageSize)
         {
             return _context.Pets
+                .Where(x => !x.IsDeleted)
                 .OrderBy(x => x.PetName)
                 .ThenBy(x => x.Id)
                 .Skip((page - 1) * pageSize)
@@ -41,7 +43,7 @@ namespace VetClinicSystem.Repositories.Pets
         public List<Pet> GetPagedByOwnerId(int ownerId, int page, int pageSize)
         {
             return _context.Pets
-                .Where(x => x.OwnerId == ownerId)
+                .Where(x => x.OwnerId == ownerId && !x.IsDeleted)
                 .OrderBy(x => x.PetName)
                 .ThenBy(x => x.Id)
                 .Skip((page - 1) * pageSize)
@@ -51,17 +53,17 @@ namespace VetClinicSystem.Repositories.Pets
 
         public int GetTotalCount()
         {
-            return _context.Pets.Count();
+            return _context.Pets.Count(x => !x.IsDeleted);
         }
 
         public int GetTotalCountByOwnerId(int ownerId)
         {
-            return _context.Pets.Count(x => x.OwnerId == ownerId);
+            return _context.Pets.Count(x => x.OwnerId == ownerId && !x.IsDeleted);
         }
 
         public List<Pet> Search(string? search)
         {
-            var query = _context.Pets.AsQueryable();
+            var query = _context.Pets.Where(x => !x.IsDeleted).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -81,7 +83,7 @@ namespace VetClinicSystem.Repositories.Pets
 
         public List<Pet> SearchByOwnerId(int ownerId, string? search)
         {
-            var query = _context.Pets.Where(x => x.OwnerId == ownerId);
+            var query = _context.Pets.Where(x => x.OwnerId == ownerId && !x.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -101,7 +103,7 @@ namespace VetClinicSystem.Repositories.Pets
 
         public Pet? GetById(int id)
         {
-            return _context.Pets.FirstOrDefault(x => x.Id == id);
+            return _context.Pets.FirstOrDefault(x => x.Id == id && !x.IsDeleted);
         }
 
         public void Add(Pet pet)
@@ -116,49 +118,9 @@ namespace VetClinicSystem.Repositories.Pets
 
         public void Delete(Pet pet)
         {
-            var appointments = _context.Appointments
-                .Where(x => x.PetId == pet.Id)
-                .ToList();
-            var appointmentIds = appointments.Select(x => x.Id).ToList();
-
-            if (appointmentIds.Any())
-            {
-                var staffNotifications = _context.StaffNotifications
-                    .Where(x => x.AppointmentId.HasValue && appointmentIds.Contains(x.AppointmentId.Value))
-                    .ToList();
-
-                if (staffNotifications.Any())
-                {
-                    foreach (var staffNotification in staffNotifications)
-                        staffNotification.AppointmentId = null;
-                }
-
-                var reminderLogs = _context.ReminderLogs
-                    .Where(x => appointmentIds.Contains(x.AppointmentId))
-                    .ToList();
-
-                if (reminderLogs.Any())
-                    _context.ReminderLogs.RemoveRange(reminderLogs);
-            }
-
-            var medicalRecords = _context.MedicalRecords
-                .Where(x => x.PetId == pet.Id)
-                .ToList();
-
-            if (medicalRecords.Any())
-                _context.MedicalRecords.RemoveRange(medicalRecords);
-
-            var vaccinationRecords = _context.VaccinationRecords
-                .Where(x => x.PetId == pet.Id)
-                .ToList();
-
-            if (vaccinationRecords.Any())
-                _context.VaccinationRecords.RemoveRange(vaccinationRecords);
-
-            if (appointments.Any())
-                _context.Appointments.RemoveRange(appointments);
-
-            _context.Pets.Remove(pet);
+            pet.IsDeleted = true;
+            pet.DeletedAt = DateTime.Now;
+            _context.Pets.Update(pet);
         }
 
         public void Save()

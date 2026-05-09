@@ -15,7 +15,7 @@
 
 <h2>@(isClient ? "Request Surgery Appointment" : "Create Surgery Appointment")</h2>
 
-<form method="post" class="appointment-request-form">
+<form asp-action="Create" asp-controller="Appointments" method="post" class="appointment-request-form">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 

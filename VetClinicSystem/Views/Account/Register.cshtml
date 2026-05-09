@@ -18,7 +18,7 @@
                 <div class="auth-grid">
                     <div class="mb-3">
                         <label asp-for="Username" class="form-label"></label>
-                        <input asp-for="Username" class="form-control auth-input" maxlength="30" autocomplete="username" />
+                        <input asp-for="Username" class="form-control auth-input" maxlength="20" autocomplete="username" data-username-only="true" />
                         <span asp-validation-for="Username" class="text-danger"></span>
                     </div>
 
@@ -42,26 +42,26 @@
 
                     <div class="mb-3">
                         <label asp-for="FirstName" class="form-label"></label>
-                        <input asp-for="FirstName" class="form-control auth-input" maxlength="50" autocomplete="given-name" />
+                        <input asp-for="FirstName" class="form-control auth-input" maxlength="50" autocomplete="given-name" data-person-name="true" />
                         <span asp-validation-for="FirstName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="LastName" class="form-label"></label>
-                        <input asp-for="LastName" class="form-control auth-input" maxlength="50" autocomplete="family-name" />
+                        <input asp-for="LastName" class="form-control auth-input" maxlength="50" autocomplete="family-name" data-person-name="true" />
                         <span asp-validation-for="LastName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="ContactNumber" class="form-label"></label>
-                        <input asp-for="ContactNumber" class="form-control auth-input" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="09\d{9}" title="Enter an 11-digit mobile number starting with 09." autocomplete="tel-national" />
+                        <input asp-for="ContactNumber" class="form-control auth-input" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="09\d{9}" title="Enter an 11-digit mobile number starting with 09." autocomplete="tel-national" data-phone-only="true" />
                         <span asp-validation-for="ContactNumber" class="text-danger"></span>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Address" class="form-label"></label>
-                    <input asp-for="Address" class="form-control auth-input" maxlength="150" autocomplete="street-address" />
+                    <input asp-for="Address" class="form-control auth-input" maxlength="150" autocomplete="street-address" data-address-safe="true" />
                     <span asp-validation-for="Address" class="text-danger"></span>
                 </div>
 

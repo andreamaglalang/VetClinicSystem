@@ -1287,6 +1287,14 @@ p {
     color: #5f7279;
 }
 
+.notifications-toolbar h2 {
+    margin: 0;
+    color: var(--teal);
+    font-size: clamp(30px, 3vw, 42px);
+    font-weight: 900;
+    line-height: 1.1;
+}
+
 .table-notifications tbody tr.notification-unread td {
     background-color: #ffffff;
 }
