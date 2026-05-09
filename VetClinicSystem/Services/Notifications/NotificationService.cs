@@ -22,6 +22,11 @@ namespace VetClinicSystem.Services.Notifications
             return _notificationRepository.GetAllForStaff();
         }
 
+        public List<StaffNotification> GetArchivedForAdmin()
+        {
+            return _notificationRepository.GetArchivedForAdmin();
+        }
+
         public List<StaffNotification> GetUnreadForUser(int userId)
         {
             return _notificationRepository.GetUnreadForUser(userId);
@@ -50,6 +55,8 @@ namespace VetClinicSystem.Services.Notifications
                 RecipientRole = "Client",
                 Message = TrimMessage(message),
                 IsRead = false,
+                IsArchived = false,
+                ArchivedAt = null,
                 DateCreated = DateTime.Now
             });
         }
@@ -63,6 +70,8 @@ namespace VetClinicSystem.Services.Notifications
                 RecipientRole = "Staff",
                 Message = TrimMessage(message),
                 IsRead = false,
+                IsArchived = false,
+                ArchivedAt = null,
                 DateCreated = DateTime.Now
             });
         }
@@ -92,6 +101,85 @@ namespace VetClinicSystem.Services.Notifications
                 return false;
 
             notification.IsRead = true;
+            _notificationRepository.Update(notification);
+            _notificationRepository.Save();
+            return true;
+        }
+
+        public bool ArchiveForStaff(int id)
+        {
+            var notification = _notificationRepository.GetById(id);
+            if (notification == null)
+                return false;
+
+            if (!string.IsNullOrEmpty(notification.RecipientRole) && notification.RecipientRole != "Staff")
+                return false;
+
+            notification.IsArchived = true;
+            notification.ArchivedAt = DateTime.Now;
+            _notificationRepository.Update(notification);
+            _notificationRepository.Save();
+            return true;
+        }
+
+        public bool ArchiveForUser(int id, int userId)
+        {
+            var notification = _notificationRepository.GetById(id);
+            if (notification == null)
+                return false;
+
+            if (notification.RecipientRole != "Client" || notification.UserId != userId)
+                return false;
+
+            notification.IsArchived = true;
+            notification.ArchivedAt = DateTime.Now;
+            _notificationRepository.Update(notification);
+            _notificationRepository.Save();
+            return true;
+        }
+
+        public int ArchiveReadForStaff()
+        {
+            var notifications = _notificationRepository.GetReadUnarchivedForStaff();
+
+            foreach (var notification in notifications)
+            {
+                notification.IsArchived = true;
+                notification.ArchivedAt = DateTime.Now;
+                _notificationRepository.Update(notification);
+            }
+
+            if (notifications.Count > 0)
+                _notificationRepository.Save();
+
+            return notifications.Count;
+        }
+
+        public int ArchiveReadForUser(int userId)
+        {
+            var notifications = _notificationRepository.GetReadUnarchivedForUser(userId);
+
+            foreach (var notification in notifications)
+            {
+                notification.IsArchived = true;
+                notification.ArchivedAt = DateTime.Now;
+                _notificationRepository.Update(notification);
+            }
+
+            if (notifications.Count > 0)
+                _notificationRepository.Save();
+
+            return notifications.Count;
+        }
+
+        public bool RestoreArchived(int id)
+        {
+            var notification = _notificationRepository.GetArchivedById(id);
+            if (notification == null)
+                return false;
+
+            notification.IsArchived = false;
+            notification.ArchivedAt = null;
             _notificationRepository.Update(notification);
             _notificationRepository.Save();
             return true;

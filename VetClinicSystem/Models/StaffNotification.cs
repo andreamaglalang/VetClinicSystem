@@ -23,6 +23,11 @@ public partial class StaffNotification
 
     public bool IsRead { get; set; }
 
+    public bool IsArchived { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? ArchivedAt { get; set; }
+
     [Column(TypeName = "datetime")]
     public DateTime DateCreated { get; set; }
 

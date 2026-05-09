@@ -6,6 +6,7 @@ namespace VetClinicSystem.Services.Notifications
     {
         List<StaffNotification> GetUnreadForStaff();
         List<StaffNotification> GetAllForStaff();
+        List<StaffNotification> GetArchivedForAdmin();
         List<StaffNotification> GetUnreadForUser(int userId);
         List<StaffNotification> GetAllForUser(int userId);
         void Add(StaffNotification notification);
@@ -13,5 +14,10 @@ namespace VetClinicSystem.Services.Notifications
         void CreateStaffNotification(Appointment appointment, string message);
         bool MarkAsReadForStaff(int id);
         bool MarkAsReadForUser(int id, int userId);
+        bool ArchiveForStaff(int id);
+        bool ArchiveForUser(int id, int userId);
+        int ArchiveReadForStaff();
+        int ArchiveReadForUser(int userId);
+        bool RestoreArchived(int id);
     }
 }

@@ -1,0 +1,103 @@
+@model List<VetClinicSystem.Models.StaffNotification>
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Archived Notifications";
+}
+
+@functions {
+    private static string GetAudienceLabel(VetClinicSystem.Models.StaffNotification notification)
+    {
+        if (string.Equals(notification.RecipientRole, "Client", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!string.IsNullOrWhiteSpace(notification.User?.Username))
+                return $"Client: {notification.User.Username}";
+
+            return "Client";
+        }
+
+        return "Staff/Admin";
+    }
+
+    private static string GetNotificationMessage(VetClinicSystem.Models.StaffNotification notification)
+    {
+        if (notification.Appointment == null)
+            return notification.Message;
+
+        if (!string.Equals(notification.Message, "New appointment has been created.", StringComparison.OrdinalIgnoreCase))
+            return notification.Message;
+
+        var appointment = notification.Appointment;
+        var owner = appointment.Pet?.Owner;
+        var ownerName = owner == null
+            ? "A pet owner"
+            : $"{owner.FirstName} {owner.LastName}".Trim();
+
+        if (string.IsNullOrWhiteSpace(ownerName))
+            ownerName = "A pet owner";
+
+        var petName = string.IsNullOrWhiteSpace(appointment.Pet?.PetName)
+            ? "the pet"
+            : appointment.Pet.PetName.Trim();
+        var serviceName = string.IsNullOrWhiteSpace(appointment.Service?.ServiceName)
+            ? "service"
+            : appointment.Service.ServiceName.Trim();
+        var appointmentDate = appointment.AppointmentDate.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture);
+        var statusName = string.IsNullOrWhiteSpace(appointment.Status?.StatusName)
+            ? "Pending"
+            : appointment.Status.StatusName.Trim();
+
+        return $"{ownerName} requested a {serviceName} appointment for {petName} on {appointmentDate}. Status: {statusName}.";
+    }
+}
+
+<div class="notifications-toolbar">
+    <div>
+        <h2>Archived Notifications</h2>
+        <p>Admin view of archived notification history. Restoring a notification returns it to the standard list.</p>
+    </div>
+    <div class="notifications-toolbar__actions">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Notifications</a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No archived notifications found.</div>
+}
+else
+{
+    <div class="table-panel">
+        <table class="table table-bordered table-striped table-notifications table-notifications--archived">
+            <thead>
+                <tr>
+                    <th>Message</th>
+                    <th>Audience</th>
+                    <th>Created</th>
+                    <th>Archived</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="notification-row notification-read notification-row--archived">
+                    <td>@GetNotificationMessage(item)</td>
+                    <td>@GetAudienceLabel(item)</td>
+                    <td>@item.DateCreated.ToString("MMM d, yyyy h:mm tt")</td>
+                    <td>@(item.ArchivedAt?.ToString("MMM d, yyyy h:mm tt") ?? "Archived")</td>
+                    <td>
+                        <form asp-action="Restore" method="post" class="notification-action-form" data-confirm-message="Restore this archived notification back to the active notification list?">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="table-action-icon table-action-icon--approve" title="Restore notification" aria-label="Restore notification">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

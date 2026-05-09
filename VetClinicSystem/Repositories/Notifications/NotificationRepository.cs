@@ -16,6 +16,7 @@ namespace VetClinicSystem.Repositories.Notifications
         {
             return CreateNotificationQuery()
                 .Where(x =>
+                    !x.IsArchived &&
                     !x.IsRead &&
                     (string.IsNullOrEmpty(x.RecipientRole) || x.RecipientRole == "Staff"))
                 .OrderByDescending(x => x.DateCreated)
@@ -25,8 +26,19 @@ namespace VetClinicSystem.Repositories.Notifications
         public List<StaffNotification> GetAllForStaff()
         {
             return CreateNotificationQuery()
-                .Where(x => string.IsNullOrEmpty(x.RecipientRole) || x.RecipientRole == "Staff")
+                .Where(x =>
+                    !x.IsArchived &&
+                    (string.IsNullOrEmpty(x.RecipientRole) || x.RecipientRole == "Staff"))
                 .OrderByDescending(x => x.DateCreated)
+                .ToList();
+        }
+
+        public List<StaffNotification> GetArchivedForAdmin()
+        {
+            return CreateNotificationQuery(includeArchived: true)
+                .Where(x => x.IsArchived)
+                .OrderByDescending(x => x.ArchivedAt)
+                .ThenByDescending(x => x.DateCreated)
                 .ToList();
         }
 
@@ -34,6 +46,7 @@ namespace VetClinicSystem.Repositories.Notifications
         {
             return CreateNotificationQuery()
                 .Where(x =>
+                    !x.IsArchived &&
                     !x.IsRead &&
                     x.UserId == userId &&
                     x.RecipientRole == "Client")
@@ -45,6 +58,7 @@ namespace VetClinicSystem.Repositories.Notifications
         {
             return CreateNotificationQuery()
                 .Where(x =>
+                    !x.IsArchived &&
                     x.UserId == userId &&
                     x.RecipientRole == "Client")
                 .OrderByDescending(x => x.DateCreated)
@@ -54,12 +68,41 @@ namespace VetClinicSystem.Repositories.Notifications
         public StaffNotification? GetById(int id)
         {
             return CreateNotificationQuery()
+                .Where(x => !x.IsArchived)
                 .FirstOrDefault(x => x.Id == id);
         }
 
-        private IQueryable<StaffNotification> CreateNotificationQuery()
+        public StaffNotification? GetArchivedById(int id)
         {
-            return _context.StaffNotifications
+            return CreateNotificationQuery(includeArchived: true)
+                .Where(x => x.IsArchived)
+                .FirstOrDefault(x => x.Id == id);
+        }
+
+        public List<StaffNotification> GetReadUnarchivedForStaff()
+        {
+            return CreateNotificationQuery()
+                .Where(x =>
+                    !x.IsArchived &&
+                    x.IsRead &&
+                    (string.IsNullOrEmpty(x.RecipientRole) || x.RecipientRole == "Staff"))
+                .ToList();
+        }
+
+        public List<StaffNotification> GetReadUnarchivedForUser(int userId)
+        {
+            return CreateNotificationQuery()
+                .Where(x =>
+                    !x.IsArchived &&
+                    x.IsRead &&
+                    x.UserId == userId &&
+                    x.RecipientRole == "Client")
+                .ToList();
+        }
+
+        private IQueryable<StaffNotification> CreateNotificationQuery(bool includeArchived = false)
+        {
+            var query = _context.StaffNotifications
                 .Include(x => x.User)
                 .Include(x => x.Appointment!)
                     .ThenInclude(x => x.Pet)
@@ -69,6 +112,11 @@ namespace VetClinicSystem.Repositories.Notifications
                 .Include(x => x.Appointment!)
                     .ThenInclude(x => x.Status)
                 .AsQueryable();
+
+            if (!includeArchived)
+                query = query.Where(x => !x.IsArchived);
+
+            return query;
         }
 
         public void Add(StaffNotification notification)

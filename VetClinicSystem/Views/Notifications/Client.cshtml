@@ -4,7 +4,18 @@
     ViewData["Title"] = "My Notifications";
 }
 
-<h2>Notifications</h2>
+<div class="notifications-toolbar">
+    <div>
+        <h2>Notifications</h2>
+        <p>Newest updates first. Archived notifications stay hidden from this list but are still retained for clinic history.</p>
+    </div>
+    <div class="notifications-toolbar__actions">
+        <form asp-action="ArchiveReadClient" method="post" data-confirm-message="Archive all read notifications? Archived notifications can still be retained for clinic history.">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Archive Read Notifications</button>
+        </form>
+    </div>
+</div>
 
 @if (!Model.Any())
 {
@@ -45,6 +56,14 @@ else
                                 <i class="fa-solid fa-check"></i>
                             </a>
                         }
+
+                        <form asp-action="ArchiveClient" method="post" class="notification-action-form" data-confirm-message="Archive this notification? Archived notifications can still be retained for clinic history.">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="table-action-icon table-action-icon--danger" title="Archive notification" aria-label="Archive notification">
+                                <i class="fa-solid fa-box-archive"></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>
             }
@@ -90,7 +109,7 @@ else
                         }
 
                         statusCell.innerHTML = readBadgeMarkup;
-                        actionCell.innerHTML = "";
+                        link.remove();
                         row.classList.remove("notification-unread", "notification-row--updating");
                         row.classList.add("notification-read");
                     } catch (error) {

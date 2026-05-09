@@ -28,6 +28,21 @@ namespace VetClinicSystem.Controllers
             return View(notifications);
         }
 
+        public IActionResult Archived()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (roleId != 1)
+                return Unauthorized();
+
+            var notifications = _notificationService.GetArchivedForAdmin();
+            return View(notifications);
+        }
+
         public IActionResult Client()
         {
             var userId = HttpContext.Session.GetInt32("UserId");
@@ -83,6 +98,106 @@ namespace VetClinicSystem.Controllers
 
             TempData["Success"] = "Notification marked as read.";
             return RedirectToAction("Client");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Archive(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (roleId != 1 && roleId != 2)
+                return Unauthorized();
+
+            if (!_notificationService.ArchiveForStaff(id))
+                return NotFound();
+
+            TempData["Success"] = "Notification archived.";
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ArchiveClient(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (roleId != 3)
+                return Unauthorized();
+
+            if (!_notificationService.ArchiveForUser(id, userId.Value))
+                return NotFound();
+
+            TempData["Success"] = "Notification archived.";
+            return RedirectToAction("Client");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ArchiveRead()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (roleId != 1 && roleId != 2)
+                return Unauthorized();
+
+            var archivedCount = _notificationService.ArchiveReadForStaff();
+            TempData["Success"] = archivedCount > 0
+                ? $"{archivedCount} read notification(s) archived."
+                : "There are no read notifications to archive.";
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ArchiveReadClient()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (roleId != 3)
+                return Unauthorized();
+
+            var archivedCount = _notificationService.ArchiveReadForUser(userId.Value);
+            TempData["Success"] = archivedCount > 0
+                ? $"{archivedCount} read notification(s) archived."
+                : "There are no read notifications to archive.";
+            return RedirectToAction("Client");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Restore(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            if (roleId != 1)
+                return Unauthorized();
+
+            if (!_notificationService.RestoreArchived(id))
+                return NotFound();
+
+            TempData["Success"] = "Archived notification restored.";
+            return RedirectToAction("Archived");
         }
 
         private bool IsAjaxRequest()

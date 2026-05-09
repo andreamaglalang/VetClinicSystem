@@ -1282,6 +1282,26 @@ p {
     transition: background-color 0.28s ease, color 0.28s ease, opacity 0.28s ease;
 }
 
+.notifications-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.notifications-toolbar p {
+    margin: 6px 0 0;
+    color: #5f7279;
+}
+
+.notifications-toolbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
 .table-notifications tbody tr.notification-unread td {
     background-color: #ffffff;
 }
@@ -1323,6 +1343,11 @@ p {
 
 .table-notifications tbody tr.notification-row--emergency.notification-read td {
     background-color: #f8f1eb;
+}
+
+.table-notifications tbody tr.notification-row--archived td {
+    background-color: #f4f6f7;
+    color: #66727a;
 }
 
 .notification-priority-badge {
@@ -1409,6 +1434,17 @@ p {
     color: #d95f46;
 }
 
+.table-action-icon--danger {
+    background: #fff0ed;
+    border-color: #ffd8d0;
+    color: #ef7b62;
+}
+
+.table-action-icon--danger:hover {
+    background: #ffe4de;
+    color: #d95f46;
+}
+
 .table-action-icon--approve {
     background: #e8f8ef;
     border-color: #ccefdc;
@@ -1472,6 +1508,43 @@ p {
     background: #f2ecf7;
     border-color: #ddd0eb;
     color: #6a4b88;
+}
+
+.notification-action-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.notification-action-form + .notification-action-form,
+.notification-action-form + .table-action-icon,
+.table-action-icon + .notification-action-form {
+    margin-left: 6px;
+}
+
+.table-notifications--archived th:nth-child(1),
+.table-notifications--archived td:nth-child(1) {
+    width: 38%;
+    min-width: 320px;
+}
+
+.table-notifications--archived th:nth-child(2),
+.table-notifications--archived td:nth-child(2) {
+    width: 16%;
+    min-width: 140px;
+}
+
+.table-notifications--archived th:nth-child(3),
+.table-notifications--archived td:nth-child(3),
+.table-notifications--archived th:nth-child(4),
+.table-notifications--archived td:nth-child(4) {
+    width: 18%;
+    min-width: 160px;
+}
+
+.table-notifications--archived th:nth-child(5),
+.table-notifications--archived td:nth-child(5) {
+    width: 10%;
+    min-width: 96px;
 }
 
 .action-modal .modal-backdrop,
