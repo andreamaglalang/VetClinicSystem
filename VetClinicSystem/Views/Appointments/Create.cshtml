@@ -65,7 +65,9 @@
 
         <div class="col-md-4">
             <label asp-for="AppointmentTime">Preferred Surgery Time</label>
-            <input asp-for="AppointmentTime" type="time" class="form-control" />
+            <input asp-for="AppointmentTime" type="time" class="form-control" data-appointment-time />
+            <span class="form-text text-muted">Monday: 9:00 AM-5:00 PM | Wednesday-Sunday: 9:00 AM-7:00 PM</span>
+            <span class="text-danger" data-clinic-time-message></span>
             <span asp-validation-for="AppointmentTime" class="text-danger"></span>
         </div>
 
@@ -109,13 +111,15 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dateInput = document.querySelector("[data-appointment-date]");
+            const timeInput = document.querySelector("[data-appointment-time]");
             const message = document.querySelector("[data-unavailable-date-message]");
+            const timeMessage = document.querySelector("[data-clinic-time-message]");
             const form = dateInput?.closest("form");
             const rangeMessage = dateInput?.dataset.rangeMessage || "";
             const minDateValue = dateInput?.dataset.minDate || "";
             const maxDateValue = dateInput?.dataset.maxDate || "";
 
-            if (!dateInput || !message || !form) return;
+            if (!dateInput || !timeInput || !message || !timeMessage || !form) return;
 
             dateInput.addEventListener("keydown", function (event) {
                 if (event.ctrlKey || event.metaKey || event.altKey) return;
@@ -224,15 +228,50 @@
                 return error === "";
             }
 
+            function getClinicHoursMessage(value) {
+                if (!value || !timeInput.value) return "";
+
+                const selectedDate = new Date(value + "T00:00:00");
+                const day = selectedDate.getDay();
+                const selectedTime = timeInput.value;
+
+                if (day === 1 && (selectedTime < "09:00" || selectedTime > "17:00")) {
+                    return "Preferred surgery time must be within clinic hours for Monday: 9:00 AM to 5:00 PM.";
+                }
+
+                if ([3, 4, 5, 6, 0].includes(day) && (selectedTime < "09:00" || selectedTime > "19:00")) {
+                    return "Preferred surgery time must be within clinic hours for this day: 9:00 AM to 7:00 PM.";
+                }
+
+                return "";
+            }
+
+            function validateTime() {
+                const error = getClinicHoursMessage(dateInput.value);
+                timeMessage.textContent = error;
+                timeInput.setCustomValidity(error);
+                return error === "";
+            }
+
             dateInput.addEventListener("change", validateDate);
+            dateInput.addEventListener("change", validateTime);
+            timeInput.addEventListener("change", validateTime);
             form.addEventListener("submit", function (event) {
-                if (!validateDate()) {
+                const isDateValid = validateDate();
+                const isTimeValid = validateTime();
+
+                if (!isDateValid || !isTimeValid) {
                     event.preventDefault();
-                    dateInput.reportValidity();
+                    if (!isDateValid) {
+                        dateInput.reportValidity();
+                    } else {
+                        timeInput.reportValidity();
+                    }
                 }
             });
 
             validateDate();
+            validateTime();
         });
     </script>
 }

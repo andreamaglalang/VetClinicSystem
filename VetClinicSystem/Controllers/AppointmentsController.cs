@@ -12,6 +12,10 @@ namespace VetClinicSystem.Controllers
     public class AppointmentsController : Controller
     {
         private const int MaxDailySurgeryLoadPoints = 5;
+        private static readonly TimeOnly MondayOpeningTime = new(9, 0);
+        private static readonly TimeOnly MondayClosingTime = new(17, 0);
+        private static readonly TimeOnly RegularOpeningTime = new(9, 0);
+        private static readonly TimeOnly RegularClosingTime = new(19, 0);
         private static readonly Dictionary<string, int> SurgeryCategoryPoints = new(StringComparer.OrdinalIgnoreCase)
         {
             ["Minor"] = 1,
@@ -173,6 +177,7 @@ namespace VetClinicSystem.Controllers
                 return View(booking);
             }
 
+            ValidateClinicScheduleTime(appointmentDate, booking.AppointmentTime.Value, nameof(GuestAppointmentBooking.AppointmentTime));
             ValidateSurgeryRequest(booking.ServiceId, appointmentDate, booking.SurgeryCategory, booking.IsEmergency);
             if (!ModelState.IsValid)
             {
@@ -243,6 +248,7 @@ namespace VetClinicSystem.Controllers
                 return View(appointment);
             }
 
+            ValidateClinicScheduleTime(appointment.AppointmentDate, appointment.AppointmentTime);
             ValidateSurgeryRequest(appointment.ServiceId, appointment.AppointmentDate, appointment.SurgeryCategory, appointment.IsEmergency);
             if (!ModelState.IsValid)
             {
@@ -367,6 +373,7 @@ namespace VetClinicSystem.Controllers
                 return View(appointment);
             }
 
+            ValidateClinicScheduleTime(appointment.AppointmentDate, appointment.AppointmentTime);
             ValidateSurgeryRequest(appointment.ServiceId, appointment.AppointmentDate, appointment.SurgeryCategory, appointment.IsEmergency, appointment.Id);
             if (!ModelState.IsValid)
             {
@@ -829,6 +836,47 @@ namespace VetClinicSystem.Controllers
                     nameof(Appointment.AppointmentDate),
                     $"This surgery request would bring the day to {totalLoadPoints} load points. The clinic only allows {MaxDailySurgeryLoadPoints} surgery points per day for non-emergency cases.");
             }
+        }
+
+        private void ValidateClinicScheduleTime(DateOnly appointmentDate, TimeOnly appointmentTime, string modelKey = nameof(Appointment.AppointmentTime))
+        {
+            if (!TryGetClinicHoursForDate(appointmentDate, out var openingTime, out var closingTime, out var displayHours))
+                return;
+
+            if (appointmentTime < openingTime || appointmentTime > closingTime)
+            {
+                ModelState.AddModelError(
+                    modelKey,
+                    $"Preferred surgery time must be within clinic hours for {appointmentDate:dddd}: {displayHours}.");
+            }
+        }
+
+        private bool TryGetClinicHoursForDate(DateOnly appointmentDate, out TimeOnly openingTime, out TimeOnly closingTime, out string displayHours)
+        {
+            if (appointmentDate.DayOfWeek == DayOfWeek.Monday)
+            {
+                openingTime = MondayOpeningTime;
+                closingTime = MondayClosingTime;
+                displayHours = "9:00 AM to 5:00 PM";
+                return true;
+            }
+
+            if (appointmentDate.DayOfWeek == DayOfWeek.Wednesday ||
+                appointmentDate.DayOfWeek == DayOfWeek.Thursday ||
+                appointmentDate.DayOfWeek == DayOfWeek.Friday ||
+                appointmentDate.DayOfWeek == DayOfWeek.Saturday ||
+                appointmentDate.DayOfWeek == DayOfWeek.Sunday)
+            {
+                openingTime = RegularOpeningTime;
+                closingTime = RegularClosingTime;
+                displayHours = "9:00 AM to 7:00 PM";
+                return true;
+            }
+
+            openingTime = default;
+            closingTime = default;
+            displayHours = string.Empty;
+            return false;
         }
 
         private bool CanClientChangeAppointment(Appointment appointment)

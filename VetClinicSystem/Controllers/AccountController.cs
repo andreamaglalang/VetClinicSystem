@@ -170,6 +170,13 @@ namespace VetClinicSystem.Controllers
             var petOwner = _context.PetOwners.FirstOrDefault(x => x.UserId == user.Id);
             var hasValidationError = false;
 
+            ModelState.Remove("PasswordHash");
+            ModelState.Remove("Role");
+            ModelState.Remove("PetOwner");
+            ModelState.Remove("Appointments");
+            ModelState.Remove("MedicalRecords");
+            ModelState.Remove("VaccinationRecords");
+
             if (petOwner != null)
             {
                 if (string.IsNullOrWhiteSpace(firstName))

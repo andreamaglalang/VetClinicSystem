@@ -57,7 +57,10 @@
         <p>Admin view of archived notification history. Restoring a notification returns it to the standard list.</p>
     </div>
     <div class="notifications-toolbar__actions">
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Notifications</a>
+        <a asp-action="Index" class="btn notification-toolbar-btn notification-toolbar-btn--view">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back to Notifications</span>
+        </a>
     </div>
 </div>
 

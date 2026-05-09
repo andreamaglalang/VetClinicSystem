@@ -10,10 +10,15 @@
         <p>Newest updates first. Archived notifications stay hidden from this list but are still retained for clinic history.</p>
     </div>
     <div class="notifications-toolbar__actions">
-        <form asp-action="ArchiveReadClient" method="post" data-confirm-message="Archive all read notifications? Archived notifications can still be retained for clinic history.">
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-outline-secondary btn-sm">Archive Read Notifications</button>
-        </form>
+        <div class="notifications-toolbar__group notifications-toolbar__group--cleanup">
+            <form asp-action="ArchiveReadClient" method="post" data-confirm-message="Archive all read notifications? Archived notifications can still be retained for clinic history.">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn notification-toolbar-btn notification-toolbar-btn--archive">
+                    <i class="fa-solid fa-box-archive"></i>
+                    <span>Archive All Read</span>
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 

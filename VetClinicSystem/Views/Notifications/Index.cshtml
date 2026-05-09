@@ -54,13 +54,23 @@
         <p>Newest updates first. Archived notifications stay hidden from this list but are still retained for clinic history.</p>
     </div>
     <div class="notifications-toolbar__actions">
-        <form asp-action="ArchiveRead" method="post" data-confirm-message="Archive all read notifications? Archived notifications can still be retained for clinic history.">
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-outline-secondary btn-sm">Archive Read Notifications</button>
-        </form>
+        <div class="notifications-toolbar__group notifications-toolbar__group--cleanup">
+            <form asp-action="ArchiveRead" method="post" data-confirm-message="Archive all read notifications? Archived notifications can still be retained for clinic history.">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn notification-toolbar-btn notification-toolbar-btn--archive">
+                    <i class="fa-solid fa-box-archive"></i>
+                    <span>Archive All Read</span>
+                </button>
+            </form>
+        </div>
         @if (roleId == 1)
         {
-            <a asp-action="Archived" class="btn btn-outline-secondary btn-sm">Archived Notifications</a>
+            <div class="notifications-toolbar__group notifications-toolbar__group--view">
+                <a asp-action="Archived" class="btn notification-toolbar-btn notification-toolbar-btn--view">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>View Archived</span>
+                </a>
+            </div>
         }
     </div>
 </div>

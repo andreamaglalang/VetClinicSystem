@@ -45,5 +45,5 @@ public partial class ClinicInfo
     public string? Vision { get; set; }
 
     [Column(TypeName = "datetime")]
-    public DateTime LastUpdated { get; set; }
+    public DateTime? LastUpdated { get; set; }
 }
