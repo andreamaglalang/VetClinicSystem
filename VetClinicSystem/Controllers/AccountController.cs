@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Text.RegularExpressions;
 using VetClinicSystem.Helpers;
 using VetClinicSystem.Models;
 using VetClinicSystem.Services.Users;
@@ -44,7 +43,7 @@ namespace VetClinicSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Login(LoginViewModel model)
         {
-            model.Username = model.Username?.Trim() ?? string.Empty;
+            model.Username = InputValidationHelper.NormalizeTrimmed(model.Username);
 
             if (!ModelState.IsValid)
                 return View(model);
@@ -97,26 +96,31 @@ namespace VetClinicSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Register(RegisterViewModel model)
         {
-            model.Username = model.Username?.Trim() ?? string.Empty;
-            model.Email = model.Email?.Trim() ?? string.Empty;
-            model.FirstName = model.FirstName?.Trim() ?? string.Empty;
-            model.LastName = model.LastName?.Trim() ?? string.Empty;
-            model.ContactNumber = PhoneNumberHelper.Normalize(model.ContactNumber);
-            model.Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address.Trim();
+            model.Username = InputValidationHelper.NormalizeTrimmed(model.Username);
+            model.Email = InputValidationHelper.NormalizeEmail(model.Email);
+            model.FirstName = InputValidationHelper.NormalizeTrimmed(model.FirstName);
+            model.LastName = InputValidationHelper.NormalizeTrimmed(model.LastName);
+            model.ContactNumber = model.ContactNumber?.Trim() ?? string.Empty;
+            model.Address = InputValidationHelper.NormalizeTrimmed(model.Address);
+
+            ValidateRegisterInput(model);
 
             if (!ModelState.IsValid)
                 return View(model);
 
-            if (_context.Users.Any(x => x.Username == model.Username))
+            var normalizedUsername = model.Username.ToLowerInvariant();
+            var normalizedEmail = model.Email.ToLowerInvariant();
+
+            if (_context.Users.Any(x => x.Username.ToLower() == normalizedUsername))
                 ModelState.AddModelError(nameof(RegisterViewModel.Username), "Username is already taken.");
 
-            if (_context.Users.Any(x => x.Email == model.Email))
+            if (_context.Users.Any(x => x.Email.ToLower() == normalizedEmail))
                 ModelState.AddModelError(nameof(RegisterViewModel.Email), "Email is already registered.");
 
             if (!ModelState.IsValid)
                 return View(model);
 
-            var success = _userService.Register(model.Username, model.Email, model.Password, model.FirstName, model.LastName, model.ContactNumber, model.Address ?? string.Empty);
+            var success = _userService.Register(model.Username, model.Email, model.Password, model.FirstName, model.LastName, model.ContactNumber, model.Address);
 
             if (!success)
             {
@@ -162,11 +166,11 @@ namespace VetClinicSystem.Controllers
             var currentPassword = Request.Form["CurrentPassword"].ToString();
             var newPassword = Request.Form["NewPassword"].ToString();
             var confirmPassword = Request.Form["ConfirmPassword"].ToString();
-            var firstName = Request.Form["FirstName"].ToString().Trim();
-            var lastName = Request.Form["LastName"].ToString().Trim();
+            var firstName = InputValidationHelper.NormalizeTrimmed(Request.Form["FirstName"].ToString());
+            var lastName = InputValidationHelper.NormalizeTrimmed(Request.Form["LastName"].ToString());
             var contactNumber = Request.Form["ContactNumber"].ToString().Trim();
-            var normalizedUsername = model.Username?.Trim() ?? string.Empty;
-            var normalizedEmail = model.Email?.Trim() ?? string.Empty;
+            var normalizedUsername = InputValidationHelper.NormalizeTrimmed(model.Username);
+            var normalizedEmail = InputValidationHelper.NormalizeEmail(model.Email);
             var petOwner = _context.PetOwners.FirstOrDefault(x => x.UserId == user.Id);
             var hasValidationError = false;
 
@@ -179,47 +183,35 @@ namespace VetClinicSystem.Controllers
 
             if (petOwner != null)
             {
-                if (string.IsNullOrWhiteSpace(firstName))
+                if (!InputValidationHelper.IsValidPersonName(firstName))
                 {
-                    ViewBag.FirstNameError = "First name is required.";
+                    ViewBag.FirstNameError = "Name must contain letters only and cannot include numbers or symbols.";
                     hasValidationError = true;
                 }
 
-                if (string.IsNullOrWhiteSpace(lastName))
+                if (!InputValidationHelper.IsValidPersonName(lastName))
                 {
-                    ViewBag.LastNameError = "Last name is required.";
+                    ViewBag.LastNameError = "Name must contain letters only and cannot include numbers or symbols.";
                     hasValidationError = true;
                 }
 
-                contactNumber = PhoneNumberHelper.Normalize(contactNumber);
-
-                if (!PhoneNumberHelper.IsValidPhilippineMobileNumber(contactNumber))
+                if (!InputValidationHelper.IsValidPhilippineMobile(contactNumber))
                 {
-                    ViewBag.ContactNumberError = PhoneNumberHelper.ValidationMessage;
+                    ViewBag.ContactNumberError = InputValidationHelper.ContactNumberMessage;
                     hasValidationError = true;
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(model.Username))
+            if (!InputValidationHelper.IsValidUsername(normalizedUsername))
             {
-                ModelState.AddModelError("Username", "Username is required.");
-                hasValidationError = true;
-            }
-            else if (normalizedUsername.Length < 4)
-            {
-                ModelState.AddModelError("Username", "Username must be at least 4 characters.");
-                hasValidationError = true;
-            }
-            else if (model.Username.Any(char.IsWhiteSpace))
-            {
-                ModelState.AddModelError("Username", "Username cannot contain spaces.");
+                ModelState.AddModelError("Username", InputValidationHelper.UsernameMessage);
                 hasValidationError = true;
             }
 
             if (!string.IsNullOrWhiteSpace(normalizedUsername))
             {
                 var usernameExists = _context.Users
-                    .Any(u => u.Username == normalizedUsername && u.Id != user.Id);
+                    .Any(u => u.Username.ToLower() == normalizedUsername.ToLower() && u.Id != user.Id);
 
                 if (usernameExists)
                 {
@@ -228,15 +220,15 @@ namespace VetClinicSystem.Controllers
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(model.Email) || !IsValidGmailAddress(model.Email))
+            if (!InputValidationHelper.IsValidGmail(normalizedEmail))
             {
-                ModelState.AddModelError("Email", "Please enter a valid Gmail address.");
+                ModelState.AddModelError("Email", InputValidationHelper.GmailMessage);
                 hasValidationError = true;
             }
             else
             {
                 var emailExists = _context.Users
-                    .Any(u => u.Email == normalizedEmail && u.Id != user.Id);
+                    .Any(u => u.Email.ToLower() == normalizedEmail.ToLower() && u.Id != user.Id);
 
                 if (emailExists)
                 {
@@ -263,9 +255,9 @@ namespace VetClinicSystem.Controllers
                     ViewBag.NewPasswordError = "New password is required.";
                     hasValidationError = true;
                 }
-                else if (!IsStrongPassword(newPassword))
+                else if (!InputValidationHelper.IsValidPassword(newPassword))
                 {
-                    ViewBag.NewPasswordError = "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character.";
+                    ViewBag.NewPasswordError = InputValidationHelper.PasswordMessage;
                     hasValidationError = true;
                 }
 
@@ -387,21 +379,55 @@ namespace VetClinicSystem.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        private static bool IsValidGmailAddress(string email)
+        private void ValidateRegisterInput(RegisterViewModel model)
         {
-            return Regex.IsMatch(
-                email.Trim(),
-                @"^[A-Za-z0-9._%+-]+@gmail\.com$",
-                RegexOptions.IgnoreCase);
+            if (!InputValidationHelper.IsValidUsername(model.Username))
+            {
+                AddModelErrorIfMissing(nameof(RegisterViewModel.Username), InputValidationHelper.UsernameMessage);
+            }
+
+            if (!InputValidationHelper.IsValidGmail(model.Email))
+            {
+                AddModelErrorIfMissing(nameof(RegisterViewModel.Email), InputValidationHelper.GmailMessage);
+            }
+
+            if (!InputValidationHelper.IsValidPersonName(model.FirstName))
+            {
+                AddModelErrorIfMissing(nameof(RegisterViewModel.FirstName), InputValidationHelper.PersonNameMessage);
+            }
+
+            if (!InputValidationHelper.IsValidPersonName(model.LastName))
+            {
+                AddModelErrorIfMissing(nameof(RegisterViewModel.LastName), InputValidationHelper.PersonNameMessage);
+            }
+
+            if (!InputValidationHelper.IsValidPhilippineMobile(model.ContactNumber))
+            {
+                AddModelErrorIfMissing(nameof(RegisterViewModel.ContactNumber), InputValidationHelper.ContactNumberMessage);
+            }
+
+            if (!InputValidationHelper.IsValidAddress(model.Address))
+            {
+                AddModelErrorIfMissing(nameof(RegisterViewModel.Address), InputValidationHelper.AddressMessage);
+            }
+
+            if (!InputValidationHelper.IsValidPassword(model.Password))
+            {
+                AddModelErrorIfMissing(nameof(RegisterViewModel.Password), InputValidationHelper.PasswordMessage);
+            }
+
+            if (!string.Equals(model.Password, model.ConfirmPassword, StringComparison.Ordinal))
+            {
+                AddModelErrorIfMissing(nameof(RegisterViewModel.ConfirmPassword), "Confirm password must match.");
+            }
         }
 
-        private static bool IsStrongPassword(string password)
+        private void AddModelErrorIfMissing(string key, string errorMessage)
         {
-            return password.Length >= 8 &&
-                password.Any(char.IsUpper) &&
-                password.Any(char.IsLower) &&
-                password.Any(char.IsDigit) &&
-                password.Any(ch => !char.IsLetterOrDigit(ch));
+            if (!ModelState.TryGetValue(key, out var entry) || entry.Errors.Count == 0)
+            {
+                ModelState.AddModelError(key, errorMessage);
+            }
         }
 
         private void PrepareSettingsViewData(int userId, string? firstName = null, string? lastName = null, string? contactNumber = null)

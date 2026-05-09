@@ -14,14 +14,14 @@ public partial class User
     public int Id { get; set; }
 
     [Required(ErrorMessage = "Username is required.")]
-    [MinLength(4, ErrorMessage = "Username must be at least 4 characters.")]
-    [RegularExpression(@"^\S+$", ErrorMessage = "Username must not contain spaces.")]
-    [StringLength(50)]
+    [StringLength(30, MinimumLength = 4, ErrorMessage = "Username must be 4-30 characters and may only contain letters, numbers, dots, or underscores.")]
+    [RegularExpression(Helpers.InputValidationHelper.UsernamePattern, ErrorMessage = Helpers.InputValidationHelper.UsernameMessage)]
     public string Username { get; set; } = null!;
 
     [Required(ErrorMessage = "Email address is required.")]
     [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
     [StringLength(100)]
+    [RegularExpression(Helpers.InputValidationHelper.GmailPattern, ErrorMessage = Helpers.InputValidationHelper.GmailMessage)]
     public string Email { get; set; } = null!;
 
     [StringLength(255)]

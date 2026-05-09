@@ -16,19 +16,22 @@ public partial class PetOwner
     public int UserId { get; set; }
 
     [Required(ErrorMessage = "First name is required.")]
-    [StringLength(100)]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "First name must be 2-50 characters long.")]
+    [RegularExpression(InputValidationHelper.PersonNamePattern, ErrorMessage = InputValidationHelper.PersonNameMessage)]
     public string FirstName { get; set; } = null!;
 
     [Required(ErrorMessage = "Last name is required.")]
-    [StringLength(100)]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "Last name must be 2-50 characters long.")]
+    [RegularExpression(InputValidationHelper.PersonNamePattern, ErrorMessage = InputValidationHelper.PersonNameMessage)]
     public string LastName { get; set; } = null!;
 
     [Required(ErrorMessage = "Contact number is required.")]
-    [StringLength(20)]
-    [PhilippineMobileNumber]
+    [StringLength(11, MinimumLength = 11, ErrorMessage = InputValidationHelper.ContactNumberMessage)]
+    [RegularExpression(InputValidationHelper.ContactNumberPattern, ErrorMessage = InputValidationHelper.ContactNumberMessage)]
     public string ContactNumber { get; set; } = null!;
 
-    [StringLength(255)]
+    [StringLength(150, MinimumLength = 5, ErrorMessage = "Address must be 5-150 characters long.")]
+    [RegularExpression(InputValidationHelper.AddressPattern, ErrorMessage = InputValidationHelper.AddressMessage)]
     public string? Address { get; set; }
 
     [Column(TypeName = "datetime")]

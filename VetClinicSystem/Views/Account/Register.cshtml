@@ -18,50 +18,50 @@
                 <div class="auth-grid">
                     <div class="mb-3">
                         <label asp-for="Username" class="form-label"></label>
-                        <input asp-for="Username" class="form-control auth-input" />
+                        <input asp-for="Username" class="form-control auth-input" maxlength="30" autocomplete="username" />
                         <span asp-validation-for="Username" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control auth-input" />
+                        <input asp-for="Email" class="form-control auth-input" autocomplete="email" inputmode="email" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control auth-input" />
+                        <input asp-for="Password" class="form-control auth-input" autocomplete="new-password" />
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="ConfirmPassword" class="form-label"></label>
-                        <input asp-for="ConfirmPassword" class="form-control auth-input" />
+                        <input asp-for="ConfirmPassword" class="form-control auth-input" autocomplete="new-password" />
                         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="FirstName" class="form-label"></label>
-                        <input asp-for="FirstName" class="form-control auth-input" />
+                        <input asp-for="FirstName" class="form-control auth-input" maxlength="50" autocomplete="given-name" />
                         <span asp-validation-for="FirstName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="LastName" class="form-label"></label>
-                        <input asp-for="LastName" class="form-control auth-input" />
+                        <input asp-for="LastName" class="form-control auth-input" maxlength="50" autocomplete="family-name" />
                         <span asp-validation-for="LastName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="ContactNumber" class="form-label"></label>
-                        <input asp-for="ContactNumber" class="form-control auth-input" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="14" pattern="09[0-9\s-]{9,12}" title="Enter an 11-digit mobile number starting with 09." />
+                        <input asp-for="ContactNumber" class="form-control auth-input" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="09\d{9}" title="Enter an 11-digit mobile number starting with 09." autocomplete="tel-national" />
                         <span asp-validation-for="ContactNumber" class="text-danger"></span>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Address" class="form-label"></label>
-                    <input asp-for="Address" class="form-control auth-input" />
+                    <input asp-for="Address" class="form-control auth-input" maxlength="150" autocomplete="street-address" />
                     <span asp-validation-for="Address" class="text-danger"></span>
                 </div>
 
