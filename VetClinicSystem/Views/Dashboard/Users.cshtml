@@ -1,22 +1,39 @@
-@model List<VetClinicSystem.Models.User>
+@model VetClinicSystem.ViewModels.AdminUsersViewModel
 
 @{
     ViewData["Title"] = "Users";
-    var currentUserId = ViewBag.CurrentUserId as int? ?? Context.Session.GetInt32("UserId");
 }
 
 <section class="admin-users-panel">
     <div class="admin-users-panel__header">
         <div>
             <h4>Users</h4>
-            <p>All registered admin, staff, and client accounts.</p>
+            <p>Manage active, inactive, and archived accounts without deleting related clinic records.</p>
         </div>
-        <span>@Model.Count account@(Model.Count == 1 ? "" : "s")</span>
+        <span>@Model.Users.Count shown</span>
     </div>
 
-    @if (!Model.Any())
+    <div class="admin-users-filters" role="tablist" aria-label="User status filters">
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="all" class="admin-users-filter @(Model.Filter == "all" ? "is-active" : null)">
+            All
+        </a>
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="active" class="admin-users-filter @(Model.Filter == "active" ? "is-active" : null)">
+            Active
+            <span>@Model.ActiveCount</span>
+        </a>
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="inactive" class="admin-users-filter @(Model.Filter == "inactive" ? "is-active" : null)">
+            Inactive
+            <span>@Model.InactiveCount</span>
+        </a>
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="archived" class="admin-users-filter @(Model.Filter == "archived" ? "is-active" : null)">
+            Archived
+            <span>@Model.ArchivedCount</span>
+        </a>
+    </div>
+
+    @if (!Model.Users.Any())
     {
-        <div class="alert alert-info">No users found.</div>
+        <div class="alert alert-info">No users found for this filter.</div>
     }
     else
     {
@@ -30,23 +47,28 @@
                         <th>Role</th>
                         <th>Status</th>
                         <th>Date Created</th>
+                        <th>Archive Info</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                @foreach (var user in Model)
+                @foreach (var user in Model.Users)
                 {
                     var displayName = user.PetOwner != null
                         ? $"{user.PetOwner.FirstName} {user.PetOwner.LastName}".Trim()
                         : user.Username;
 
-                    <tr>
+                    <tr class="@(user.IsDeleted ? "admin-users-row--archived" : null)">
                         <td>@displayName</td>
                         <td>@user.Username</td>
                         <td>@user.Email</td>
                         <td>@(user.Role?.RoleName ?? "User")</td>
                         <td>
-                            @if (user.IsActive)
+                            @if (user.IsDeleted)
+                            {
+                                <span class="status-pill status-pill--archived">Archived</span>
+                            }
+                            else if (user.IsActive)
                             {
                                 <span class="status-pill status-pill--success">Active</span>
                             }
@@ -57,25 +79,68 @@
                         </td>
                         <td>@user.DateCreated.ToString("MMM d, yyyy")</td>
                         <td>
-                            @if (user.Id == currentUserId)
+                            @if (user.IsDeleted)
                             {
-                                <span class="text-muted">Current account</span>
-                            }
-                            else if (user.IsActive)
-                            {
-                                <form asp-action="DeactivateUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to deactivate this user account?">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@user.Id" />
-                                    <button type="submit" class="btn btn-danger btn-sm">Deactivate</button>
-                                </form>
+                                <div class="admin-users-meta">
+                                    <span>@(user.DeletedAt?.ToString("MMM d, yyyy h:mm tt") ?? "Archived")</span>
+                                    @if (!string.IsNullOrWhiteSpace(user.DeleteReason))
+                                    {
+                                        <small>@user.DeleteReason</small>
+                                    }
+                                </div>
                             }
                             else
                             {
-                                <form asp-action="RestoreUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to restore this user account?">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@user.Id" />
-                                    <button type="submit" class="btn btn-success btn-sm">Restore</button>
-                                </form>
+                                <span class="text-muted">Not archived</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.Id == Model.CurrentUserId)
+                            {
+                                <span class="text-muted">Current account</span>
+                            }
+                            else
+                            {
+                                <div class="admin-user-actions">
+                                    @if (user.IsDeleted)
+                                    {
+                                        <form asp-action="RestoreArchivedUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to restore this archived user account?">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button type="submit" class="btn btn-success btn-sm">Restore Archived</button>
+                                        </form>
+                                    }
+                                    else if (user.IsActive)
+                                    {
+                                        <form asp-action="DeactivateUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to deactivate this user account?">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button type="submit" class="btn btn-warning btn-sm">Deactivate</button>
+                                        </form>
+
+                                        <form asp-action="ArchiveUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to archive this user account?" data-admin-user-archive="true">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <input type="hidden" name="reason" value="" data-admin-archive-reason />
+                                            <button type="submit" class="btn btn-danger btn-sm">Archive</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="RestoreUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to restore this inactive user account?">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button type="submit" class="btn btn-success btn-sm">Restore Inactive</button>
+                                        </form>
+
+                                        <form asp-action="ArchiveUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to archive this user account?" data-admin-user-archive="true">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <input type="hidden" name="reason" value="" data-admin-archive-reason />
+                                            <button type="submit" class="btn btn-danger btn-sm">Archive</button>
+                                        </form>
+                                    }
+                                </div>
                             }
                         </td>
                     </tr>
@@ -94,6 +159,10 @@
         <span class="admin-confirm-icon"><i class="fa-solid fa-exclamation"></i></span>
         <h3 id="adminUserConfirmTitle">Confirm Action</h3>
         <p id="adminUserConfirmMessage"></p>
+        <div class="admin-archive-reason" id="adminArchiveReasonWrap" hidden>
+            <label for="adminArchiveReason" class="form-label">Archive reason (optional)</label>
+            <textarea id="adminArchiveReason" class="form-control" rows="3" maxlength="255" placeholder="Add a short reason for archiving this account."></textarea>
+        </div>
         <div class="admin-confirm-actions">
             <button type="button" class="btn btn-danger" data-admin-confirm-submit>Confirm</button>
             <button type="button" class="btn btn-outline-secondary" data-admin-confirm-cancel>Cancel</button>
@@ -107,6 +176,8 @@
             const confirmOverlay = document.getElementById("adminUserConfirmOverlay");
             const confirmMessage = document.getElementById("adminUserConfirmMessage");
             const confirmSubmit = document.querySelector("[data-admin-confirm-submit]");
+            const archiveReasonWrap = document.getElementById("adminArchiveReasonWrap");
+            const archiveReason = document.getElementById("adminArchiveReason");
             let pendingUserActionForm = null;
 
             document.querySelectorAll("[data-admin-user-confirm]").forEach(function (form) {
@@ -118,23 +189,36 @@
                     event.preventDefault();
                     pendingUserActionForm = form;
                     confirmMessage.textContent = form.dataset.adminUserConfirm;
+                    const isArchive = form.dataset.adminUserArchive === "true";
+                    archiveReasonWrap.hidden = !isArchive;
+
+                    if (archiveReason) {
+                        archiveReason.value = "";
+                    }
+
                     confirmOverlay.hidden = false;
                     confirmSubmit.focus();
                 });
             });
 
+            function closeConfirm() {
+                confirmOverlay.hidden = true;
+                pendingUserActionForm = null;
+                archiveReasonWrap.hidden = true;
+
+                if (archiveReason) {
+                    archiveReason.value = "";
+                }
+            }
+
             document.querySelectorAll("[data-admin-confirm-cancel]").forEach(function (button) {
-                button.addEventListener("click", function () {
-                    confirmOverlay.hidden = true;
-                    pendingUserActionForm = null;
-                });
+                button.addEventListener("click", closeConfirm);
             });
 
             if (confirmOverlay) {
                 confirmOverlay.addEventListener("click", function (event) {
                     if (event.target === confirmOverlay) {
-                        confirmOverlay.hidden = true;
-                        pendingUserActionForm = null;
+                        closeConfirm();
                     }
                 });
             }
@@ -142,6 +226,11 @@
             if (confirmSubmit) {
                 confirmSubmit.addEventListener("click", function () {
                     if (!pendingUserActionForm) return;
+
+                    const reasonField = pendingUserActionForm.querySelector("[data-admin-archive-reason]");
+                    if (reasonField) {
+                        reasonField.value = archiveReason ? archiveReason.value.trim() : "";
+                    }
 
                     pendingUserActionForm.dataset.confirmed = "true";
                     pendingUserActionForm.requestSubmit();

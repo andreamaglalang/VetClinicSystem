@@ -33,6 +33,16 @@ public partial class User
 
     public bool IsGuest { get; set; }
 
+    public bool IsDeleted { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? DeletedAt { get; set; }
+
+    public int? DeletedByUserId { get; set; }
+
+    [StringLength(255)]
+    public string? DeleteReason { get; set; }
+
     public bool MustChangePassword { get; set; }
 
     public DateTime? LastPasswordChange { get; set; }

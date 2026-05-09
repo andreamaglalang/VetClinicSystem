@@ -13,20 +13,26 @@ namespace VetClinicSystem.Repositories.Pets
 
         public List<Pet> GetAll()
         {
-            return _context.Pets.ToList();
+            return _context.Pets
+                .OrderBy(x => x.PetName)
+                .ThenBy(x => x.Id)
+                .ToList();
         }
 
         public List<Pet> GetByOwnerId(int ownerId)
         {
             return _context.Pets
                 .Where(x => x.OwnerId == ownerId)
+                .OrderBy(x => x.PetName)
+                .ThenBy(x => x.Id)
                 .ToList();
         }
 
         public List<Pet> GetPaged(int page, int pageSize)
         {
             return _context.Pets
-                .OrderByDescending(x => x.DateCreated)
+                .OrderBy(x => x.PetName)
+                .ThenBy(x => x.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -36,7 +42,8 @@ namespace VetClinicSystem.Repositories.Pets
         {
             return _context.Pets
                 .Where(x => x.OwnerId == ownerId)
-                .OrderByDescending(x => x.DateCreated)
+                .OrderBy(x => x.PetName)
+                .ThenBy(x => x.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -66,7 +73,10 @@ namespace VetClinicSystem.Repositories.Pets
                     (x.Breed != null && x.Breed.Contains(search)));
             }
 
-            return query.ToList();
+            return query
+                .OrderBy(x => x.PetName)
+                .ThenBy(x => x.Id)
+                .ToList();
         }
 
         public List<Pet> SearchByOwnerId(int ownerId, string? search)
@@ -83,7 +93,10 @@ namespace VetClinicSystem.Repositories.Pets
                     (x.Breed != null && x.Breed.Contains(search)));
             }
 
-            return query.ToList();
+            return query
+                .OrderBy(x => x.PetName)
+                .ThenBy(x => x.Id)
+                .ToList();
         }
 
         public Pet? GetById(int id)

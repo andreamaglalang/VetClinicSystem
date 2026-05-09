@@ -112,6 +112,30 @@ BEGIN
     ADD LastPasswordChange DATETIME NULL;
 END
 
+IF COL_LENGTH('Users', 'IsDeleted') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD IsDeleted BIT NOT NULL CONSTRAINT DF_Users_IsDeleted DEFAULT 0;
+END
+
+IF COL_LENGTH('Users', 'DeletedAt') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD DeletedAt DATETIME NULL;
+END
+
+IF COL_LENGTH('Users', 'DeletedByUserId') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD DeletedByUserId INT NULL;
+END
+
+IF COL_LENGTH('Users', 'DeleteReason') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD DeleteReason NVARCHAR(255) NULL;
+END
+
 IF COL_LENGTH('Appointments', 'PreferredAppointmentDate') IS NULL
 BEGIN
     ALTER TABLE Appointments
@@ -181,6 +205,18 @@ BEGIN
 
     ALTER TABLE StaffNotifications
     ALTER COLUMN AppointmentId INT NULL;
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys fk
+    INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+    INNER JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+    WHERE fk.parent_object_id = OBJECT_ID('Users')
+      AND c.name = 'DeletedByUserId')
+BEGIN
+    ALTER TABLE Users
+    ADD CONSTRAINT FK_Users_Users_DeletedByUserId FOREIGN KEY (DeletedByUserId) REFERENCES Users(Id);
 END
 
 IF NOT EXISTS (

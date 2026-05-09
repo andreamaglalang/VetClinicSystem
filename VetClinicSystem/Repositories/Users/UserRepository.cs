@@ -37,8 +37,8 @@ namespace VetClinicSystem.Repositories.Users
             return _context.Users
                 .Include(x => x.Role)
                 .Include(x => x.PetOwner)
-                .OrderBy(x => x.Role.RoleName)
-                .ThenBy(x => x.Username)
+                .OrderByDescending(x => x.DateCreated)
+                .ThenByDescending(x => x.Id)
                 .ToList();
         }
 

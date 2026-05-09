@@ -15,33 +15,33 @@
 
 <h2>@(isClient ? "Request Surgery Appointment" : "Create Surgery Appointment")</h2>
 
-<div class="appointment-create-notes" aria-label="Surgery scheduling reminders">
-    <section>
-        <i class="fa-solid fa-hospital-user"></i>
-        <div>
-            <strong>Clinic scheduling workflow</strong>
-            <p>Clients may request a preferred surgery date and time, but the clinic finalizes the actual surgery schedule after review and approval.</p>
-        </div>
-    </section>
-    <section>
-        <i class="fa-solid fa-scale-balanced"></i>
-        <div>
-            <strong>Surgery load planning</strong>
-            <p>Minor surgeries use 1 point, moderate use 2, major use 3, and regular scheduling allows up to 5 points per day. Emergency cases can bypass daily capacity.</p>
-        </div>
-    </section>
-    <section>
-        <i class="fa-solid fa-notes-medical"></i>
-        <div>
-            <strong>Before surgery</strong>
-            <p>Pre-op blood test screening is walk-in only. If your pet is fit for surgery, schedule within 1 week. Bathe your pet a day before, withhold food for 8-12 hours, and water for 5 hours.</p>
-        </div>
-    </section>
-</div>
-
 <form method="post" class="appointment-request-form">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="appointment-create-notes" aria-label="Surgery scheduling reminders">
+        <section>
+            <i class="fa-solid fa-hospital-user"></i>
+            <div>
+                <strong>Clinic scheduling workflow</strong>
+                <p>Clients may request a preferred surgery date and time, but the clinic finalizes the actual surgery schedule after review and approval.</p>
+            </div>
+        </section>
+        <section>
+            <i class="fa-solid fa-scale-balanced"></i>
+            <div>
+                <strong>Surgery load planning</strong>
+                <p>Minor surgeries use 1 point, moderate use 2, major use 3, and regular scheduling allows up to 5 points per day. Emergency cases can bypass daily capacity.</p>
+            </div>
+        </section>
+        <section>
+            <i class="fa-solid fa-notes-medical"></i>
+            <div>
+                <strong>Before surgery</strong>
+                <p>Pre-op blood test screening is walk-in only. If your pet is fit for surgery, schedule within 1 week. Bathe your pet a day before, withhold food for 8-12 hours, and water for 5 hours.</p>
+            </div>
+        </section>
+    </div>
 
     <div class="mb-3">
         <label asp-for="PetId"></label>

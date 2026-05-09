@@ -17,8 +17,8 @@ namespace VetClinicSystem.Repositories.Vaccinations
             return _context.VaccinationRecords
                 .Include(x => x.Pet)
                     .ThenInclude(x => x.Owner)
-                .OrderBy(x => x.NextDueDate ?? DateOnly.MaxValue)
-                .ThenByDescending(x => x.VaccinationDate)
+                .OrderByDescending(x => x.VaccinationDate)
+                .ThenByDescending(x => x.Id)
                 .ToList();
         }
 

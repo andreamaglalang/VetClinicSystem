@@ -1,4 +1,1192 @@
-﻿:root {
+# Soft Delete / Archive Changes
+
+This file contains the complete updated code for every file changed while implementing account soft delete and archive support.
+
+## Changed Files
+- `Models/User.cs`
+- `Services/Users/UserService.cs`
+- `ViewModels/AdminUsersViewModel.cs`
+- `Controllers/AccountController.cs`
+- `Controllers/DashboardController.cs`
+- `Views/Dashboard/Users.cshtml`
+- `wwwroot/css/site.css`
+- `Program.cs`
+
+## C:\Users\andrea\Desktop\VetClinicSystem\VetClinicSystem\VetClinicSystem\Models\User.cs
+
+`$lang
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace VetClinicSystem.Models;
+
+[Index("Username", Name = "UQ__Users__536C85E46EB1C654", IsUnique = true)]
+[Index("Email", Name = "UQ__Users__A9D105346FFA82C4", IsUnique = true)]
+public partial class User
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required(ErrorMessage = "Username is required.")]
+    [MinLength(4, ErrorMessage = "Username must be at least 4 characters.")]
+    [RegularExpression(@"^\S+$", ErrorMessage = "Username must not contain spaces.")]
+    [StringLength(50)]
+    public string Username { get; set; } = null!;
+
+    [Required(ErrorMessage = "Email address is required.")]
+    [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+    [StringLength(100)]
+    public string Email { get; set; } = null!;
+
+    [StringLength(255)]
+    public string PasswordHash { get; set; } = null!;
+
+    public int RoleId { get; set; }
+
+    public bool IsActive { get; set; }
+
+    public bool IsGuest { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? DeletedAt { get; set; }
+
+    public int? DeletedByUserId { get; set; }
+
+    [StringLength(255)]
+    public string? DeleteReason { get; set; }
+
+    public bool MustChangePassword { get; set; }
+
+    public DateTime? LastPasswordChange { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime DateCreated { get; set; }
+
+    [InverseProperty("CreatedByUser")]
+    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+
+    [InverseProperty("CreatedByUser")]
+    public virtual ICollection<MedicalRecord> MedicalRecords { get; set; } = new List<MedicalRecord>();
+
+    [InverseProperty("User")]
+    public virtual PetOwner? PetOwner { get; set; }
+
+    [ForeignKey("RoleId")]
+    [InverseProperty("Users")]
+    public virtual Role Role { get; set; } = null!;
+
+    [InverseProperty("CreatedByUser")]
+    public virtual ICollection<VaccinationRecord> VaccinationRecords { get; set; } = new List<VaccinationRecord>();
+}
+
+```
+
+## C:\Users\andrea\Desktop\VetClinicSystem\VetClinicSystem\VetClinicSystem\Services\Users\UserService.cs
+
+`$lang
+using VetClinicSystem.Helpers;
+using VetClinicSystem.Models;
+using VetClinicSystem.Repositories.Users;
+
+namespace VetClinicSystem.Services.Users
+{
+    public class UserService : IUserService
+    {
+        private readonly IUserRepository _userRepository;
+        private readonly VetClinicDbContext _context;
+
+        public UserService(IUserRepository userRepository, VetClinicDbContext context)
+        {
+            _userRepository = userRepository;
+            _context = context;
+        }
+
+        public bool Register(string username, string email, string password, string firstName, string lastName, string contactNumber, string address)
+        {
+            if (_userRepository.GetByUsername(username) != null) return false;
+            if (_userRepository.GetByEmail(email) != null) return false;
+
+            var clientRole = _context.Roles.FirstOrDefault(x => x.RoleName == "Client");
+            if (clientRole == null) return false;
+
+            var user = new User
+            {
+                Username = username,
+                Email = email,
+                PasswordHash = PasswordHelper.HashPassword(password),
+                RoleId = clientRole.Id,
+                IsActive = true,
+                IsDeleted = false,
+                DateCreated = DateTime.Now
+            };
+
+            _userRepository.Add(user);
+            _userRepository.Save();
+
+            var petOwner = new PetOwner
+            {
+                UserId = user.Id,
+                FirstName = firstName,
+                LastName = lastName,
+                ContactNumber = contactNumber,
+                Address = address,
+                DateCreated = DateTime.Now
+            };
+
+            _context.PetOwners.Add(petOwner);
+            _context.SaveChanges();
+
+            return true;
+        }
+
+        public User? Login(string username, string password)
+        {
+            var user = _userRepository.GetByUsername(username);
+            if (user == null) return null;
+            if (!user.IsActive || user.IsDeleted) return null;
+
+            var hashed = PasswordHelper.HashPassword(password);
+            if (user.PasswordHash != hashed) return null;
+
+            return user;
+        }
+
+        public List<User> GetAll()
+        {
+            return _userRepository.GetAll();
+        }
+
+        public User? GetById(int id)
+        {
+            return _userRepository.GetById(id);
+        }
+
+        public PetOwner? GetPetOwnerByUserId(int userId)
+        {
+            return _userRepository.GetPetOwnerByUserId(userId);
+        }
+    }
+}
+
+```
+
+## C:\Users\andrea\Desktop\VetClinicSystem\VetClinicSystem\VetClinicSystem\ViewModels\AdminUsersViewModel.cs
+
+`$lang
+using VetClinicSystem.Models;
+
+namespace VetClinicSystem.ViewModels
+{
+    public class AdminUsersViewModel
+    {
+        public List<User> Users { get; set; } = new();
+
+        public string Filter { get; set; } = "all";
+
+        public int CurrentUserId { get; set; }
+
+        public int ActiveCount { get; set; }
+
+        public int InactiveCount { get; set; }
+
+        public int ArchivedCount { get; set; }
+    }
+}
+
+```
+
+## C:\Users\andrea\Desktop\VetClinicSystem\VetClinicSystem\VetClinicSystem\Controllers\AccountController.cs
+
+`$lang
+using Microsoft.AspNetCore.Mvc;
+using System.Text.RegularExpressions;
+using VetClinicSystem.Helpers;
+using VetClinicSystem.Models;
+using VetClinicSystem.Services.Users;
+using VetClinicSystem.ViewModels;
+
+namespace VetClinicSystem.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly IUserService _userService;
+        private readonly VetClinicDbContext _context;
+
+        public AccountController(IUserService userService, VetClinicDbContext context)
+        {
+            _userService = userService;
+            _context = context;
+        }
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            if (HttpContext.Session.GetInt32("UserId") != null)
+            {
+                var roleId = HttpContext.Session.GetInt32("RoleId");
+
+                if (roleId == 1)
+                    return RedirectToAction("Admin", "Dashboard");
+
+                if (roleId == 2)
+                    return RedirectToAction("Staff", "Dashboard");
+
+                if (roleId == 3)
+                    return RedirectToAction("Client", "Dashboard");
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View(new LoginViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Login(LoginViewModel model)
+        {
+            model.Username = model.Username?.Trim() ?? string.Empty;
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var existingUser = _context.Users.FirstOrDefault(x => x.Username == model.Username);
+
+            if (existingUser != null && existingUser.IsDeleted)
+            {
+                ViewBag.Error = "This account has been archived. Please contact the clinic.";
+                return View(model);
+            }
+
+            if (existingUser != null && !existingUser.IsActive)
+            {
+                ViewBag.Error = "Your account has been deactivated. Please contact the clinic.";
+                return View(model);
+            }
+
+            var user = _userService.Login(model.Username, model.Password);
+
+            if (user == null)
+            {
+                ViewBag.Error = "Invalid username or password.";
+                return View(model);
+            }
+
+            HttpContext.Session.SetInt32("UserId", user.Id);
+            HttpContext.Session.SetString("Username", user.Username);
+            HttpContext.Session.SetInt32("RoleId", user.RoleId);
+
+            if (user.RoleId == 1)
+                return RedirectToAction("Admin", "Dashboard");
+
+            if (user.RoleId == 2)
+                return RedirectToAction("Staff", "Dashboard");
+
+            if (user.RoleId == 3)
+                return RedirectToAction("Client", "Dashboard");
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View(new RegisterViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Register(RegisterViewModel model)
+        {
+            model.Username = model.Username?.Trim() ?? string.Empty;
+            model.Email = model.Email?.Trim() ?? string.Empty;
+            model.FirstName = model.FirstName?.Trim() ?? string.Empty;
+            model.LastName = model.LastName?.Trim() ?? string.Empty;
+            model.ContactNumber = PhoneNumberHelper.Normalize(model.ContactNumber);
+            model.Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address.Trim();
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            if (_context.Users.Any(x => x.Username == model.Username))
+                ModelState.AddModelError(nameof(RegisterViewModel.Username), "Username is already taken.");
+
+            if (_context.Users.Any(x => x.Email == model.Email))
+                ModelState.AddModelError(nameof(RegisterViewModel.Email), "Email is already registered.");
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var success = _userService.Register(model.Username, model.Email, model.Password, model.FirstName, model.LastName, model.ContactNumber, model.Address ?? string.Empty);
+
+            if (!success)
+            {
+                ViewBag.Error = "Username or email already exists, or Client role is missing.";
+                return View(model);
+            }
+
+            TempData["Success"] = "Registration successful. Please login.";
+            return RedirectToAction("Login");
+        }
+
+        public IActionResult Settings()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+                return RedirectToAction("Login");
+
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId.Value);
+
+            if (user == null)
+                return RedirectToAction("Login");
+
+            PrepareSettingsViewData(user.Id);
+
+            return View(user);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Settings(User model)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+                return RedirectToAction("Login");
+
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId.Value);
+
+            if (user == null)
+                return RedirectToAction("Login");
+
+            var currentPassword = Request.Form["CurrentPassword"].ToString();
+            var newPassword = Request.Form["NewPassword"].ToString();
+            var confirmPassword = Request.Form["ConfirmPassword"].ToString();
+            var firstName = Request.Form["FirstName"].ToString().Trim();
+            var lastName = Request.Form["LastName"].ToString().Trim();
+            var contactNumber = Request.Form["ContactNumber"].ToString().Trim();
+            var normalizedUsername = model.Username?.Trim() ?? string.Empty;
+            var normalizedEmail = model.Email?.Trim() ?? string.Empty;
+            var petOwner = _context.PetOwners.FirstOrDefault(x => x.UserId == user.Id);
+            var hasValidationError = false;
+
+            if (petOwner != null)
+            {
+                if (string.IsNullOrWhiteSpace(firstName))
+                {
+                    ViewBag.FirstNameError = "First name is required.";
+                    hasValidationError = true;
+                }
+
+                if (string.IsNullOrWhiteSpace(lastName))
+                {
+                    ViewBag.LastNameError = "Last name is required.";
+                    hasValidationError = true;
+                }
+
+                contactNumber = PhoneNumberHelper.Normalize(contactNumber);
+
+                if (!PhoneNumberHelper.IsValidPhilippineMobileNumber(contactNumber))
+                {
+                    ViewBag.ContactNumberError = PhoneNumberHelper.ValidationMessage;
+                    hasValidationError = true;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Username))
+            {
+                ModelState.AddModelError("Username", "Username is required.");
+                hasValidationError = true;
+            }
+            else if (normalizedUsername.Length < 4)
+            {
+                ModelState.AddModelError("Username", "Username must be at least 4 characters.");
+                hasValidationError = true;
+            }
+            else if (model.Username.Any(char.IsWhiteSpace))
+            {
+                ModelState.AddModelError("Username", "Username cannot contain spaces.");
+                hasValidationError = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(normalizedUsername))
+            {
+                var usernameExists = _context.Users
+                    .Any(u => u.Username == normalizedUsername && u.Id != user.Id);
+
+                if (usernameExists)
+                {
+                    ModelState.AddModelError("Username", "Username is already taken. Please choose another username.");
+                    hasValidationError = true;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Email) || !IsValidGmailAddress(model.Email))
+            {
+                ModelState.AddModelError("Email", "Please enter a valid Gmail address.");
+                hasValidationError = true;
+            }
+            else
+            {
+                var emailExists = _context.Users
+                    .Any(u => u.Email == normalizedEmail && u.Id != user.Id);
+
+                if (emailExists)
+                {
+                    ModelState.AddModelError("Email", "Email is already registered.");
+                    hasValidationError = true;
+                }
+            }
+
+            bool changingPassword =
+                !string.IsNullOrWhiteSpace(currentPassword) ||
+                !string.IsNullOrWhiteSpace(newPassword) ||
+                !string.IsNullOrWhiteSpace(confirmPassword);
+
+            if (changingPassword)
+            {
+                if (string.IsNullOrWhiteSpace(currentPassword))
+                {
+                    ViewBag.CurrentPasswordError = "Current password is required.";
+                    hasValidationError = true;
+                }
+
+                if (string.IsNullOrWhiteSpace(newPassword))
+                {
+                    ViewBag.NewPasswordError = "New password is required.";
+                    hasValidationError = true;
+                }
+                else if (!IsStrongPassword(newPassword))
+                {
+                    ViewBag.NewPasswordError = "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character.";
+                    hasValidationError = true;
+                }
+
+                if (newPassword != confirmPassword)
+                {
+                    ViewBag.ConfirmPasswordError = "Passwords do not match.";
+                    hasValidationError = true;
+                }
+
+                if (!string.IsNullOrWhiteSpace(currentPassword))
+                {
+                    var currentHash = PasswordHelper.HashPassword(currentPassword);
+
+                    if (user.PasswordHash != currentHash)
+                    {
+                        ViewBag.CurrentPasswordError = "Current password is incorrect.";
+                        hasValidationError = true;
+                    }
+                }
+            }
+
+            if (!ModelState.IsValid)
+                hasValidationError = true;
+
+            if (hasValidationError)
+            {
+                PrepareSettingsViewData(user.Id, firstName, lastName, contactNumber);
+                return View(model);
+            }
+
+            user.Username = normalizedUsername;
+            user.Email = normalizedEmail;
+
+            if (petOwner != null)
+            {
+                petOwner.FirstName = firstName;
+                petOwner.LastName = lastName;
+                petOwner.ContactNumber = contactNumber;
+            }
+
+            if (changingPassword)
+            {
+                user.PasswordHash = PasswordHelper.HashPassword(newPassword);
+                user.LastPasswordChange = DateTime.Now;
+                user.MustChangePassword = false;
+            }
+
+            _context.SaveChanges();
+
+            HttpContext.Session.SetString("Username", user.Username);
+
+            TempData["Success"] = "Account updated successfully.";
+
+            return RedirectToAction("Settings");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Deactivate()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (userId == null)
+                return RedirectToAction("Login");
+
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId.Value);
+
+            if (user == null)
+                return RedirectToAction("Login");
+
+            var deactivateUsername = Request.Form["DeactivateUsername"].ToString().Trim();
+            var deactivatePassword = Request.Form["DeactivatePassword"].ToString();
+            var deactivateConfirmation = Request.Form["DeactivateConfirmation"].ToString().Trim();
+            var hasValidationError = false;
+
+            if (!string.Equals(deactivateUsername, user.Username, StringComparison.Ordinal))
+            {
+                ViewBag.DeactivateUsernameError = "The username does not match your current account.";
+                hasValidationError = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(deactivatePassword))
+            {
+                ViewBag.DeactivatePasswordError = "Please enter your password.";
+                hasValidationError = true;
+            }
+            else if (user.PasswordHash != PasswordHelper.HashPassword(deactivatePassword))
+            {
+                ViewBag.DeactivatePasswordError = "The password you entered is incorrect.";
+                hasValidationError = true;
+            }
+
+            if (!string.Equals(deactivateConfirmation, "DEACTIVATE", StringComparison.Ordinal))
+            {
+                ViewBag.DeactivateConfirmationError = "Please type DEACTIVATE exactly to confirm.";
+                hasValidationError = true;
+            }
+
+            if (hasValidationError)
+            {
+                ViewBag.DeactivateUsername = deactivateUsername;
+                ViewBag.DeactivateConfirmation = deactivateConfirmation;
+                PrepareSettingsViewData(user.Id);
+                return View("Settings", user);
+            }
+
+            user.IsActive = false;
+            _context.SaveChanges();
+
+            HttpContext.Session.Clear();
+
+            TempData["Success"] = "Your account has been deactivated.";
+            return RedirectToAction("Login");
+        }
+
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Index", "Home");
+        }
+
+        private static bool IsValidGmailAddress(string email)
+        {
+            return Regex.IsMatch(
+                email.Trim(),
+                @"^[A-Za-z0-9._%+-]+@gmail\.com$",
+                RegexOptions.IgnoreCase);
+        }
+
+        private static bool IsStrongPassword(string password)
+        {
+            return password.Length >= 8 &&
+                password.Any(char.IsUpper) &&
+                password.Any(char.IsLower) &&
+                password.Any(char.IsDigit) &&
+                password.Any(ch => !char.IsLetterOrDigit(ch));
+        }
+
+        private void PrepareSettingsViewData(int userId, string? firstName = null, string? lastName = null, string? contactNumber = null)
+        {
+            var petOwner = _context.PetOwners.FirstOrDefault(x => x.UserId == userId);
+
+            ViewBag.PetOwner = petOwner;
+            ViewBag.FirstName = firstName ?? petOwner?.FirstName;
+            ViewBag.LastName = lastName ?? petOwner?.LastName;
+            ViewBag.ContactNumber = contactNumber ?? petOwner?.ContactNumber;
+        }
+    }
+}
+
+```
+
+## C:\Users\andrea\Desktop\VetClinicSystem\VetClinicSystem\VetClinicSystem\Controllers\DashboardController.cs
+
+`$lang
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using VetClinicSystem.Models;
+using VetClinicSystem.Services.Appointments;
+using VetClinicSystem.Services.MedicalRecords;
+using VetClinicSystem.Services.Notifications;
+using VetClinicSystem.Services.Pets;
+using VetClinicSystem.Services.Users;
+using VetClinicSystem.Services.Vaccinations;
+using VetClinicSystem.ViewModels;
+
+namespace VetClinicSystem.Controllers
+{
+    public class DashboardController : Controller
+    {
+        private readonly IPetService _petService;
+        private readonly IAppointmentService _appointmentService;
+        private readonly INotificationService _notificationService;
+        private readonly IUserService _userService;
+        private readonly IVaccinationService _vaccinationService;
+        private readonly IMedicalRecordService _medicalRecordService;
+        private readonly VetClinicDbContext _context;
+
+        public DashboardController(
+            IPetService petService,
+            IAppointmentService appointmentService,
+            INotificationService notificationService,
+            IUserService userService,
+            IVaccinationService vaccinationService,
+            IMedicalRecordService medicalRecordService,
+            VetClinicDbContext context)
+        {
+            _petService = petService;
+            _appointmentService = appointmentService;
+            _notificationService = notificationService;
+            _userService = userService;
+            _vaccinationService = vaccinationService;
+            _medicalRecordService = medicalRecordService;
+            _context = context;
+        }
+
+        public IActionResult Admin()
+        {
+            if (HttpContext.Session.GetInt32("UserId") == null || HttpContext.Session.GetInt32("RoleId") != 1)
+                return RedirectToAction("Login", "Account");
+
+            var appointments = _appointmentService.GetAll();
+            var users = _userService.GetAll();
+
+            ViewBag.TotalPets = _petService.GetAll().Count;
+            ViewBag.TotalAppointments = appointments.Count;
+            ViewBag.TotalUsers = users.Count;
+            ViewBag.UnreadNotifications = _notificationService.GetUnreadForStaff().Count;
+
+            var grouped = appointments
+                .GroupBy(a => a.AppointmentDate)
+                .OrderBy(g => g.Key)
+                .Select(g => new
+                {
+                    Date = g.Key.ToString("MM/dd"),
+                    Count = g.Count()
+                })
+                .ToList();
+
+            ViewBag.ChartLabels = JsonSerializer.Serialize(grouped.Select(x => x.Date));
+            ViewBag.ChartData = JsonSerializer.Serialize(grouped.Select(x => x.Count));
+
+            return View();
+        }
+
+        public IActionResult Users(string? filter)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            var normalizedFilter = NormalizeUserFilter(filter);
+            var allUsers = _userService.GetAll();
+            var filteredUsers = allUsers
+                .Where(user => MatchesUserFilter(user, normalizedFilter))
+                .ToList();
+
+            var model = new AdminUsersViewModel
+            {
+                Users = filteredUsers,
+                Filter = normalizedFilter,
+                CurrentUserId = currentUserId.Value,
+                ActiveCount = allUsers.Count(user => !user.IsDeleted && user.IsActive),
+                InactiveCount = allUsers.Count(user => !user.IsDeleted && !user.IsActive),
+                ArchivedCount = allUsers.Count(user => user.IsDeleted)
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeactivateUser(int id)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            if (id == currentUserId.Value)
+            {
+                TempData["Error"] = "You cannot deactivate your own account.";
+                return RedirectToAction("Users");
+            }
+
+            var user = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (user == null)
+            {
+                TempData["Error"] = "User account was not found.";
+                return RedirectToAction("Users");
+            }
+
+            if (user.IsDeleted)
+            {
+                TempData["Error"] = "Archived accounts cannot be deactivated. Restore the account first if needed.";
+                return RedirectToAction("Users", new { filter = "archived" });
+            }
+
+            user.IsActive = false;
+            _context.SaveChanges();
+
+            TempData["Success"] = "User account deactivated successfully.";
+            return RedirectToAction("Users", new { filter = "inactive" });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RestoreUser(int id)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            var user = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (user == null)
+            {
+                TempData["Error"] = "User account was not found.";
+                return RedirectToAction("Users");
+            }
+
+            user.IsDeleted = false;
+            user.IsActive = true;
+            user.DeletedAt = null;
+            user.DeletedByUserId = null;
+            user.DeleteReason = null;
+            _context.SaveChanges();
+
+            TempData["Success"] = "User account restored successfully.";
+            return RedirectToAction("Users", new { filter = "active" });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ArchiveUser(int id, string? reason)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            if (id == currentUserId.Value)
+            {
+                TempData["Error"] = "You cannot archive your own account.";
+                return RedirectToAction("Users");
+            }
+
+            var user = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (user == null)
+            {
+                TempData["Error"] = "User account was not found.";
+                return RedirectToAction("Users");
+            }
+
+            user.IsDeleted = true;
+            user.IsActive = false;
+            user.DeletedAt = DateTime.Now;
+            user.DeletedByUserId = currentUserId.Value;
+            user.DeleteReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+            _context.SaveChanges();
+
+            TempData["Success"] = "User account archived successfully.";
+            return RedirectToAction("Users", new { filter = "archived" });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RestoreArchivedUser(int id)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            var user = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (user == null)
+            {
+                TempData["Error"] = "User account was not found.";
+                return RedirectToAction("Users");
+            }
+
+            user.IsDeleted = false;
+            user.IsActive = true;
+            user.DeletedAt = null;
+            user.DeletedByUserId = null;
+            user.DeleteReason = null;
+            _context.SaveChanges();
+
+            TempData["Success"] = "Archived user account restored successfully.";
+            return RedirectToAction("Users", new { filter = "active" });
+        }
+
+        public IActionResult Staff()
+        {
+            if (HttpContext.Session.GetInt32("UserId") == null || HttpContext.Session.GetInt32("RoleId") != 2)
+                return RedirectToAction("Login", "Account");
+
+            ViewBag.TotalAppointments = _appointmentService.GetAll().Count;
+            ViewBag.UnreadNotifications = _notificationService.GetUnreadForStaff().Count;
+
+            return View();
+        }
+
+        public IActionResult Client()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (userId == null || roleId != 3)
+                return RedirectToAction("Login", "Account");
+
+            var appointments = _appointmentService.GetByUser(userId.Value);
+            var user = _userService.GetById(userId.Value);
+            var petOwner = _userService.GetPetOwnerByUserId(userId.Value);
+            var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
+            var todayDate = DateOnly.FromDateTime(DateTime.Today);
+
+            ViewBag.TotalPets = _petService.GetByUser(userId.Value).Count;
+            ViewBag.TotalAppointments = appointments.Count;
+            ViewBag.CurrentUser = user;
+            ViewBag.PetOwner = petOwner;
+            ViewBag.UnreadNotifications = _notificationService.GetUnreadForUser(userId.Value).Count;
+            ViewBag.UpcomingReminders = appointments
+                .Where(x => x.AppointmentDate >= todayDate && x.AppointmentDate <= todayDate.AddDays(2))
+                .OrderBy(x => x.AppointmentDate)
+                .ThenBy(x => x.AppointmentTime)
+                .Take(3)
+                .ToList();
+            ViewBag.FollowUpAppointments = appointments
+                .Where(x => x.Status?.StatusName == "Completed")
+                .OrderByDescending(x => x.AppointmentDate)
+                .Take(2)
+                .ToList();
+            ViewBag.OverdueVaccinations = _vaccinationService.GetAll()
+                .Where(x => myPetIds.Contains(x.PetId) && x.NextDueDate.HasValue && x.NextDueDate.Value < todayDate)
+                .OrderBy(x => x.NextDueDate)
+                .ToList();
+            ViewBag.RecentTreatmentHistory = _medicalRecordService.GetAll()
+                .Where(x => myPetIds.Contains(x.PetId))
+                .OrderByDescending(x => x.RecordDate)
+                .Take(3)
+                .ToList();
+            ViewBag.ClientAppointments = appointments
+                .OrderBy(x => x.AppointmentDate)
+                .ThenBy(x => x.AppointmentTime)
+                .Select(x => new
+                {
+                    date = x.AppointmentDate.ToString("yyyy-MM-dd"),
+                    day = x.AppointmentDate.Day,
+                    title = x.Service?.ServiceName ?? "Appointment",
+                    pet = x.Pet?.PetName ?? "Pet",
+                    time = x.AppointmentTime.ToString("HH:mm"),
+                    status = x.Status?.StatusName ?? "Scheduled",
+                    reason = x.ReasonForVisit ?? "Clinic appointment"
+                })
+                .ToList();
+
+            return View();
+        }
+
+        private static string NormalizeUserFilter(string? filter)
+        {
+            return filter?.Trim().ToLowerInvariant() switch
+            {
+                "active" => "active",
+                "inactive" => "inactive",
+                "archived" => "archived",
+                _ => "all"
+            };
+        }
+
+        private static bool MatchesUserFilter(User user, string filter)
+        {
+            return filter switch
+            {
+                "active" => !user.IsDeleted && user.IsActive,
+                "inactive" => !user.IsDeleted && !user.IsActive,
+                "archived" => user.IsDeleted,
+                _ => true
+            };
+        }
+    }
+}
+
+```
+
+## C:\Users\andrea\Desktop\VetClinicSystem\VetClinicSystem\VetClinicSystem\Views\Dashboard\Users.cshtml
+
+`$lang
+@model VetClinicSystem.ViewModels.AdminUsersViewModel
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<section class="admin-users-panel">
+    <div class="admin-users-panel__header">
+        <div>
+            <h4>Users</h4>
+            <p>Manage active, inactive, and archived accounts without deleting related clinic records.</p>
+        </div>
+        <span>@Model.Users.Count shown</span>
+    </div>
+
+    <div class="admin-users-filters" role="tablist" aria-label="User status filters">
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="all" class="admin-users-filter @(Model.Filter == "all" ? "is-active" : null)">
+            All
+        </a>
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="active" class="admin-users-filter @(Model.Filter == "active" ? "is-active" : null)">
+            Active
+            <span>@Model.ActiveCount</span>
+        </a>
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="inactive" class="admin-users-filter @(Model.Filter == "inactive" ? "is-active" : null)">
+            Inactive
+            <span>@Model.InactiveCount</span>
+        </a>
+        <a asp-action="Users" asp-controller="Dashboard" asp-route-filter="archived" class="admin-users-filter @(Model.Filter == "archived" ? "is-active" : null)">
+            Archived
+            <span>@Model.ArchivedCount</span>
+        </a>
+    </div>
+
+    @if (!Model.Users.Any())
+    {
+        <div class="alert alert-info">No users found for this filter.</div>
+    }
+    else
+    {
+        <div class="table-panel">
+            <table class="table table-bordered table-striped admin-users-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Date Created</th>
+                        <th>Archive Info</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    var displayName = user.PetOwner != null
+                        ? $"{user.PetOwner.FirstName} {user.PetOwner.LastName}".Trim()
+                        : user.Username;
+
+                    <tr class="@(user.IsDeleted ? "admin-users-row--archived" : null)">
+                        <td>@displayName</td>
+                        <td>@user.Username</td>
+                        <td>@user.Email</td>
+                        <td>@(user.Role?.RoleName ?? "User")</td>
+                        <td>
+                            @if (user.IsDeleted)
+                            {
+                                <span class="status-pill status-pill--archived">Archived</span>
+                            }
+                            else if (user.IsActive)
+                            {
+                                <span class="status-pill status-pill--success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="status-pill status-pill--muted">Inactive</span>
+                            }
+                        </td>
+                        <td>@user.DateCreated.ToString("MMM d, yyyy")</td>
+                        <td>
+                            @if (user.IsDeleted)
+                            {
+                                <div class="admin-users-meta">
+                                    <span>@(user.DeletedAt?.ToString("MMM d, yyyy h:mm tt") ?? "Archived")</span>
+                                    @if (!string.IsNullOrWhiteSpace(user.DeleteReason))
+                                    {
+                                        <small>@user.DeleteReason</small>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not archived</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.Id == Model.CurrentUserId)
+                            {
+                                <span class="text-muted">Current account</span>
+                            }
+                            else
+                            {
+                                <div class="admin-user-actions">
+                                    @if (user.IsDeleted)
+                                    {
+                                        <form asp-action="RestoreArchivedUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to restore this archived user account?">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button type="submit" class="btn btn-success btn-sm">Restore Archived</button>
+                                        </form>
+                                    }
+                                    else if (user.IsActive)
+                                    {
+                                        <form asp-action="DeactivateUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to deactivate this user account?">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button type="submit" class="btn btn-warning btn-sm">Deactivate</button>
+                                        </form>
+
+                                        <form asp-action="ArchiveUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to archive this user account?" data-admin-user-archive="true">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <input type="hidden" name="reason" value="" data-admin-archive-reason />
+                                            <button type="submit" class="btn btn-danger btn-sm">Archive</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="RestoreUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to restore this inactive user account?">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button type="submit" class="btn btn-success btn-sm">Restore Inactive</button>
+                                        </form>
+
+                                        <form asp-action="ArchiveUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to archive this user account?" data-admin-user-archive="true">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <input type="hidden" name="reason" value="" data-admin-archive-reason />
+                                            <button type="submit" class="btn btn-danger btn-sm">Archive</button>
+                                        </form>
+                                    }
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<div class="admin-confirm-overlay" id="adminUserConfirmOverlay" hidden>
+    <div class="admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="adminUserConfirmTitle">
+        <button type="button" class="admin-confirm-close" data-admin-confirm-cancel aria-label="Close confirmation">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <span class="admin-confirm-icon"><i class="fa-solid fa-exclamation"></i></span>
+        <h3 id="adminUserConfirmTitle">Confirm Action</h3>
+        <p id="adminUserConfirmMessage"></p>
+        <div class="admin-archive-reason" id="adminArchiveReasonWrap" hidden>
+            <label for="adminArchiveReason" class="form-label">Archive reason (optional)</label>
+            <textarea id="adminArchiveReason" class="form-control" rows="3" maxlength="255" placeholder="Add a short reason for archiving this account."></textarea>
+        </div>
+        <div class="admin-confirm-actions">
+            <button type="button" class="btn btn-danger" data-admin-confirm-submit>Confirm</button>
+            <button type="button" class="btn btn-outline-secondary" data-admin-confirm-cancel>Cancel</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const confirmOverlay = document.getElementById("adminUserConfirmOverlay");
+            const confirmMessage = document.getElementById("adminUserConfirmMessage");
+            const confirmSubmit = document.querySelector("[data-admin-confirm-submit]");
+            const archiveReasonWrap = document.getElementById("adminArchiveReasonWrap");
+            const archiveReason = document.getElementById("adminArchiveReason");
+            let pendingUserActionForm = null;
+
+            document.querySelectorAll("[data-admin-user-confirm]").forEach(function (form) {
+                form.addEventListener("submit", function (event) {
+                    if (form.dataset.confirmed === "true") {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    pendingUserActionForm = form;
+                    confirmMessage.textContent = form.dataset.adminUserConfirm;
+                    const isArchive = form.dataset.adminUserArchive === "true";
+                    archiveReasonWrap.hidden = !isArchive;
+
+                    if (archiveReason) {
+                        archiveReason.value = "";
+                    }
+
+                    confirmOverlay.hidden = false;
+                    confirmSubmit.focus();
+                });
+            });
+
+            function closeConfirm() {
+                confirmOverlay.hidden = true;
+                pendingUserActionForm = null;
+                archiveReasonWrap.hidden = true;
+
+                if (archiveReason) {
+                    archiveReason.value = "";
+                }
+            }
+
+            document.querySelectorAll("[data-admin-confirm-cancel]").forEach(function (button) {
+                button.addEventListener("click", closeConfirm);
+            });
+
+            if (confirmOverlay) {
+                confirmOverlay.addEventListener("click", function (event) {
+                    if (event.target === confirmOverlay) {
+                        closeConfirm();
+                    }
+                });
+            }
+
+            if (confirmSubmit) {
+                confirmSubmit.addEventListener("click", function () {
+                    if (!pendingUserActionForm) return;
+
+                    const reasonField = pendingUserActionForm.querySelector("[data-admin-archive-reason]");
+                    if (reasonField) {
+                        reasonField.value = archiveReason ? archiveReason.value.trim() : "";
+                    }
+
+                    pendingUserActionForm.dataset.confirmed = "true";
+                    pendingUserActionForm.requestSubmit();
+                });
+            }
+        });
+    </script>
+}
+
+```
+
+## C:\Users\andrea\Desktop\VetClinicSystem\VetClinicSystem\VetClinicSystem\wwwroot\css\site.css
+
+`$lang
+:root {
     --brand: #087f8c;
     --brand-dark: #075866;
     --brand-soft: #e6f6f7;
@@ -6095,3 +7283,295 @@ input {
 
 
 
+
+```
+
+## C:\Users\andrea\Desktop\VetClinicSystem\VetClinicSystem\VetClinicSystem\Program.cs
+
+`$lang
+using Microsoft.EntityFrameworkCore;
+using VetClinicSystem.Models;
+using VetClinicSystem.Repositories.Appointments;
+using VetClinicSystem.Repositories.Clinics; 
+using VetClinicSystem.Repositories.MedicalRecords;
+using VetClinicSystem.Repositories.Notifications;
+using VetClinicSystem.Repositories.Pets;
+using VetClinicSystem.Repositories.Services;
+using VetClinicSystem.Repositories.Users;
+using VetClinicSystem.Repositories.Vaccinations;
+using VetClinicSystem.Services.Appointments;
+using VetClinicSystem.Services.Clinics;
+using VetClinicSystem.Services.MedicalRecords;
+using VetClinicSystem.Services.Notifications;
+using VetClinicSystem.Services.Pets;
+using VetClinicSystem.Services.Services;
+using VetClinicSystem.Services.Users;
+using VetClinicSystem.Services.Vaccinations;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<VetClinicDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPetRepository, PetRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IVaccinationRepository, VaccinationRepository>();
+builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
+builder.Services.AddScoped<IClinicRepository, ClinicRepository>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPetService, PetService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
+builder.Services.AddScoped<IVaccinationService, VaccinationService>();
+builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+builder.Services.AddScoped<IClinicService, ClinicService>();
+
+var app = builder.Build();
+
+EnsureApplicationSchema(app);
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseSession();
+
+app.Use(async (context, next) =>
+{
+    var notificationService = context.RequestServices.GetService<INotificationService>();
+    var roleId = context.Session.GetInt32("RoleId");
+    var userId = context.Session.GetInt32("UserId");
+
+    if (notificationService != null && (roleId == 1 || roleId == 2))
+    {
+        context.Items["NotificationCount"] = notificationService.GetUnreadForStaff().Count;
+    }
+    else if (notificationService != null && roleId == 3 && userId.HasValue)
+    {
+        context.Items["NotificationCount"] = notificationService.GetUnreadForUser(userId.Value).Count;
+    }
+
+    await next();
+});
+
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+
+static void EnsureApplicationSchema(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<VetClinicDbContext>();
+
+    context.Database.ExecuteSqlRaw(@"
+IF COL_LENGTH('Users', 'MustChangePassword') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD MustChangePassword BIT NOT NULL DEFAULT 0;
+END
+
+IF COL_LENGTH('Users', 'LastPasswordChange') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD LastPasswordChange DATETIME NULL;
+END
+
+IF COL_LENGTH('Users', 'IsDeleted') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD IsDeleted BIT NOT NULL CONSTRAINT DF_Users_IsDeleted DEFAULT 0;
+END
+
+IF COL_LENGTH('Users', 'DeletedAt') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD DeletedAt DATETIME NULL;
+END
+
+IF COL_LENGTH('Users', 'DeletedByUserId') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD DeletedByUserId INT NULL;
+END
+
+IF COL_LENGTH('Users', 'DeleteReason') IS NULL
+BEGIN
+    ALTER TABLE Users
+    ADD DeleteReason NVARCHAR(255) NULL;
+END
+
+IF COL_LENGTH('Appointments', 'PreferredAppointmentDate') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD PreferredAppointmentDate DATE NULL;
+END
+
+IF COL_LENGTH('Appointments', 'PreferredAppointmentTime') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD PreferredAppointmentTime TIME NULL;
+END
+
+IF COL_LENGTH('Appointments', 'SurgeryCategory') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD SurgeryCategory NVARCHAR(20) NULL;
+END
+
+IF COL_LENGTH('Appointments', 'SurgeryLoadPoints') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD SurgeryLoadPoints INT NOT NULL CONSTRAINT DF_Appointments_SurgeryLoadPoints DEFAULT 0;
+END
+
+IF COL_LENGTH('Appointments', 'IsEmergency') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD IsEmergency BIT NOT NULL CONSTRAINT DF_Appointments_IsEmergency DEFAULT 0;
+END
+
+IF COL_LENGTH('Appointments', 'IsScheduleFinalized') IS NULL
+BEGIN
+    ALTER TABLE Appointments
+    ADD IsScheduleFinalized BIT NOT NULL CONSTRAINT DF_Appointments_IsScheduleFinalized DEFAULT 0;
+END
+
+IF COL_LENGTH('StaffNotifications', 'UserId') IS NULL
+BEGIN
+    ALTER TABLE StaffNotifications
+    ADD UserId INT NULL;
+END
+
+IF COL_LENGTH('StaffNotifications', 'RecipientRole') IS NULL
+BEGIN
+    ALTER TABLE StaffNotifications
+    ADD RecipientRole NVARCHAR(20) NOT NULL CONSTRAINT DF_StaffNotifications_RecipientRole DEFAULT 'Staff';
+END
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns
+    WHERE object_id = OBJECT_ID('StaffNotifications')
+      AND name = 'AppointmentId'
+      AND is_nullable = 0)
+BEGIN
+    DECLARE @dropAppointmentFkSql NVARCHAR(MAX) = N'';
+    SELECT @dropAppointmentFkSql = @dropAppointmentFkSql +
+        N'ALTER TABLE StaffNotifications DROP CONSTRAINT [' + fk.name + N'];'
+    FROM sys.foreign_keys fk
+    INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+    INNER JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+    WHERE fk.parent_object_id = OBJECT_ID('StaffNotifications')
+      AND c.name = 'AppointmentId';
+
+    IF (@dropAppointmentFkSql <> N'')
+        EXEC sp_executesql @dropAppointmentFkSql;
+
+    ALTER TABLE StaffNotifications
+    ALTER COLUMN AppointmentId INT NULL;
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys fk
+    INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+    INNER JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+    WHERE fk.parent_object_id = OBJECT_ID('Users')
+      AND c.name = 'DeletedByUserId')
+BEGIN
+    ALTER TABLE Users
+    ADD CONSTRAINT FK_Users_Users_DeletedByUserId FOREIGN KEY (DeletedByUserId) REFERENCES Users(Id);
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys fk
+    INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+    INNER JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+    WHERE fk.parent_object_id = OBJECT_ID('StaffNotifications')
+      AND c.name = 'AppointmentId')
+BEGIN
+    ALTER TABLE StaffNotifications
+    ADD CONSTRAINT FK_StaffNotifications_Appointments_AppointmentId FOREIGN KEY (AppointmentId) REFERENCES Appointments(Id);
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys fk
+    INNER JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+    INNER JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+    WHERE fk.parent_object_id = OBJECT_ID('StaffNotifications')
+      AND c.name = 'UserId')
+BEGIN
+    ALTER TABLE StaffNotifications
+    ADD CONSTRAINT FK_StaffNotifications_Users_UserId FOREIGN KEY (UserId) REFERENCES Users(Id);
+END
+
+IF COL_LENGTH('StaffNotifications', 'RecipientRole') IS NOT NULL
+BEGIN
+    EXEC(N'
+        UPDATE StaffNotifications
+        SET RecipientRole = ''Staff''
+        WHERE RecipientRole IS NULL OR LTRIM(RTRIM(RecipientRole)) = '''';
+    ');
+END
+
+IF COL_LENGTH('Appointments', 'PreferredAppointmentDate') IS NOT NULL
+   AND COL_LENGTH('Appointments', 'PreferredAppointmentTime') IS NOT NULL
+   AND COL_LENGTH('Appointments', 'SurgeryCategory') IS NOT NULL
+   AND COL_LENGTH('Appointments', 'SurgeryLoadPoints') IS NOT NULL
+   AND COL_LENGTH('Appointments', 'IsEmergency') IS NOT NULL
+BEGIN
+    EXEC(N'
+        UPDATE a
+        SET
+            PreferredAppointmentDate = ISNULL(a.PreferredAppointmentDate, a.AppointmentDate),
+            PreferredAppointmentTime = ISNULL(a.PreferredAppointmentTime, a.AppointmentTime),
+            SurgeryCategory = CASE
+                WHEN a.SurgeryCategory IS NULL OR LTRIM(RTRIM(a.SurgeryCategory)) = '''' THEN ''Moderate''
+                ELSE a.SurgeryCategory
+            END,
+            SurgeryLoadPoints = CASE
+                WHEN a.IsEmergency = 1 THEN 0
+                WHEN a.SurgeryCategory = ''Minor'' THEN 1
+                WHEN a.SurgeryCategory = ''Major'' THEN 3
+                WHEN a.SurgeryCategory = ''Moderate'' THEN 2
+                WHEN a.SurgeryLoadPoints IS NULL OR a.SurgeryLoadPoints = 0 THEN 2
+                ELSE a.SurgeryLoadPoints
+            END
+        FROM Appointments a
+        INNER JOIN Services s ON s.Id = a.ServiceId
+        WHERE s.ServiceName LIKE ''%Surgery%''
+    ');
+END
+");
+}
+
+```

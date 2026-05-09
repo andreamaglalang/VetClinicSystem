@@ -7,6 +7,7 @@ using VetClinicSystem.Services.Notifications;
 using VetClinicSystem.Services.Pets;
 using VetClinicSystem.Services.Users;
 using VetClinicSystem.Services.Vaccinations;
+using VetClinicSystem.ViewModels;
 
 namespace VetClinicSystem.Controllers
 {
@@ -67,7 +68,7 @@ namespace VetClinicSystem.Controllers
             return View();
         }
 
-        public IActionResult Users()
+        public IActionResult Users(string? filter)
         {
             var currentUserId = HttpContext.Session.GetInt32("UserId");
             var roleId = HttpContext.Session.GetInt32("RoleId");
@@ -75,8 +76,23 @@ namespace VetClinicSystem.Controllers
             if (currentUserId == null || roleId != 1)
                 return RedirectToAction("Login", "Account");
 
-            ViewBag.CurrentUserId = currentUserId.Value;
-            return View(_userService.GetAll());
+            var normalizedFilter = NormalizeUserFilter(filter);
+            var allUsers = _userService.GetAll();
+            var filteredUsers = allUsers
+                .Where(user => MatchesUserFilter(user, normalizedFilter))
+                .ToList();
+
+            var model = new AdminUsersViewModel
+            {
+                Users = filteredUsers,
+                Filter = normalizedFilter,
+                CurrentUserId = currentUserId.Value,
+                ActiveCount = allUsers.Count(user => !user.IsDeleted && user.IsActive),
+                InactiveCount = allUsers.Count(user => !user.IsDeleted && !user.IsActive),
+                ArchivedCount = allUsers.Count(user => user.IsDeleted)
+            };
+
+            return View(model);
         }
 
         [HttpPost]
@@ -102,11 +118,17 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Users");
             }
 
+            if (user.IsDeleted)
+            {
+                TempData["Error"] = "Archived accounts cannot be deactivated. Restore the account first if needed.";
+                return RedirectToAction("Users", new { filter = "archived" });
+            }
+
             user.IsActive = false;
             _context.SaveChanges();
 
             TempData["Success"] = "User account deactivated successfully.";
-            return RedirectToAction("Users");
+            return RedirectToAction("Users", new { filter = "inactive" });
         }
 
         [HttpPost]
@@ -126,11 +148,77 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Users");
             }
 
+            user.IsDeleted = false;
             user.IsActive = true;
+            user.DeletedAt = null;
+            user.DeletedByUserId = null;
+            user.DeleteReason = null;
             _context.SaveChanges();
 
             TempData["Success"] = "User account restored successfully.";
-            return RedirectToAction("Users");
+            return RedirectToAction("Users", new { filter = "active" });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ArchiveUser(int id, string? reason)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            if (id == currentUserId.Value)
+            {
+                TempData["Error"] = "You cannot archive your own account.";
+                return RedirectToAction("Users");
+            }
+
+            var user = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (user == null)
+            {
+                TempData["Error"] = "User account was not found.";
+                return RedirectToAction("Users");
+            }
+
+            user.IsDeleted = true;
+            user.IsActive = false;
+            user.DeletedAt = DateTime.Now;
+            user.DeletedByUserId = currentUserId.Value;
+            user.DeleteReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+            _context.SaveChanges();
+
+            TempData["Success"] = "User account archived successfully.";
+            return RedirectToAction("Users", new { filter = "archived" });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RestoreArchivedUser(int id)
+        {
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId == null || roleId != 1)
+                return RedirectToAction("Login", "Account");
+
+            var user = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (user == null)
+            {
+                TempData["Error"] = "User account was not found.";
+                return RedirectToAction("Users");
+            }
+
+            user.IsDeleted = false;
+            user.IsActive = true;
+            user.DeletedAt = null;
+            user.DeletedByUserId = null;
+            user.DeleteReason = null;
+            _context.SaveChanges();
+
+            TempData["Success"] = "Archived user account restored successfully.";
+            return RedirectToAction("Users", new { filter = "active" });
         }
 
         public IActionResult Staff()
@@ -199,6 +287,28 @@ namespace VetClinicSystem.Controllers
                 .ToList();
 
             return View();
+        }
+
+        private static string NormalizeUserFilter(string? filter)
+        {
+            return filter?.Trim().ToLowerInvariant() switch
+            {
+                "active" => "active",
+                "inactive" => "inactive",
+                "archived" => "archived",
+                _ => "all"
+            };
+        }
+
+        private static bool MatchesUserFilter(User user, string filter)
+        {
+            return filter switch
+            {
+                "active" => !user.IsDeleted && user.IsActive,
+                "inactive" => !user.IsDeleted && !user.IsActive,
+                "archived" => user.IsDeleted,
+                _ => true
+            };
         }
     }
 }

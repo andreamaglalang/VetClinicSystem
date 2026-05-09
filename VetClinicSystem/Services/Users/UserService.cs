@@ -30,6 +30,7 @@ namespace VetClinicSystem.Services.Users
                 PasswordHash = PasswordHelper.HashPassword(password),
                 RoleId = clientRole.Id,
                 IsActive = true,
+                IsDeleted = false,
                 DateCreated = DateTime.Now
             };
 
@@ -56,7 +57,7 @@ namespace VetClinicSystem.Services.Users
         {
             var user = _userRepository.GetByUsername(username);
             if (user == null) return null;
-            if (!user.IsActive) return null;
+            if (!user.IsActive || user.IsDeleted) return null;
 
             var hashed = PasswordHelper.HashPassword(password);
             if (user.PasswordHash != hashed) return null;

@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     setupMobileNavigation();
-    setupTablePanels();
-    setupTablePagination();
+    setupTablePanels(document);
+    setupTablePagination(document);
     setupConfirmationForms();
     setupActionModals();
 });
@@ -34,8 +34,9 @@ function setupMobileNavigation() {
     });
 }
 
-function setupTablePanels() {
-    const tables = document.querySelectorAll(".app-container--standard > table.table");
+function setupTablePanels(root) {
+    const container = root || document;
+    const tables = container.querySelectorAll(".app-container--standard > table.table");
 
     tables.forEach(function (table) {
         if (table.closest(".medivet-price-panel") || table.closest(".table-panel")) {
@@ -67,9 +68,10 @@ function setupTablePanels() {
     });
 }
 
-function setupTablePagination() {
+function setupTablePagination(root) {
     const pageSize = 8;
-    const tables = document.querySelectorAll(".app-container--standard table.table");
+    const container = root || document;
+    const tables = container.querySelectorAll(".app-container--standard table.table, .action-modal-body table.table");
 
     tables.forEach(function (table, index) {
         if (table.closest(".medivet-price-panel")) {
@@ -265,6 +267,8 @@ function setupActionModals() {
         bodyElement.innerHTML = content.innerHTML;
         modalElement.dataset.actionUrl = actionUrl;
         normalizeModalForms(actionUrl);
+        setupTablePanels(bodyElement);
+        setupTablePagination(bodyElement);
     }
 
     function normalizeModalForms(actionUrl) {

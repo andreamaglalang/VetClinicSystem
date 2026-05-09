@@ -19,6 +19,7 @@ namespace VetClinicSystem.Repositories.MedicalRecords
                 .Include(x => x.Appointment)
                     .ThenInclude(x => x!.Service)
                 .OrderByDescending(x => x.RecordDate)
+                .ThenByDescending(x => x.Id)
                 .ToList();
         }
 

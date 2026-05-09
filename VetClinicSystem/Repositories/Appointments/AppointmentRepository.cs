@@ -14,25 +14,25 @@ namespace VetClinicSystem.Repositories.Appointments
 
         public List<Appointment> GetAll()
         {
-            return _context.Appointments
+            var appointments = _context.Appointments
                 .Include(x => x.Pet)
                 .Include(x => x.Service)
                 .Include(x => x.Status)
-                .OrderByDescending(x => x.AppointmentDate)
-                .ThenByDescending(x => x.AppointmentTime)
                 .ToList();
+
+            return OrderForManagement(appointments);
         }
 
         public List<Appointment> GetByOwnerId(int ownerId)
         {
-            return _context.Appointments
+            var appointments = _context.Appointments
                 .Include(x => x.Pet)
                 .Include(x => x.Service)
                 .Include(x => x.Status)
                 .Where(x => x.Pet.OwnerId == ownerId)
-                .OrderByDescending(x => x.AppointmentDate)
-                .ThenByDescending(x => x.AppointmentTime)
                 .ToList();
+
+            return OrderForClient(appointments);
         }
 
         public List<Appointment> Search(string? search)
@@ -73,10 +73,7 @@ namespace VetClinicSystem.Repositories.Appointments
                 query = query.Where(x => x.AppointmentDate == appointmentDate.Value);
             }
 
-            return query
-                .OrderByDescending(x => x.AppointmentDate)
-                .ThenByDescending(x => x.AppointmentTime)
-                .ToList();
+            return OrderForManagement(query.ToList());
         }
 
         public List<Appointment> FilterByOwnerId(int ownerId, string? search, int? statusId, DateOnly? appointmentDate)
@@ -107,10 +104,7 @@ namespace VetClinicSystem.Repositories.Appointments
                 query = query.Where(x => x.AppointmentDate == appointmentDate.Value);
             }
 
-            return query
-                .OrderByDescending(x => x.AppointmentDate)
-                .ThenByDescending(x => x.AppointmentTime)
-                .ToList();
+            return OrderForClient(query.ToList());
         }
 
         public Appointment? GetById(int id)
@@ -166,6 +160,51 @@ namespace VetClinicSystem.Repositories.Appointments
         public void Save()
         {
             _context.SaveChanges();
+        }
+
+        private static List<Appointment> OrderForManagement(IEnumerable<Appointment> appointments)
+        {
+            var now = DateTime.Now;
+
+            return appointments
+                .OrderBy(x => x.StatusId == 1 ? 0 : IsUpcomingOperational(x, now) ? 1 : 2)
+                .ThenBy(x => (x.StatusId == 1 || IsUpcomingOperational(x, now)) && x.IsEmergency ? 0 : 1)
+                .ThenBy(x => x.StatusId == 1 || IsUpcomingOperational(x, now) ? GetAppointmentDateTime(x) : DateTime.MaxValue)
+                .ThenByDescending(x => x.StatusId == 1 || IsUpcomingOperational(x, now) ? DateTime.MinValue : GetAppointmentDateTime(x))
+                .ThenByDescending(x => x.LastUpdated)
+                .ToList();
+        }
+
+        private static List<Appointment> OrderForClient(IEnumerable<Appointment> appointments)
+        {
+            var now = DateTime.Now;
+
+            return appointments
+                .OrderBy(x => IsUpcomingForClient(x, now) ? 0 : 1)
+                .ThenBy(x => IsUpcomingForClient(x, now) ? GetAppointmentDateTime(x) : DateTime.MaxValue)
+                .ThenByDescending(x => IsUpcomingForClient(x, now) ? DateTime.MinValue : GetAppointmentDateTime(x))
+                .ThenByDescending(x => x.LastUpdated)
+                .ToList();
+        }
+
+        private static bool IsUpcomingOperational(Appointment appointment, DateTime now)
+        {
+            return !IsClosed(appointment) && GetAppointmentDateTime(appointment) >= now;
+        }
+
+        private static bool IsUpcomingForClient(Appointment appointment, DateTime now)
+        {
+            return appointment.StatusId == 1 || (!IsClosed(appointment) && GetAppointmentDateTime(appointment) >= now);
+        }
+
+        private static bool IsClosed(Appointment appointment)
+        {
+            return appointment.StatusId == 3 || appointment.StatusId == 4;
+        }
+
+        private static DateTime GetAppointmentDateTime(Appointment appointment)
+        {
+            return appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime);
         }
     }
 }

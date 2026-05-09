@@ -51,6 +51,12 @@ namespace VetClinicSystem.Controllers
 
             var existingUser = _context.Users.FirstOrDefault(x => x.Username == model.Username);
 
+            if (existingUser != null && existingUser.IsDeleted)
+            {
+                ViewBag.Error = "This account has been archived. Please contact the clinic.";
+                return View(model);
+            }
+
             if (existingUser != null && !existingUser.IsActive)
             {
                 ViewBag.Error = "Your account has been deactivated. Please contact the clinic.";
