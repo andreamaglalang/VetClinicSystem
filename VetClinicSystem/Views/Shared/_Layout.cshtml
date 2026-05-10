@@ -160,6 +160,10 @@
                     <a href="/#articles">Articles</a>
                     <a href="/#contact">Contact</a>
             }
+            @if (roleId != null)
+            {
+                    <a class="mobile-menu-logout" asp-controller="Account" asp-action="Logout">Logout</a>
+            }
         </nav>
     </header>
 

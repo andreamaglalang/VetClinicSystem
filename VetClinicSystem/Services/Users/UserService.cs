@@ -57,6 +57,7 @@ namespace VetClinicSystem.Services.Users
         {
             var user = _userRepository.GetByUsername(username);
             if (user == null) return null;
+            if (!string.Equals(user.Username, username, StringComparison.Ordinal)) return null;
             if (!user.IsActive || user.IsDeleted) return null;
 
             var hashed = PasswordHelper.HashPassword(password);

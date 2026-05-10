@@ -14,7 +14,10 @@ namespace VetClinicSystem.Repositories.Users
 
         public User? GetByUsername(string username)
         {
-            return _context.Users.FirstOrDefault(x => x.Username == username);
+            return _context.Users
+                .Where(x => x.Username == username)
+                .AsEnumerable()
+                .FirstOrDefault(x => string.Equals(x.Username, username, StringComparison.Ordinal));
         }
 
         public User? GetByEmail(string email)
