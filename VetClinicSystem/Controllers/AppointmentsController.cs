@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text.RegularExpressions;
 using VetClinicSystem.Helpers;
 using VetClinicSystem.Models;
 using VetClinicSystem.Services.Appointments;
@@ -16,6 +17,8 @@ namespace VetClinicSystem.Controllers
         private static readonly TimeOnly MondayClosingTime = new(17, 0);
         private static readonly TimeOnly RegularOpeningTime = new(9, 0);
         private static readonly TimeOnly RegularClosingTime = new(19, 0);
+        private static readonly Regex LeaveRequestNameRegex = new(@"^[A-Za-z]+(?:\s[A-Za-z]+)*$", RegexOptions.Compiled);
+        private static readonly Regex PhilippineMobileRegex = new(@"^09\d{9}$", RegexOptions.Compiled);
         private static readonly Dictionary<string, int> SurgeryCategoryPoints = new(StringComparer.OrdinalIgnoreCase)
         {
             ["Minor"] = 1,
@@ -116,9 +119,22 @@ namespace VetClinicSystem.Controllers
 
             if (!string.IsNullOrWhiteSpace(ownerName))
             {
-                var nameParts = ownerName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                ownerName = Regex.Replace(ownerName.Trim(), @"\s+", " ");
+
+                if (!LeaveRequestNameRegex.IsMatch(ownerName))
+                {
+                    ModelState.AddModelError(nameof(GuestAppointmentBooking.FirstName), "Name must contain letters and spaces only.");
+                }
+
+                var nameParts = ownerName.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
                 booking.FirstName = nameParts[0];
                 booking.LastName = nameParts.Length > 1 ? nameParts[1] : string.Empty;
+            }
+
+            if (!string.IsNullOrWhiteSpace(booking.ContactNumber) &&
+                !PhilippineMobileRegex.IsMatch(booking.ContactNumber))
+            {
+                ModelState.AddModelError(nameof(GuestAppointmentBooking.ContactNumber), "Contact number must be exactly 11 digits and start with 09.");
             }
 
             if (!string.IsNullOrWhiteSpace(serviceName))

@@ -214,8 +214,11 @@
                 <p>Choose surgery to continue with an appointment request. Other clinic services are walk-in only.</p>
                 <form data-service-request-form>
                     <div class="medivet-form-row">
-                        <input class="form-control" name="ownerName" placeholder="Your name" autocomplete="name" required />
-                        <input class="form-control" name="contactNumber" placeholder="09XXXXXXXXX" autocomplete="tel" inputmode="numeric" maxlength="14" pattern="09[0-9\s-]{9,12}" title="Enter an 11-digit mobile number starting with 09." required />
+                        <input class="form-control" name="ownerName" placeholder="Your name" autocomplete="name" minlength="2" maxlength="100" pattern="[A-Za-z]+(?:\s[A-Za-z]+)*" title="Name must contain letters and spaces only." required data-letters-only="true" />
+                        <div class="medivet-field-validation">
+                            <input class="form-control" name="contactNumber" placeholder="09XXXXXXXXX" autocomplete="tel-national" inputmode="numeric" maxlength="11" pattern="09\d{9}" title="Contact number must be exactly 11 digits and start with 09." required data-phone-only="true" aria-describedby="leaveRequestContactError" />
+                            <span id="leaveRequestContactError" class="text-danger" data-contact-number-error></span>
+                        </div>
                     </div>
                     <select class="form-control" name="serviceName" required data-service-request-select>
                         <option value="">Select service</option>
@@ -666,8 +669,89 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!form || !serviceSelect || !feedback) return;
 
+        const ownerNameInput = form.elements.ownerName;
+        const contactNumberInput = form.elements.contactNumber;
+        const contactNumberError = form.querySelector("[data-contact-number-error]");
+        const ownerNamePattern = /^[A-Za-z]+(?:\s[A-Za-z]+)*$/;
+        const contactNumberPattern = /^09\d{9}$/;
+
         function getSelectedMode() {
             return serviceSelect.selectedOptions[0]?.dataset.requestMode || "";
+        }
+
+        function showValidationFeedback(message) {
+            feedback.textContent = message;
+            feedback.classList.remove("is-success");
+            feedback.classList.add("is-error");
+        }
+
+        function setContactNumberError(message) {
+            contactNumberError.textContent = message || "";
+        }
+
+        function normalizeOwnerName() {
+            ownerNameInput.value = ownerNameInput.value
+                .replace(/[^A-Za-z ]+/g, "")
+                .replace(/\s{2,}/g, " ")
+                .trimStart();
+        }
+
+        function validateOwnerName() {
+            normalizeOwnerName();
+
+            if (!ownerNameInput.value) {
+                ownerNameInput.setCustomValidity("");
+                return true;
+            }
+
+            if (!ownerNamePattern.test(ownerNameInput.value)) {
+                ownerNameInput.setCustomValidity("Name must contain letters and spaces only.");
+                return false;
+            }
+
+            ownerNameInput.setCustomValidity("");
+            return true;
+        }
+
+        function validateContactNumber(showIncompleteMessage) {
+            contactNumberInput.value = contactNumberInput.value.replace(/\D+/g, "").slice(0, 11);
+
+            if (!contactNumberInput.value) {
+                contactNumberInput.setCustomValidity("");
+                setContactNumberError("");
+                return true;
+            }
+
+            if (contactNumberInput.value.length >= 2 && !contactNumberInput.value.startsWith("09")) {
+                const message = "Contact number must be exactly 11 digits and start with 09.";
+                contactNumberInput.setCustomValidity(message);
+                setContactNumberError(message);
+                return false;
+            }
+
+            if (contactNumberInput.value.length < 11) {
+                if (showIncompleteMessage) {
+                    const message = "Contact number must be exactly 11 digits and start with 09.";
+                    contactNumberInput.setCustomValidity(message);
+                    setContactNumberError(message);
+                    return false;
+                }
+
+                contactNumberInput.setCustomValidity("");
+                setContactNumberError("");
+                return true;
+            }
+
+            if (!contactNumberPattern.test(contactNumberInput.value)) {
+                const message = "Contact number must be exactly 11 digits and start with 09.";
+                contactNumberInput.setCustomValidity(message);
+                setContactNumberError(message);
+                return false;
+            }
+
+            contactNumberInput.setCustomValidity("");
+            setContactNumberError("");
+            return true;
         }
 
         function updateFeedback() {
@@ -690,10 +774,40 @@ document.addEventListener("DOMContentLoaded", function () {
             feedback.textContent = serviceName + " is walk-in only. Please visit the clinic during open hours or contact us directly for availability and pricing.";
         }
 
+        function showOwnerNameValidationIfNeeded() {
+            if (!validateOwnerName()) {
+                showValidationFeedback("Name must contain letters and spaces only.");
+                return;
+            }
+
+            updateFeedback();
+        }
+
+        function showContactNumberValidationIfNeeded() {
+            if (!validateContactNumber(false)) {
+                return;
+            }
+
+            updateFeedback();
+        }
+
+        ownerNameInput.addEventListener("input", validateOwnerName);
+        ownerNameInput.addEventListener("blur", showOwnerNameValidationIfNeeded);
+        contactNumberInput.addEventListener("input", function () {
+            validateContactNumber(false);
+        });
+        contactNumberInput.addEventListener("blur", showContactNumberValidationIfNeeded);
         serviceSelect.addEventListener("change", updateFeedback);
 
         form.addEventListener("submit", function (event) {
             event.preventDefault();
+
+            const isOwnerNameValid = validateOwnerName();
+            const isContactNumberValid = validateContactNumber(true);
+
+            if (!isOwnerNameValid) {
+                showValidationFeedback("Name must contain letters and spaces only.");
+            }
 
             if (!form.reportValidity()) return;
 

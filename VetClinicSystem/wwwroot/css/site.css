@@ -5160,6 +5160,16 @@ label,
     gap: 14px;
 }
 
+.medivet-field-validation {
+    display: grid;
+    gap: 6px;
+}
+
+.medivet-field-validation .text-danger {
+    font-size: 13px;
+    line-height: 1.35;
+}
+
 .medivet-request-card .btn {
     justify-self: start;
 }
