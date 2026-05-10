@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
     setupMobileNavigation();
     setupTablePanels(document);
+    document.querySelectorAll(".table-panel, .medivet-price-panel").forEach(function (panel) {
+        wrapTableForScroll(panel);
+    });
     setupTablePagination(document);
     setupConfirmationForms();
     setupActionModals();
@@ -944,7 +947,7 @@ function setupAppointmentTimeSelectors(root) {
             timeSelect.innerHTML = "";
             const placeholder = document.createElement("option");
             placeholder.value = "";
-            placeholder.textContent = clinicHours ? "Select time slot" : "No available time slots";
+            placeholder.textContent = "Select time slot";
             timeSelect.appendChild(placeholder);
 
             if (!clinicHours) {
