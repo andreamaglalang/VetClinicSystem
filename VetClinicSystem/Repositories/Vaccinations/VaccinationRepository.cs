@@ -14,18 +14,19 @@ namespace VetClinicSystem.Repositories.Vaccinations
 
         public List<VaccinationRecord> GetAll()
         {
-            return _context.VaccinationRecords
+            var records = _context.VaccinationRecords
                 .Include(x => x.Pet)
                     .ThenInclude(x => x.Owner)
-                .OrderByDescending(x => x.VaccinationDate)
-                .ThenByDescending(x => x.Id)
                 .ToList();
+
+            return OrderForManagement(records);
         }
 
         public VaccinationRecord? GetById(int id)
         {
             return _context.VaccinationRecords
                 .Include(x => x.Pet)
+                    .ThenInclude(x => x.Owner)
                 .FirstOrDefault(x => x.Id == id);
         }
 
@@ -47,6 +48,30 @@ namespace VetClinicSystem.Repositories.Vaccinations
         public void Save()
         {
             _context.SaveChanges();
+        }
+
+        private static List<VaccinationRecord> OrderForManagement(IEnumerable<VaccinationRecord> records)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var dueSoonCutoff = today.AddDays(7);
+
+            return records
+                .OrderBy(x => GetStatusPriority(x, today, dueSoonCutoff))
+                .ThenBy(x => x.NextDueDate ?? DateOnly.MaxValue)
+                .ThenByDescending(x => x.VaccinationDate)
+                .ThenByDescending(x => x.Id)
+                .ToList();
+        }
+
+        private static int GetStatusPriority(VaccinationRecord record, DateOnly today, DateOnly dueSoonCutoff)
+        {
+            if (record.NextDueDate.HasValue && record.NextDueDate.Value < today)
+                return 0;
+
+            if (record.NextDueDate.HasValue && record.NextDueDate.Value <= dueSoonCutoff)
+                return 1;
+
+            return 2;
         }
     }
 }

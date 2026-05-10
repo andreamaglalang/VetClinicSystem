@@ -93,7 +93,7 @@ namespace VetClinicSystem.Controllers
             }
             else
             {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
+                ViewBag.Pets = BuildStaffPetSelectList();
             }
 
             ViewBag.Services = new SelectList(GetAppointmentServices(), "Id", "ServiceName");
@@ -625,7 +625,7 @@ namespace VetClinicSystem.Controllers
             if (roleId == 3)
                 ViewBag.Pets = new SelectList(_petService.GetByUser(userId), "Id", "PetName", selectedPetId);
             else
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", selectedPetId);
+                ViewBag.Pets = BuildStaffPetSelectList(selectedPetId);
 
             ViewBag.Services = new SelectList(GetAppointmentServices(), "Id", "ServiceName", selectedServiceId);
             LoadSurgeryCategoryOptions(selectedSurgeryCategory);
@@ -645,6 +645,21 @@ namespace VetClinicSystem.Controllers
             ViewBag.Services = new SelectList(GetAppointmentServices(), "Id", "ServiceName", selectedServiceId);
             ViewBag.SexOptions = new SelectList(new[] { "Male", "Female" });
             LoadSurgeryCategoryOptions(selectedSurgeryCategory);
+        }
+
+        private SelectList BuildStaffPetSelectList(int? selectedPetId = null)
+        {
+            var pets = _petService.GetAll()
+                .Select(p => new
+                {
+                    p.Id,
+                    DisplayName = string.IsNullOrWhiteSpace($"{p.Owner?.FirstName} {p.Owner?.LastName}".Trim())
+                        ? $"{p.PetName} - N/A"
+                        : $"{p.PetName} - {p.Owner!.FirstName} {p.Owner.LastName}".Trim()
+                })
+                .ToList();
+
+            return new SelectList(pets, "Id", "DisplayName", selectedPetId);
         }
 
         private void CreateGuestBooking(GuestAppointmentBooking booking)

@@ -55,7 +55,7 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
+            ViewBag.Pets = BuildPetSelectList();
 
             return View();
         }
@@ -82,7 +82,7 @@ namespace VetClinicSystem.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
+                ViewBag.Pets = BuildPetSelectList(vaccinationRecord.PetId);
 
                 TempData["Error"] = "Please complete all required vaccination fields.";
                 return View(vaccinationRecord);
@@ -113,7 +113,7 @@ namespace VetClinicSystem.Controllers
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
 
-            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccination.PetId);
+            ViewBag.Pets = BuildPetSelectList(vaccination.PetId);
 
             return View(vaccination);
         }
@@ -140,7 +140,7 @@ namespace VetClinicSystem.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
+                ViewBag.Pets = BuildPetSelectList(vaccinationRecord.PetId);
 
                 TempData["Error"] = "Please complete all required vaccination fields.";
                 return View(vaccinationRecord);
@@ -227,6 +227,21 @@ namespace VetClinicSystem.Controllers
         {
             vaccinationRecord.VaccineName = vaccinationRecord.VaccineName?.Trim() ?? string.Empty;
             vaccinationRecord.Notes = string.IsNullOrWhiteSpace(vaccinationRecord.Notes) ? null : vaccinationRecord.Notes.Trim();
+        }
+
+        private SelectList BuildPetSelectList(int? selectedPetId = null)
+        {
+            var pets = _petService.GetAll()
+                .Select(p => new
+                {
+                    p.Id,
+                    DisplayName = string.IsNullOrWhiteSpace($"{p.Owner?.FirstName} {p.Owner?.LastName}".Trim())
+                        ? $"{p.PetName} - N/A"
+                        : $"{p.PetName} - {p.Owner!.FirstName} {p.Owner.LastName}".Trim()
+                })
+                .ToList();
+
+            return new SelectList(pets, "Id", "DisplayName", selectedPetId);
         }
     }
 }

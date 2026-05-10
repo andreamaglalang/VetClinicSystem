@@ -16,6 +16,7 @@ namespace VetClinicSystem.Repositories.MedicalRecords
         {
             return _context.MedicalRecords
                 .Include(x => x.Pet)
+                    .ThenInclude(x => x.Owner)
                 .Include(x => x.Appointment)
                     .ThenInclude(x => x!.Service)
                 .OrderByDescending(x => x.RecordDate)
@@ -27,6 +28,7 @@ namespace VetClinicSystem.Repositories.MedicalRecords
         {
             return _context.MedicalRecords
                 .Include(x => x.Pet)
+                    .ThenInclude(x => x.Owner)
                 .Include(x => x.Appointment)
                     .ThenInclude(x => x!.Service)
                 .FirstOrDefault(x => x.Id == id);

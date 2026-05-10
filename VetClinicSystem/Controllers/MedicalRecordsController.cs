@@ -52,7 +52,7 @@ namespace VetClinicSystem.Controllers
             if (!CanManageMedicalRecords(roleId))
                 return RedirectRestrictedClient();
 
-            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
+            ViewBag.Pets = BuildPetSelectList();
             return View();
         }
 
@@ -75,7 +75,7 @@ namespace VetClinicSystem.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
+                ViewBag.Pets = BuildPetSelectList(medicalRecord.PetId);
                 TempData["Error"] = "Please complete all required medical record fields.";
                 return View(medicalRecord);
             }
@@ -103,7 +103,7 @@ namespace VetClinicSystem.Controllers
             if (record == null)
                 return NotFound();
 
-            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", record.PetId);
+            ViewBag.Pets = BuildPetSelectList(record.PetId);
             return View(record);
         }
 
@@ -126,7 +126,7 @@ namespace VetClinicSystem.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", medicalRecord.PetId);
+                ViewBag.Pets = BuildPetSelectList(medicalRecord.PetId);
                 TempData["Error"] = "Please complete all required medical record fields.";
                 return View(medicalRecord);
             }
@@ -217,6 +217,21 @@ namespace VetClinicSystem.Controllers
             medicalRecord.Treatment = string.IsNullOrWhiteSpace(medicalRecord.Treatment) ? null : medicalRecord.Treatment.Trim();
             medicalRecord.Prescription = string.IsNullOrWhiteSpace(medicalRecord.Prescription) ? null : medicalRecord.Prescription.Trim();
             medicalRecord.Findings = string.IsNullOrWhiteSpace(medicalRecord.Findings) ? null : medicalRecord.Findings.Trim();
+        }
+
+        private SelectList BuildPetSelectList(int? selectedPetId = null)
+        {
+            var pets = _petService.GetAll()
+                .Select(p => new
+                {
+                    p.Id,
+                    DisplayName = string.IsNullOrWhiteSpace($"{p.Owner?.FirstName} {p.Owner?.LastName}".Trim())
+                        ? $"{p.PetName} - N/A"
+                        : $"{p.PetName} - {p.Owner!.FirstName} {p.Owner.LastName}".Trim()
+                })
+                .ToList();
+
+            return new SelectList(pets, "Id", "DisplayName", selectedPetId);
         }
     }
 }

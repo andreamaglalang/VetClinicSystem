@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setupConfirmationForms();
     setupActionModals();
     setupInputSanitizers(document);
+    setupAppointmentTimeSelectors(document);
 });
 
 function setupMobileNavigation() {
@@ -66,6 +67,8 @@ function setupTablePanels(root) {
         items.forEach(function (item) {
             panel.appendChild(item);
         });
+
+        wrapTableForScroll(panel);
     });
 }
 
@@ -269,8 +272,12 @@ function setupActionModals() {
         modalElement.dataset.actionUrl = actionUrl;
         normalizeModalForms(actionUrl);
         setupTablePanels(bodyElement);
+        bodyElement.querySelectorAll(".table-panel, .medivet-price-panel").forEach(function (panel) {
+            wrapTableForScroll(panel);
+        });
         setupTablePagination(bodyElement);
         setupInputSanitizers(bodyElement);
+        setupAppointmentTimeSelectors(bodyElement);
     }
 
     function normalizeModalForms(actionUrl) {
@@ -424,6 +431,22 @@ function ensureActionModal() {
 
     document.body.appendChild(modal);
     return modal;
+}
+
+function wrapTableForScroll(root) {
+    const container = root || document;
+    const tables = container.querySelectorAll(":scope > table.table, :scope > .table");
+
+    tables.forEach(function (table) {
+        if (table.parentElement && table.parentElement.classList.contains("table-scroll")) {
+            return;
+        }
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "table-scroll";
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+    });
 }
 
 function escapeHtml(value) {
@@ -742,3 +765,280 @@ function setupInputSanitizers(root) {
 }
 
 window.setupInputSanitizers = setupInputSanitizers;
+
+function setupAppointmentTimeSelectors(root) {
+    const container = root || document;
+    const dateInputs = container.querySelectorAll("[data-appointment-date]");
+
+    dateInputs.forEach(function (dateInput) {
+        if (dateInput.dataset.timeSelectorBound === "true") {
+            return;
+        }
+
+        const form = dateInput.closest("form");
+        const timeSelect = form ? form.querySelector("[data-appointment-time]") : null;
+        const dateMessage = form ? form.querySelector("[data-unavailable-date-message]") : null;
+        const timeMessage = form ? form.querySelector("[data-clinic-time-message]") : null;
+
+        if (!(timeSelect instanceof HTMLSelectElement) || !dateMessage || !timeMessage || !(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        dateInput.dataset.timeSelectorBound = "true";
+        const rangeMessage = dateInput.dataset.rangeMessage || "";
+        const minDateValue = dateInput.dataset.minDate || "";
+        const maxDateValue = dateInput.dataset.maxDate || "";
+
+        dateInput.addEventListener("keydown", function (event) {
+            if (event.ctrlKey || event.metaKey || event.altKey) {
+                return;
+            }
+
+            const allowedKeys = [
+                "Tab",
+                "Shift",
+                "ArrowLeft",
+                "ArrowRight",
+                "ArrowUp",
+                "ArrowDown",
+                "Home",
+                "End",
+                "Escape"
+            ];
+
+            if (allowedKeys.includes(event.key)) {
+                return;
+            }
+
+            if (typeof dateInput.showPicker === "function") {
+                dateInput.showPicker();
+            }
+
+            event.preventDefault();
+        });
+
+        function getEasterSunday(year) {
+            const a = year % 19;
+            const b = Math.floor(year / 100);
+            const c = year % 100;
+            const d = Math.floor(b / 4);
+            const e = b % 4;
+            const f = Math.floor((b + 8) / 25);
+            const g = Math.floor((b - f + 1) / 3);
+            const h = (19 * a + b - d - g + 15) % 30;
+            const i = Math.floor(c / 4);
+            const k = c % 4;
+            const l = (32 + 2 * e + 2 * i - h - k) % 7;
+            const m = Math.floor((a + 11 * h + 22 * l) / 451);
+            const month = Math.floor((h + l - 7 * m + 114) / 31);
+            const day = ((h + l - 7 * m + 114) % 31) + 1;
+
+            return new Date(year, month - 1, day);
+        }
+
+        function toKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return year + "-" + month + "-" + day;
+        }
+
+        function addDays(date, days) {
+            const next = new Date(date);
+            next.setDate(next.getDate() + days);
+            return next;
+        }
+
+        function getUnavailableDateMessage(value) {
+            if (!value) {
+                return "";
+            }
+
+            const selectedDate = new Date(value + "T00:00:00");
+            const minDate = minDateValue ? new Date(minDateValue + "T00:00:00") : null;
+            const maxDate = maxDateValue ? new Date(maxDateValue + "T00:00:00") : null;
+            const month = selectedDate.getMonth() + 1;
+            const day = selectedDate.getDate();
+
+            if ((minDate && selectedDate < minDate) || (maxDate && selectedDate > maxDate)) {
+                return rangeMessage;
+            }
+
+            if (selectedDate.getDay() === 2) {
+                return "The clinic is closed every Tuesday. Please choose another date.";
+            }
+
+            const fixedHolidays = {
+                "1-1": "New Year's Day",
+                "11-1": "All Saints' Day",
+                "12-24": "Christmas Eve",
+                "12-25": "Christmas Day",
+                "12-31": "New Year's Eve"
+            };
+
+            const fixedHoliday = fixedHolidays[month + "-" + day];
+            if (fixedHoliday) {
+                return "The clinic is unavailable on " + fixedHoliday + ". Please choose another date.";
+            }
+
+            const easterSunday = getEasterSunday(selectedDate.getFullYear());
+            const holyWeekDates = {};
+            holyWeekDates[toKey(addDays(easterSunday, -3))] = "Maundy Thursday";
+            holyWeekDates[toKey(addDays(easterSunday, -2))] = "Good Friday";
+            holyWeekDates[toKey(addDays(easterSunday, -1))] = "Black Saturday";
+
+            const holyWeekName = holyWeekDates[value];
+            if (holyWeekName) {
+                return "The clinic is unavailable on " + holyWeekName + ". Please choose another date.";
+            }
+
+            return "";
+        }
+
+        function getClinicHours(value) {
+            if (!value) {
+                return null;
+            }
+
+            const selectedDate = new Date(value + "T00:00:00");
+            const day = selectedDate.getDay();
+
+            if (day === 1) {
+                return {
+                    opening: "09:00",
+                    closing: "17:00",
+                    displayHours: "9:00 AM to 5:00 PM"
+                };
+            }
+
+            if ([3, 4, 5, 6, 0].includes(day)) {
+                return {
+                    opening: "09:00",
+                    closing: "19:00",
+                    displayHours: "9:00 AM to 7:00 PM"
+                };
+            }
+
+            return null;
+        }
+
+        function formatTimeLabel(totalMinutes) {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            const period = hours >= 12 ? "PM" : "AM";
+            const twelveHour = hours % 12 || 12;
+            return String(twelveHour) + ":" + String(minutes).padStart(2, "0") + " " + period;
+        }
+
+        function formatTimeValue(totalMinutes) {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            return String(hours).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
+        }
+
+        function rebuildTimeOptions() {
+            const preservedValue = timeSelect.value || timeSelect.dataset.selectedTime || "";
+            const dateError = getUnavailableDateMessage(dateInput.value);
+            const clinicHours = dateError ? null : getClinicHours(dateInput.value);
+
+            timeSelect.innerHTML = "";
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = clinicHours ? "Select time slot" : "No available time slots";
+            timeSelect.appendChild(placeholder);
+
+            if (!clinicHours) {
+                timeSelect.value = "";
+                timeSelect.disabled = true;
+                timeSelect.dataset.selectedTime = "";
+                return;
+            }
+
+            const openingParts = clinicHours.opening.split(":");
+            const closingParts = clinicHours.closing.split(":");
+            const openingMinutes = Number(openingParts[0]) * 60 + Number(openingParts[1]);
+            const closingMinutes = Number(closingParts[0]) * 60 + Number(closingParts[1]);
+
+            for (let totalMinutes = openingMinutes; totalMinutes <= closingMinutes; totalMinutes += 15) {
+                const option = document.createElement("option");
+                option.value = formatTimeValue(totalMinutes);
+                option.textContent = formatTimeLabel(totalMinutes);
+                timeSelect.appendChild(option);
+            }
+
+            timeSelect.disabled = false;
+
+            if (preservedValue && Array.from(timeSelect.options).some(function (option) { return option.value === preservedValue; })) {
+                timeSelect.value = preservedValue;
+            } else {
+                timeSelect.value = "";
+            }
+
+            timeSelect.dataset.selectedTime = timeSelect.value;
+        }
+
+        function validateDate() {
+            const error = getUnavailableDateMessage(dateInput.value);
+            dateMessage.textContent = error;
+            dateInput.setCustomValidity(error);
+            return error === "";
+        }
+
+        function getClinicHoursMessage(value) {
+            if (!value || !timeSelect.value) {
+                return "";
+            }
+
+            const clinicHours = getClinicHours(value);
+            if (!clinicHours) {
+                return "The clinic is closed for the selected date. Please choose another date.";
+            }
+
+            if (!Array.from(timeSelect.options).some(function (option) { return option.value === timeSelect.value; })) {
+                return "Please select an available surgery time slot.";
+            }
+
+            return "";
+        }
+
+        function validateTime() {
+            const error = getClinicHoursMessage(dateInput.value);
+            timeMessage.textContent = error;
+            timeSelect.setCustomValidity(error);
+            return error === "";
+        }
+
+        dateInput.addEventListener("change", function () {
+            rebuildTimeOptions();
+            validateDate();
+            validateTime();
+        });
+
+        timeSelect.addEventListener("change", function () {
+            timeSelect.dataset.selectedTime = timeSelect.value;
+            validateTime();
+        });
+
+        form.addEventListener("submit", function (event) {
+            const isDateValid = validateDate();
+            rebuildTimeOptions();
+            const isTimeValid = validateTime();
+
+            if (!isDateValid || !isTimeValid) {
+                event.preventDefault();
+
+                if (!isDateValid) {
+                    dateInput.reportValidity();
+                } else {
+                    timeSelect.reportValidity();
+                }
+            }
+        });
+
+        rebuildTimeOptions();
+        validateDate();
+        validateTime();
+    });
+}
+
+window.setupAppointmentTimeSelectors = setupAppointmentTimeSelectors;

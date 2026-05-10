@@ -17,6 +17,10 @@
     <thead>
         <tr>
             <th>Pet</th>
+            @if (canManageMedicalRecords)
+            {
+                <th>Owner Name</th>
+            }
             <th>Diagnosis</th>
             <th>Treatment</th>
             <th>Appointment</th>
@@ -30,8 +34,17 @@
     <tbody>
         @foreach (var item in Model)
         {
+            var ownerName = item.Pet?.Owner == null
+                ? "N/A"
+                : string.IsNullOrWhiteSpace($"{item.Pet.Owner.FirstName} {item.Pet.Owner.LastName}".Trim())
+                    ? "N/A"
+                    : $"{item.Pet.Owner.FirstName} {item.Pet.Owner.LastName}".Trim();
             <tr>
                 <td>@item.Pet?.PetName</td>
+                @if (canManageMedicalRecords)
+                {
+                    <td>@ownerName</td>
+                }
                 <td>@item.Diagnosis</td>
                 <td>@item.Treatment</td>
                 <td>@(item.Appointment?.Service?.ServiceName ?? "Walk-in / record only")</td>

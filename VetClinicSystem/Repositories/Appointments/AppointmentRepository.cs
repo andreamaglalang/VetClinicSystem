@@ -173,20 +173,66 @@ namespace VetClinicSystem.Repositories.Appointments
 
         private static List<Appointment> OrderForManagement(IEnumerable<Appointment> appointments)
         {
+            var now = DateTime.Now;
+
             return appointments
-                .OrderBy(x => x.AppointmentDate)
-                .ThenBy(x => x.AppointmentTime)
+                .OrderBy(x => GetStatusPriority(x))
+                .ThenBy(x => IsPastActiveAppointment(x, now))
+                .ThenBy(x => GetPrimaryScheduleSortKey(x, now))
+                .ThenBy(x => GetSecondaryScheduleSortKey(x, now))
                 .ThenByDescending(x => x.LastUpdated)
+                .ThenByDescending(x => x.Id)
                 .ToList();
         }
 
         private static List<Appointment> OrderForClient(IEnumerable<Appointment> appointments)
         {
+            var now = DateTime.Now;
+
             return appointments
-                .OrderBy(x => x.AppointmentDate)
-                .ThenBy(x => x.AppointmentTime)
+                .OrderBy(x => GetStatusPriority(x))
+                .ThenBy(x => IsPastActiveAppointment(x, now))
+                .ThenBy(x => GetPrimaryScheduleSortKey(x, now))
+                .ThenBy(x => GetSecondaryScheduleSortKey(x, now))
                 .ThenByDescending(x => x.LastUpdated)
+                .ThenByDescending(x => x.Id)
                 .ToList();
+        }
+
+        private static int GetStatusPriority(Appointment appointment)
+        {
+            return appointment.StatusId switch
+            {
+                1 or 2 => 0,
+                4 or 3 => 1,
+                _ => 2
+            };
+        }
+
+        private static int IsPastActiveAppointment(Appointment appointment, DateTime now)
+        {
+            if (appointment.StatusId != 1 && appointment.StatusId != 2)
+                return 0;
+
+            return appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime) < now ? 1 : 0;
+        }
+
+        private static long GetPrimaryScheduleSortKey(Appointment appointment, DateTime now)
+        {
+            var appointmentDateTime = appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime);
+            var ticks = appointmentDateTime.Ticks;
+
+            return GetStatusPriority(appointment) switch
+            {
+                0 when appointmentDateTime < now => -ticks,
+                1 => -ticks,
+                _ => ticks
+            };
+        }
+
+        private static DateTime GetSecondaryScheduleSortKey(Appointment appointment, DateTime now)
+        {
+            return appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime);
         }
     }
 }
