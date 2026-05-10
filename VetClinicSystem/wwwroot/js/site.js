@@ -32,7 +32,7 @@ function setupMobileNavigation() {
     });
 
     window.addEventListener("resize", function () {
-        if (window.innerWidth > 760) {
+        if (window.innerWidth > 1024) {
             nav.classList.remove("is-open");
             toggle.setAttribute("aria-expanded", "false");
         }
