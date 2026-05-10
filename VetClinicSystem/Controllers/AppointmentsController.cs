@@ -59,7 +59,7 @@ namespace VetClinicSystem.Controllers
             {
         new { Id = 0, Name = "All Statuses" },
         new { Id = 1, Name = "Pending" },
-        new { Id = 2, Name = "Approved" },
+        new { Id = 2, Name = "Confirmed" },
         new { Id = 3, Name = "Rejected" },
         new { Id = 4, Name = "Completed" }
     }, "Id", "Name", statusId ?? 0);

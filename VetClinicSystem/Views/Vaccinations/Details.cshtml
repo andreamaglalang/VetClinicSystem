@@ -1,4 +1,9 @@
-﻿@model VetClinicSystem.Models.VaccinationRecord
+@model VetClinicSystem.Models.VaccinationRecord
+
+@{
+    var roleId = Context.Session.GetInt32("RoleId");
+    var canManageVaccinations = roleId == 1 || roleId == 2;
+}
 
 <h2>Vaccination Details</h2>
 
@@ -10,5 +15,8 @@
     <tr><th>Notes</th><td>@Model.Notes</td></tr>
 </table>
 
-<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+@if (canManageVaccinations)
+{
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+}
 <a asp-action="Index" class="btn btn-secondary">Back</a>

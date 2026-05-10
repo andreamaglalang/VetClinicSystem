@@ -438,6 +438,61 @@ function escapeHtml(value) {
 function setupInputSanitizers(root) {
     const container = root || document;
 
+    function shouldTrimField(field) {
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) {
+            return false;
+        }
+
+        if (field instanceof HTMLTextAreaElement) {
+            return true;
+        }
+
+        const type = (field.type || "text").toLowerCase();
+        return type === "text" || type === "email" || type === "search" || type === "tel" || type === "url";
+    }
+
+    function trimFieldValue(field) {
+        if (!shouldTrimField(field)) {
+            return;
+        }
+
+        const trimmedValue = field.value.trim();
+        if (field.value !== trimmedValue) {
+            field.value = trimmedValue;
+        }
+    }
+
+    container.querySelectorAll("input, textarea").forEach(function (field) {
+        if (field.dataset.trimBound === "true") {
+            return;
+        }
+
+        if (!shouldTrimField(field)) {
+            return;
+        }
+
+        field.dataset.trimBound = "true";
+        field.addEventListener("blur", function () {
+            trimFieldValue(field);
+        });
+        field.addEventListener("change", function () {
+            trimFieldValue(field);
+        });
+    });
+
+    container.querySelectorAll("form").forEach(function (form) {
+        if (form.dataset.trimSubmitBound === "true") {
+            return;
+        }
+
+        form.dataset.trimSubmitBound = "true";
+        form.addEventListener("submit", function () {
+            form.querySelectorAll("input, textarea").forEach(function (field) {
+                trimFieldValue(field);
+            });
+        }, true);
+    });
+
     container.querySelectorAll("[data-letters-only='true']").forEach(function (input) {
         if (input.dataset.sanitizerBound === "true") {
             return;
@@ -482,6 +537,69 @@ function setupInputSanitizers(root) {
         });
     });
 
+    container.querySelectorAll("[data-integer-only='true']").forEach(function (input) {
+        if (input.dataset.sanitizerBound === "true") {
+            return;
+        }
+
+        input.dataset.sanitizerBound = "true";
+        input.addEventListener("keydown", function (event) {
+            const allowedKeys = [
+                "Backspace",
+                "Delete",
+                "Tab",
+                "Escape",
+                "Enter",
+                "ArrowLeft",
+                "ArrowRight",
+                "ArrowUp",
+                "ArrowDown",
+                "Home",
+                "End"
+            ];
+
+            if (event.ctrlKey || event.metaKey) {
+                return;
+            }
+
+            if (allowedKeys.includes(event.key)) {
+                return;
+            }
+
+            if (!/^\d$/.test(event.key)) {
+                event.preventDefault();
+            }
+        });
+
+        input.addEventListener("paste", function (event) {
+            const pastedText = (event.clipboardData || window.clipboardData)?.getData("text") ?? "";
+
+            if (!/^\d+$/.test(pastedText.trim())) {
+                event.preventDefault();
+            }
+        });
+
+        input.addEventListener("input", function () {
+            const start = input.selectionStart ?? input.value.length;
+            const end = input.selectionEnd ?? input.value.length;
+            const originalValue = input.value;
+            const sanitizedValue = originalValue.replace(/\D+/g, "");
+
+            if (sanitizedValue === originalValue) {
+                return;
+            }
+
+            const sanitizedBeforeStart = originalValue.slice(0, start).replace(/\D+/g, "");
+            const sanitizedBeforeEnd = originalValue.slice(0, end).replace(/\D+/g, "");
+
+            input.value = sanitizedValue;
+
+            if (typeof input.setSelectionRange === "function") {
+                input.setSelectionRange(sanitizedBeforeStart.length, sanitizedBeforeEnd.length);
+            }
+        });
+    });
+
     container.querySelectorAll("[data-address-safe='true']").forEach(function (input) {
         if (input.dataset.sanitizerBound === "true") {
             return;
@@ -490,6 +608,135 @@ function setupInputSanitizers(root) {
         input.dataset.sanitizerBound = "true";
         input.addEventListener("input", function () {
             input.value = input.value.replace(/[^A-Za-z0-9#.,/\- ]+/g, "").replace(/\s{2,}/g, " ");
+        });
+    });
+
+    container.querySelectorAll("[data-decimal-only='true']").forEach(function (input) {
+        if (input.dataset.sanitizerBound === "true") {
+            return;
+        }
+
+        input.dataset.sanitizerBound = "true";
+        input.addEventListener("keydown", function (event) {
+            const allowedKeys = [
+                "Backspace",
+                "Delete",
+                "Tab",
+                "Escape",
+                "Enter",
+                "ArrowLeft",
+                "ArrowRight",
+                "ArrowUp",
+                "ArrowDown",
+                "Home",
+                "End"
+            ];
+
+            if (event.ctrlKey || event.metaKey) {
+                return;
+            }
+
+            if (allowedKeys.includes(event.key)) {
+                return;
+            }
+
+            if (event.key === ".") {
+                if (input.value.includes(".")) {
+                    event.preventDefault();
+                }
+                return;
+            }
+
+            if (!/^\d$/.test(event.key)) {
+                event.preventDefault();
+            }
+        });
+
+        input.addEventListener("paste", function (event) {
+            const pastedText = (event.clipboardData || window.clipboardData)?.getData("text") ?? "";
+
+            if (!/^\d*\.?\d+$/.test(pastedText.trim())) {
+                event.preventDefault();
+            }
+        });
+
+        input.addEventListener("input", function () {
+            const start = input.selectionStart ?? input.value.length;
+            const end = input.selectionEnd ?? input.value.length;
+            const originalValue = input.value;
+            let dotFound = false;
+            let sanitizedValue = "";
+
+            for (const character of originalValue) {
+                if (/\d/.test(character)) {
+                    sanitizedValue += character;
+                    continue;
+                }
+
+                if (character === "." && !dotFound) {
+                    dotFound = true;
+                    sanitizedValue += character;
+                }
+            }
+
+            if (sanitizedValue === originalValue) {
+                return;
+            }
+
+            const sanitizeSlice = function (value) {
+                let sliceDotFound = false;
+                let sliceResult = "";
+
+                for (const character of value) {
+                    if (/\d/.test(character)) {
+                        sliceResult += character;
+                        continue;
+                    }
+
+                    if (character === "." && !sliceDotFound) {
+                        sliceDotFound = true;
+                        sliceResult += character;
+                    }
+                }
+
+                return sliceResult;
+            };
+
+            const sanitizedBeforeStart = sanitizeSlice(originalValue.slice(0, start));
+            const sanitizedBeforeEnd = sanitizeSlice(originalValue.slice(0, end));
+
+            input.value = sanitizedValue;
+
+            if (typeof input.setSelectionRange === "function") {
+                input.setSelectionRange(sanitizedBeforeStart.length, sanitizedBeforeEnd.length);
+            }
+        });
+    });
+
+    container.querySelectorAll("[data-color-only='true']").forEach(function (input) {
+        if (input.dataset.sanitizerBound === "true") {
+            return;
+        }
+
+        input.dataset.sanitizerBound = "true";
+        input.addEventListener("input", function () {
+            const start = input.selectionStart ?? input.value.length;
+            const end = input.selectionEnd ?? input.value.length;
+            const originalValue = input.value;
+            const sanitizedValue = originalValue.replace(/[^A-Za-z, ]+/g, "");
+
+            if (sanitizedValue === originalValue) {
+                return;
+            }
+
+            const sanitizedBeforeStart = originalValue.slice(0, start).replace(/[^A-Za-z, ]+/g, "");
+            const sanitizedBeforeEnd = originalValue.slice(0, end).replace(/[^A-Za-z, ]+/g, "");
+
+            input.value = sanitizedValue;
+
+            if (typeof input.setSelectionRange === "function") {
+                input.setSelectionRange(sanitizedBeforeStart.length, sanitizedBeforeEnd.length);
+            }
         });
     });
 }

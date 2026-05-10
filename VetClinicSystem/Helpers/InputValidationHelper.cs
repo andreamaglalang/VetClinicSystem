@@ -31,8 +31,8 @@ namespace VetClinicSystem.Helpers
         public const string BreedPattern = @"^(?=.{1,100}$)[A-Za-z]+(?: [A-Za-z]+)*$";
         public const string BreedMessage = "Breed must contain letters and spaces only.";
 
-        public const string ColorPattern = @"^(?=.{1,50}$)[A-Za-z]+(?: [A-Za-z]+)*$";
-        public const string ColorMessage = "Color must contain letters and spaces only.";
+        public const string ColorPattern = @"^(?=.{1,50}$)[A-Za-z]+(?: [A-Za-z]+)*(?:, ?[A-Za-z]+(?: [A-Za-z]+)*)*$";
+        public const string ColorMessage = "Color may contain letters, spaces, and commas only.";
 
         public static string NormalizeTrimmed(string? value)
         {
@@ -45,6 +45,16 @@ namespace VetClinicSystem.Helpers
         public static string NormalizeEmail(string? email)
         {
             return NormalizeTrimmed(email).ToLowerInvariant();
+        }
+
+        public static string NormalizeColorValue(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return string.Empty;
+
+            var normalized = NormalizeTrimmed(value);
+            normalized = Regex.Replace(normalized, @"\s*,\s*", ", ");
+            return normalized.Trim(' ', ',');
         }
 
         public static bool IsValidUsername(string? username)
@@ -104,7 +114,7 @@ namespace VetClinicSystem.Helpers
         public static bool IsValidColorName(string? color)
         {
             return string.IsNullOrWhiteSpace(color) ||
-                   Regex.IsMatch(NormalizeTrimmed(color), ColorPattern);
+                   Regex.IsMatch(NormalizeColorValue(color), ColorPattern);
         }
     }
 }

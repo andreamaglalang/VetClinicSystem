@@ -1,4 +1,5 @@
-﻿using VetClinicSystem.Models;
+using Microsoft.EntityFrameworkCore;
+using VetClinicSystem.Models;
 
 namespace VetClinicSystem.Repositories.Pets
 {
@@ -15,6 +16,7 @@ namespace VetClinicSystem.Repositories.Pets
         {
             return _context.Pets
                 .Where(x => !x.IsDeleted)
+                .Include(x => x.Owner)
                 .OrderBy(x => x.PetName)
                 .ThenBy(x => x.Id)
                 .ToList();
@@ -24,6 +26,7 @@ namespace VetClinicSystem.Repositories.Pets
         {
             return _context.Pets
                 .Where(x => x.OwnerId == ownerId && !x.IsDeleted)
+                .Include(x => x.Owner)
                 .OrderBy(x => x.PetName)
                 .ThenBy(x => x.Id)
                 .ToList();
@@ -33,6 +36,7 @@ namespace VetClinicSystem.Repositories.Pets
         {
             return _context.Pets
                 .Where(x => !x.IsDeleted)
+                .Include(x => x.Owner)
                 .OrderBy(x => x.PetName)
                 .ThenBy(x => x.Id)
                 .Skip((page - 1) * pageSize)
@@ -44,6 +48,7 @@ namespace VetClinicSystem.Repositories.Pets
         {
             return _context.Pets
                 .Where(x => x.OwnerId == ownerId && !x.IsDeleted)
+                .Include(x => x.Owner)
                 .OrderBy(x => x.PetName)
                 .ThenBy(x => x.Id)
                 .Skip((page - 1) * pageSize)
@@ -63,7 +68,10 @@ namespace VetClinicSystem.Repositories.Pets
 
         public List<Pet> Search(string? search)
         {
-            var query = _context.Pets.Where(x => !x.IsDeleted).AsQueryable();
+            var query = _context.Pets
+                .Where(x => !x.IsDeleted)
+                .Include(x => x.Owner)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -71,6 +79,11 @@ namespace VetClinicSystem.Repositories.Pets
 
                 query = query.Where(x =>
                     (x.PetName != null && x.PetName.Contains(search)) ||
+                    (x.Owner != null && (
+                        ((x.Owner.FirstName ?? string.Empty) + " " + (x.Owner.LastName ?? string.Empty)).Contains(search) ||
+                        (x.Owner.FirstName != null && x.Owner.FirstName.Contains(search)) ||
+                        (x.Owner.LastName != null && x.Owner.LastName.Contains(search))
+                    )) ||
                     (x.Species != null && x.Species.Contains(search)) ||
                     (x.Breed != null && x.Breed.Contains(search)));
             }
@@ -83,7 +96,10 @@ namespace VetClinicSystem.Repositories.Pets
 
         public List<Pet> SearchByOwnerId(int ownerId, string? search)
         {
-            var query = _context.Pets.Where(x => x.OwnerId == ownerId && !x.IsDeleted);
+            var query = _context.Pets
+                .Where(x => x.OwnerId == ownerId && !x.IsDeleted)
+                .Include(x => x.Owner)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -103,7 +119,9 @@ namespace VetClinicSystem.Repositories.Pets
 
         public Pet? GetById(int id)
         {
-            return _context.Pets.FirstOrDefault(x => x.Id == id && !x.IsDeleted);
+            return _context.Pets
+                .Include(x => x.Owner)
+                .FirstOrDefault(x => x.Id == id && !x.IsDeleted);
         }
 
         public void Add(Pet pet)

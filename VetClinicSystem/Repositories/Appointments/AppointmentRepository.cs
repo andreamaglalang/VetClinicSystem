@@ -16,6 +16,7 @@ namespace VetClinicSystem.Repositories.Appointments
         {
             var appointments = _context.Appointments
                 .Include(x => x.Pet)
+                    .ThenInclude(x => x.Owner)
                 .Include(x => x.Service)
                 .Include(x => x.Status)
                 .ToList();
@@ -27,6 +28,7 @@ namespace VetClinicSystem.Repositories.Appointments
         {
             var appointments = _context.Appointments
                 .Include(x => x.Pet)
+                    .ThenInclude(x => x.Owner)
                 .Include(x => x.Service)
                 .Include(x => x.Status)
                 .Where(x => x.Pet.OwnerId == ownerId)
@@ -49,6 +51,7 @@ namespace VetClinicSystem.Repositories.Appointments
         {
             var query = _context.Appointments
                 .Include(x => x.Pet)
+                    .ThenInclude(x => x.Owner)
                 .Include(x => x.Service)
                 .Include(x => x.Status)
                 .AsQueryable();
@@ -59,6 +62,11 @@ namespace VetClinicSystem.Repositories.Appointments
 
                 query = query.Where(x =>
                     (x.Pet != null && x.Pet.PetName.Contains(search)) ||
+                    (x.Pet != null && x.Pet.Owner != null && (
+                        (((x.Pet.Owner.FirstName ?? string.Empty) + " " + (x.Pet.Owner.LastName ?? string.Empty)).Trim().Contains(search)) ||
+                        (x.Pet.Owner.FirstName != null && x.Pet.Owner.FirstName.Contains(search)) ||
+                        (x.Pet.Owner.LastName != null && x.Pet.Owner.LastName.Contains(search))
+                    )) ||
                     (x.Service != null && x.Service.ServiceName.Contains(search)) ||
                     (x.ReasonForVisit != null && x.ReasonForVisit.Contains(search)));
             }
@@ -80,6 +88,7 @@ namespace VetClinicSystem.Repositories.Appointments
         {
             var query = _context.Appointments
                 .Include(x => x.Pet)
+                    .ThenInclude(x => x.Owner)
                 .Include(x => x.Service)
                 .Include(x => x.Status)
                 .Where(x => x.Pet.OwnerId == ownerId);

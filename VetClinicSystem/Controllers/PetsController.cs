@@ -226,7 +226,7 @@ namespace VetClinicSystem.Controllers
             pet.PetName = InputValidationHelper.NormalizeTrimmed(pet.PetName);
             pet.Species = InputValidationHelper.NormalizeTrimmed(pet.Species);
             pet.Breed = string.IsNullOrWhiteSpace(pet.Breed) ? null : InputValidationHelper.NormalizeTrimmed(pet.Breed);
-            pet.Color = string.IsNullOrWhiteSpace(pet.Color) ? null : InputValidationHelper.NormalizeTrimmed(pet.Color);
+            pet.Color = string.IsNullOrWhiteSpace(pet.Color) ? null : InputValidationHelper.NormalizeColorValue(pet.Color);
             pet.Notes = string.IsNullOrWhiteSpace(pet.Notes) ? null : InputValidationHelper.NormalizeTrimmed(pet.Notes);
             pet.Sex = string.IsNullOrWhiteSpace(pet.Sex) ? null : InputValidationHelper.NormalizeTrimmed(pet.Sex);
         }

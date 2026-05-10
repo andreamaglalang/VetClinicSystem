@@ -114,7 +114,9 @@
                                         <form asp-action="RestoreArchivedUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to restore this archived user account?">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@user.Id" />
-                                            <button type="submit" class="btn btn-success btn-sm">Restore Archived</button>
+                                            <button type="submit" class="table-action-icon table-action-icon--approve" title="Restore archived user" aria-label="Restore archived user">
+                                                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                                            </button>
                                         </form>
                                     }
                                     else if (user.IsActive)
@@ -122,14 +124,18 @@
                                         <form asp-action="DeactivateUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to deactivate this user account?">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@user.Id" />
-                                            <button type="submit" class="btn btn-warning btn-sm">Deactivate</button>
+                                            <button type="submit" class="table-action-icon table-action-icon--reject" title="Deactivate user" aria-label="Deactivate user">
+                                                <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                                            </button>
                                         </form>
 
                                         <form asp-action="ArchiveUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to archive this user account?" data-admin-user-archive="true">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@user.Id" />
-                                            <input type="hidden" name="reason" value="" data-admin-archive-reason />
-                                            <button type="submit" class="btn btn-danger btn-sm">Archive</button>
+                                            <input type="hidden" name="reason" value="" />
+                                            <button type="submit" class="table-action-icon table-action-icon--danger" title="Archive user" aria-label="Archive user">
+                                                <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+                                            </button>
                                         </form>
                                     }
                                     else
@@ -137,14 +143,18 @@
                                         <form asp-action="RestoreUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to restore this inactive user account?">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@user.Id" />
-                                            <button type="submit" class="btn btn-success btn-sm">Restore Inactive</button>
+                                            <button type="submit" class="table-action-icon table-action-icon--approve" title="Restore inactive user" aria-label="Restore inactive user">
+                                                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                                            </button>
                                         </form>
 
                                         <form asp-action="ArchiveUser" asp-controller="Dashboard" method="post" class="admin-user-action-form" data-admin-user-confirm="Are you sure you want to archive this user account?" data-admin-user-archive="true">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@user.Id" />
-                                            <input type="hidden" name="reason" value="" data-admin-archive-reason />
-                                            <button type="submit" class="btn btn-danger btn-sm">Archive</button>
+                                            <input type="hidden" name="reason" value="" />
+                                            <button type="submit" class="table-action-icon table-action-icon--danger" title="Archive user" aria-label="Archive user">
+                                                <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+                                            </button>
                                         </form>
                                     }
                                 </div>
@@ -166,10 +176,6 @@
         <span class="admin-confirm-icon"><i class="fa-solid fa-exclamation"></i></span>
         <h3 id="adminUserConfirmTitle">Confirm Action</h3>
         <p id="adminUserConfirmMessage"></p>
-        <div class="admin-archive-reason" id="adminArchiveReasonWrap" hidden>
-            <label for="adminArchiveReason" class="form-label">Archive reason (optional)</label>
-            <textarea id="adminArchiveReason" class="form-control" rows="3" maxlength="255" placeholder="Add a short reason for archiving this account."></textarea>
-        </div>
         <div class="admin-confirm-actions">
             <button type="button" class="btn btn-danger" data-admin-confirm-submit>Confirm</button>
             <button type="button" class="btn btn-outline-secondary" data-admin-confirm-cancel>Cancel</button>
@@ -183,8 +189,6 @@
             const confirmOverlay = document.getElementById("adminUserConfirmOverlay");
             const confirmMessage = document.getElementById("adminUserConfirmMessage");
             const confirmSubmit = document.querySelector("[data-admin-confirm-submit]");
-            const archiveReasonWrap = document.getElementById("adminArchiveReasonWrap");
-            const archiveReason = document.getElementById("adminArchiveReason");
             let pendingUserActionForm = null;
 
             document.querySelectorAll("[data-admin-user-confirm]").forEach(function (form) {
@@ -196,13 +200,6 @@
                     event.preventDefault();
                     pendingUserActionForm = form;
                     confirmMessage.textContent = form.dataset.adminUserConfirm;
-                    const isArchive = form.dataset.adminUserArchive === "true";
-                    archiveReasonWrap.hidden = !isArchive;
-
-                    if (archiveReason) {
-                        archiveReason.value = "";
-                    }
-
                     confirmOverlay.hidden = false;
                     confirmSubmit.focus();
                 });
@@ -211,11 +208,6 @@
             function closeConfirm() {
                 confirmOverlay.hidden = true;
                 pendingUserActionForm = null;
-                archiveReasonWrap.hidden = true;
-
-                if (archiveReason) {
-                    archiveReason.value = "";
-                }
             }
 
             document.querySelectorAll("[data-admin-confirm-cancel]").forEach(function (button) {
@@ -233,11 +225,6 @@
             if (confirmSubmit) {
                 confirmSubmit.addEventListener("click", function () {
                     if (!pendingUserActionForm) return;
-
-                    const reasonField = pendingUserActionForm.querySelector("[data-admin-archive-reason]");
-                    if (reasonField) {
-                        reasonField.value = archiveReason ? archiveReason.value.trim() : "";
-                    }
 
                     pendingUserActionForm.dataset.confirmed = "true";
                     pendingUserActionForm.requestSubmit();

@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Pets";
+    var roleId = Context.Session.GetInt32("RoleId");
+    var showOwnerColumn = roleId == 1 || roleId == 2;
 }
 
 <h2>Pets</h2>
@@ -9,7 +11,7 @@
 <form method="get" asp-action="Index" class="mb-3">
     <div class="row">
         <div class="col-md-6">
-            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search by pet name, species, or breed" />
+            <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="@(showOwnerColumn ? "Search by pet name, owner, species, or breed" : "Search by pet name, species, or breed")" />
         </div>
         <div class="col-md-6">
             <button type="submit" class="btn btn-primary">Search</button>
@@ -22,10 +24,14 @@
     <a asp-action="Create" class="btn btn-primary">Add Pet</a>
 </p>
 
-<table class="table table-bordered table-striped">
+<table class="table table-bordered table-striped table-pets @(showOwnerColumn ? "table-pets--with-owner" : "table-pets--client")">
     <thead>
         <tr>
             <th>Pet Name</th>
+            @if (showOwnerColumn)
+            {
+                <th>Owner Name</th>
+            }
             <th>Species</th>
             <th>Breed</th>
             <th>Sex</th>
@@ -37,8 +43,18 @@
     <tbody>
         @foreach (var pet in Model)
         {
+            var ownerName = pet.Owner == null
+                ? "N/A"
+                : string.IsNullOrWhiteSpace($"{pet.Owner.FirstName} {pet.Owner.LastName}".Trim())
+                    ? "N/A"
+                    : $"{pet.Owner.FirstName} {pet.Owner.LastName}".Trim();
+
             <tr>
                 <td>@pet.PetName</td>
+                @if (showOwnerColumn)
+                {
+                    <td>@ownerName</td>
+                }
                 <td>@pet.Species</td>
                 <td>@pet.Breed</td>
                 <td>@pet.Sex</td>

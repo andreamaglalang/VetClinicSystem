@@ -52,19 +52,19 @@
 
     <div class="mb-3">
         <label asp-for="Age"></label>
-        <input asp-for="Age" type="number" min="0" max="40" step="1" class="form-control" />
+        <input asp-for="Age" type="number" min="0" max="40" step="1" class="form-control" inputmode="numeric" data-integer-only="true" />
         <span asp-validation-for="Age" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Color"></label>
-        <input asp-for="Color" class="form-control" maxlength="50" pattern="[A-Za-z]+(?:\s[A-Za-z]+)*" title="Color must contain letters and spaces only." data-letters-only="true" />
+        <input asp-for="Color" class="form-control" maxlength="50" pattern="[A-Za-z]+(?:\s[A-Za-z]+)*(?:,\s?[A-Za-z]+(?:\s[A-Za-z]+)*)*" title="Color may contain letters, spaces, and commas only." data-color-only="true" />
         <span asp-validation-for="Color" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Weight">Weight (kg)</label>
-        <input asp-for="Weight" type="number" min="0.10" max="200.00" step="0.01" class="form-control" />
+        <input asp-for="Weight" type="text" inputmode="decimal" class="form-control" maxlength="6" pattern="^\d+(\.\d{1,2})?$" title="Weight must be a valid number with up to 2 decimal places." data-decimal-only="true" />
         <span asp-validation-for="Weight" class="text-danger"></span>
     </div>
 

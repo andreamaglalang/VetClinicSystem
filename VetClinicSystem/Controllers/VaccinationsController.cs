@@ -8,6 +8,10 @@ namespace VetClinicSystem.Controllers
 {
     public class VaccinationsController : Controller
     {
+        private const int AdminRoleId = 1;
+        private const int StaffRoleId = 2;
+        private const int ClientRoleId = 3;
+
         private readonly IVaccinationService _vaccinationService;
         private readonly IPetService _petService;
 
@@ -27,7 +31,7 @@ namespace VetClinicSystem.Controllers
 
             var records = _vaccinationService.GetAll();
 
-            if (roleId == 3)
+            if (roleId == ClientRoleId)
             {
                 var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
                 records = records.Where(v => myPetIds.Contains(v.PetId)).ToList();
@@ -45,10 +49,13 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
-            if (roleId == 3)
-                ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName");
-            else
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
+            if (!IsAdminOrStaff(roleId))
+            {
+                TempData["Error"] = "Only admin and staff can add, edit, or delete vaccination records.";
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName");
 
             return View();
         }
@@ -67,19 +74,15 @@ namespace VetClinicSystem.Controllers
             ModelState.Remove("CreatedByUser");
             NormalizeVaccinationRecord(vaccinationRecord);
 
-            if (roleId == 3)
+            if (!IsAdminOrStaff(roleId))
             {
-                var myPets = _petService.GetByUser(userId.Value);
-                if (!myPets.Any(p => p.Id == vaccinationRecord.PetId))
-                    return Unauthorized();
+                TempData["Error"] = "Only admin and staff can add, edit, or delete vaccination records.";
+                return RedirectToAction("Index");
             }
 
             if (!ModelState.IsValid)
             {
-                if (roleId == 3)
-                    ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", vaccinationRecord.PetId);
-                else
-                    ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
+                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
 
                 TempData["Error"] = "Please complete all required vaccination fields.";
                 return View(vaccinationRecord);
@@ -101,21 +104,16 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
+            if (!IsAdminOrStaff(roleId))
+            {
+                TempData["Error"] = "Only admin and staff can add, edit, or delete vaccination records.";
+                return RedirectToAction("Index");
+            }
+
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
 
-            if (roleId == 3)
-            {
-                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
-                if (!myPetIds.Contains(vaccination.PetId))
-                    return Unauthorized();
-
-                ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", vaccination.PetId);
-            }
-            else
-            {
-                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccination.PetId);
-            }
+            ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccination.PetId);
 
             return View(vaccination);
         }
@@ -134,19 +132,15 @@ namespace VetClinicSystem.Controllers
             ModelState.Remove("CreatedByUser");
             NormalizeVaccinationRecord(vaccinationRecord);
 
-            if (roleId == 3)
+            if (!IsAdminOrStaff(roleId))
             {
-                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
-                if (!myPetIds.Contains(vaccinationRecord.PetId))
-                    return Unauthorized();
+                TempData["Error"] = "Only admin and staff can add, edit, or delete vaccination records.";
+                return RedirectToAction("Index");
             }
 
             if (!ModelState.IsValid)
             {
-                if (roleId == 3)
-                    ViewBag.Pets = new SelectList(_petService.GetByUser(userId.Value), "Id", "PetName", vaccinationRecord.PetId);
-                else
-                    ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
+                ViewBag.Pets = new SelectList(_petService.GetAll(), "Id", "PetName", vaccinationRecord.PetId);
 
                 TempData["Error"] = "Please complete all required vaccination fields.";
                 return View(vaccinationRecord);
@@ -169,7 +163,7 @@ namespace VetClinicSystem.Controllers
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
 
-            if (roleId == 3)
+            if (roleId == ClientRoleId)
             {
                 var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
                 if (!myPetIds.Contains(vaccination.PetId))
@@ -188,15 +182,14 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
+            if (!IsAdminOrStaff(roleId))
+            {
+                TempData["Error"] = "Only admin and staff can add, edit, or delete vaccination records.";
+                return RedirectToAction("Index");
+            }
+
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
-
-            if (roleId == 3)
-            {
-                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
-                if (!myPetIds.Contains(vaccination.PetId))
-                    return Unauthorized();
-            }
 
             return View(vaccination);
         }
@@ -211,19 +204,23 @@ namespace VetClinicSystem.Controllers
             if (userId == null)
                 return RedirectToAction("Login", "Account");
 
+            if (!IsAdminOrStaff(roleId))
+            {
+                TempData["Error"] = "Only admin and staff can add, edit, or delete vaccination records.";
+                return RedirectToAction("Index");
+            }
+
             var vaccination = _vaccinationService.GetById(id);
             if (vaccination == null) return NotFound();
-
-            if (roleId == 3)
-            {
-                var myPetIds = _petService.GetByUser(userId.Value).Select(p => p.Id).ToList();
-                if (!myPetIds.Contains(vaccination.PetId))
-                    return Unauthorized();
-            }
 
             _vaccinationService.Delete(id);
             TempData["Success"] = "Vaccination record deleted successfully.";
             return RedirectToAction("Index");
+        }
+
+        private static bool IsAdminOrStaff(int? roleId)
+        {
+            return roleId == AdminRoleId || roleId == StaffRoleId;
         }
 
         private static void NormalizeVaccinationRecord(VaccinationRecord vaccinationRecord)

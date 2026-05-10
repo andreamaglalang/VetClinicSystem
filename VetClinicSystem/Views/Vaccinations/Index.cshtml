@@ -1,10 +1,18 @@
-﻿@model IEnumerable<VetClinicSystem.Models.VaccinationRecord>
+@model IEnumerable<VetClinicSystem.Models.VaccinationRecord>
+
+@{
+    var roleId = Context.Session.GetInt32("RoleId");
+    var canManageVaccinations = roleId == 1 || roleId == 2;
+}
 
 <h2>Vaccinations</h2>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Add Vaccination</a>
-</p>
+@if (canManageVaccinations)
+{
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Add Vaccination</a>
+    </p>
+}
 
 <table class="table table-bordered table-vaccinations">
     <thead>
@@ -14,7 +22,6 @@
             <th>Vaccination Date</th>
             <th>Next Due Date</th>
             <th>Status</th>
-            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -40,19 +47,6 @@
                     {
                         <span class="status-pill status-pill--success">Up to date</span>
                     }
-                </td>
-                <td>
-                    <div class="table-actions">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="table-action-icon table-action-icon--details" title="Details" aria-label="View vaccination details">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="table-action-icon table-action-icon--edit" title="Edit" aria-label="Edit vaccination">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--delete" title="Delete" aria-label="Delete vaccination">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </a>
-                    </div>
                 </td>
             </tr>
         }

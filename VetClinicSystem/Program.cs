@@ -66,7 +66,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseSession();
+app.UseSession();   
 
 app.Use(async (context, next) =>
 {
