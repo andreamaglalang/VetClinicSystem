@@ -12,10 +12,21 @@ namespace VetClinicSystem.Controllers
         private const int StaffRoleId = 2;
         private const int ClientRoleId = 3;
 
+        private const string NextDueDateValidationMessage =
+            "Next due date must be later than the vaccination date.";
+
+        private const string VaccinationTuesdayValidationMessage =
+            "Vaccination date cannot be scheduled on Tuesday because the clinic is closed every Tuesday.";
+
+        private const string NextDueTuesdayValidationMessage =
+            "Next due date cannot fall on Tuesday because the clinic is closed every Tuesday.";
+
         private readonly IVaccinationService _vaccinationService;
         private readonly IPetService _petService;
 
-        public VaccinationsController(IVaccinationService vaccinationService, IPetService petService)
+        public VaccinationsController(
+            IVaccinationService vaccinationService,
+            IPetService petService)
         {
             _vaccinationService = vaccinationService;
             _petService = petService;
@@ -56,7 +67,6 @@ namespace VetClinicSystem.Controllers
             }
 
             ViewBag.Pets = BuildPetSelectList();
-
             return View();
         }
 
@@ -72,7 +82,9 @@ namespace VetClinicSystem.Controllers
 
             ModelState.Remove("Pet");
             ModelState.Remove("CreatedByUser");
+
             NormalizeVaccinationRecord(vaccinationRecord);
+            ValidateVaccinationDates(vaccinationRecord);
 
             if (!IsAdminOrStaff(roleId))
             {
@@ -83,8 +95,7 @@ namespace VetClinicSystem.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Pets = BuildPetSelectList(vaccinationRecord.PetId);
-
-                TempData["Error"] = "Please complete all required vaccination fields.";
+                TempData["Error"] = "Please correct the vaccination dates before saving.";
                 return View(vaccinationRecord);
             }
 
@@ -111,10 +122,10 @@ namespace VetClinicSystem.Controllers
             }
 
             var vaccination = _vaccinationService.GetById(id);
-            if (vaccination == null) return NotFound();
+            if (vaccination == null)
+                return NotFound();
 
             ViewBag.Pets = BuildPetSelectList(vaccination.PetId);
-
             return View(vaccination);
         }
 
@@ -130,7 +141,9 @@ namespace VetClinicSystem.Controllers
 
             ModelState.Remove("Pet");
             ModelState.Remove("CreatedByUser");
+
             NormalizeVaccinationRecord(vaccinationRecord);
+            ValidateVaccinationDates(vaccinationRecord);
 
             if (!IsAdminOrStaff(roleId))
             {
@@ -141,12 +154,12 @@ namespace VetClinicSystem.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Pets = BuildPetSelectList(vaccinationRecord.PetId);
-
-                TempData["Error"] = "Please complete all required vaccination fields.";
+                TempData["Error"] = "Please correct the vaccination dates before saving.";
                 return View(vaccinationRecord);
             }
 
             _vaccinationService.Update(vaccinationRecord);
+
             TempData["Success"] = "Vaccination record updated successfully.";
             return RedirectToAction("Index");
         }
@@ -161,7 +174,8 @@ namespace VetClinicSystem.Controllers
                 return RedirectToAction("Login", "Account");
 
             var vaccination = _vaccinationService.GetById(id);
-            if (vaccination == null) return NotFound();
+            if (vaccination == null)
+                return NotFound();
 
             if (roleId == ClientRoleId)
             {
@@ -189,7 +203,8 @@ namespace VetClinicSystem.Controllers
             }
 
             var vaccination = _vaccinationService.GetById(id);
-            if (vaccination == null) return NotFound();
+            if (vaccination == null)
+                return NotFound();
 
             return View(vaccination);
         }
@@ -211,7 +226,8 @@ namespace VetClinicSystem.Controllers
             }
 
             var vaccination = _vaccinationService.GetById(id);
-            if (vaccination == null) return NotFound();
+            if (vaccination == null)
+                return NotFound();
 
             _vaccinationService.Delete(id);
             TempData["Success"] = "Vaccination record deleted successfully.";
@@ -226,7 +242,35 @@ namespace VetClinicSystem.Controllers
         private static void NormalizeVaccinationRecord(VaccinationRecord vaccinationRecord)
         {
             vaccinationRecord.VaccineName = vaccinationRecord.VaccineName?.Trim() ?? string.Empty;
-            vaccinationRecord.Notes = string.IsNullOrWhiteSpace(vaccinationRecord.Notes) ? null : vaccinationRecord.Notes.Trim();
+            vaccinationRecord.Notes = string.IsNullOrWhiteSpace(vaccinationRecord.Notes)
+                ? null
+                : vaccinationRecord.Notes.Trim();
+        }
+
+        private void ValidateVaccinationDates(VaccinationRecord vaccinationRecord)
+        {
+            if (vaccinationRecord.VaccinationDate.DayOfWeek == DayOfWeek.Tuesday)
+            {
+                ModelState.AddModelError(
+                    nameof(VaccinationRecord.VaccinationDate),
+                    VaccinationTuesdayValidationMessage);
+            }
+
+            if (vaccinationRecord.NextDueDate.HasValue &&
+                vaccinationRecord.NextDueDate.Value.DayOfWeek == DayOfWeek.Tuesday)
+            {
+                ModelState.AddModelError(
+                    nameof(VaccinationRecord.NextDueDate),
+                    NextDueTuesdayValidationMessage);
+            }
+
+            if (vaccinationRecord.NextDueDate.HasValue &&
+                vaccinationRecord.NextDueDate.Value <= vaccinationRecord.VaccinationDate)
+            {
+                ModelState.AddModelError(
+                    nameof(VaccinationRecord.NextDueDate),
+                    NextDueDateValidationMessage);
+            }
         }
 
         private SelectList BuildPetSelectList(int? selectedPetId = null)

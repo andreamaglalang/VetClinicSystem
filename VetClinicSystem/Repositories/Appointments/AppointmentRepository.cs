@@ -173,13 +173,10 @@ namespace VetClinicSystem.Repositories.Appointments
 
         private static List<Appointment> OrderForManagement(IEnumerable<Appointment> appointments)
         {
-            var now = DateTime.Now;
-
             return appointments
-                .OrderBy(x => GetStatusPriority(x))
-                .ThenBy(x => IsPastActiveAppointment(x, now))
-                .ThenBy(x => GetPrimaryScheduleSortKey(x, now))
-                .ThenBy(x => GetSecondaryScheduleSortKey(x, now))
+                .OrderBy(x => x.AppointmentDate)
+                .ThenBy(x => x.AppointmentTime)
+                .ThenBy(x => GetStatusPriority(x))
                 .ThenByDescending(x => x.LastUpdated)
                 .ThenByDescending(x => x.Id)
                 .ToList();
@@ -187,13 +184,10 @@ namespace VetClinicSystem.Repositories.Appointments
 
         private static List<Appointment> OrderForClient(IEnumerable<Appointment> appointments)
         {
-            var now = DateTime.Now;
-
             return appointments
-                .OrderBy(x => GetStatusPriority(x))
-                .ThenBy(x => IsPastActiveAppointment(x, now))
-                .ThenBy(x => GetPrimaryScheduleSortKey(x, now))
-                .ThenBy(x => GetSecondaryScheduleSortKey(x, now))
+                .OrderBy(x => x.AppointmentDate)
+                .ThenBy(x => x.AppointmentTime)
+                .ThenBy(x => GetStatusPriority(x))
                 .ThenByDescending(x => x.LastUpdated)
                 .ThenByDescending(x => x.Id)
                 .ToList();
@@ -203,19 +197,14 @@ namespace VetClinicSystem.Repositories.Appointments
         {
             return NormalizeStatusName(appointment.Status?.StatusName) switch
             {
-                "pending" or "approved" or "confirmed" => 0,
-                "completed" or "complete" or "done" or "rejected" or "declined" or "cancelled" or "canceled" => 1,
-                _ => 2
+                "pending" => 1,
+                "confirmed" => 2,
+                "rescheduled" => 3,
+                "completed" => 4,
+                "cancelled" or "canceled" => 5,
+                "rejected" => 6,
+                _ => 99
             };
-        }
-
-        private static int IsPastActiveAppointment(Appointment appointment, DateTime now)
-        {
-            var statusName = NormalizeStatusName(appointment.Status?.StatusName);
-            if (statusName is not ("pending" or "approved" or "confirmed"))
-                return 0;
-
-            return appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime) < now ? 1 : 0;
         }
 
         private static string NormalizeStatusName(string? statusName)
@@ -223,24 +212,6 @@ namespace VetClinicSystem.Repositories.Appointments
             return string.IsNullOrWhiteSpace(statusName)
                 ? string.Empty
                 : statusName.Trim().Replace(" ", string.Empty).Replace("-", string.Empty).ToLowerInvariant();
-        }
-
-        private static long GetPrimaryScheduleSortKey(Appointment appointment, DateTime now)
-        {
-            var appointmentDateTime = appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime);
-            var ticks = appointmentDateTime.Ticks;
-
-            return GetStatusPriority(appointment) switch
-            {
-                0 when appointmentDateTime < now => -ticks,
-                1 => -ticks,
-                _ => ticks
-            };
-        }
-
-        private static DateTime GetSecondaryScheduleSortKey(Appointment appointment, DateTime now)
-        {
-            return appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime);
         }
     }
 }

@@ -532,7 +532,7 @@ namespace VetClinicSystem.Controllers
                 if (appointmentToDelete == null)
                     return NotFound();
 
-                appointmentToDelete.StatusId = GetAppointmentStatusId("Cancelled", "Canceled");
+                appointmentToDelete.StatusId = GetAppointmentStatusId("Cancelled");
                 appointmentToDelete.IsScheduleFinalized = false;
                 _appointmentService.Update(appointmentToDelete);
 
@@ -565,7 +565,7 @@ namespace VetClinicSystem.Controllers
             if (appointment == null)
                 return NotFound();
 
-            appointment.StatusId = GetAppointmentStatusId("Approved", "Confirmed");
+            appointment.StatusId = GetAppointmentStatusId("Confirmed");
 
             appointment.IsScheduleFinalized = true;
             _appointmentService.Update(appointment);
@@ -591,7 +591,7 @@ namespace VetClinicSystem.Controllers
             if (appointment == null)
                 return NotFound();
 
-            appointment.StatusId = GetAppointmentStatusId("Rejected", "Declined");
+            appointment.StatusId = GetAppointmentStatusId("Rejected");
 
             appointment.IsScheduleFinalized = false;
             _appointmentService.Update(appointment);
@@ -617,7 +617,7 @@ namespace VetClinicSystem.Controllers
             if (appointment == null)
                 return NotFound();
 
-            appointment.StatusId = GetAppointmentStatusId("Completed", "Complete", "Done");
+            appointment.StatusId = GetAppointmentStatusId("Completed");
             appointment.IsScheduleFinalized = true;
 
             _appointmentService.Update(appointment);
@@ -642,7 +642,7 @@ namespace VetClinicSystem.Controllers
             if (roleId == 1 || roleId == 2)
             {
                 ViewBag.EditStatuses = new SelectList(
-                    _context.AppointmentStatuses.OrderBy(x => x.Id).ToList(),
+                    GetCleanAppointmentStatuses(),
                     "Id",
                     "StatusName",
                     selectedStatusId);
@@ -986,8 +986,7 @@ namespace VetClinicSystem.Controllers
                 }
             };
 
-            options.AddRange(_context.AppointmentStatuses
-                .OrderBy(x => x.Id)
+            options.AddRange(GetCleanAppointmentStatuses()
                 .Select(x => new SelectListItem
                 {
                     Value = x.Id.ToString(),
@@ -997,6 +996,30 @@ namespace VetClinicSystem.Controllers
                 .ToList());
 
             return options;
+        }
+
+        private List<AppointmentStatus> GetCleanAppointmentStatuses()
+        {
+            var validStatuses = new[]
+            {
+                "Pending",
+                "Confirmed",
+                "Completed",
+                "Cancelled",
+                "Rejected",
+                "Rescheduled"
+            };
+
+            return _context.AppointmentStatuses
+                .Where(x => validStatuses.Contains(x.StatusName))
+                .OrderBy(x =>
+                    x.StatusName == "Pending" ? 1 :
+                    x.StatusName == "Confirmed" ? 2 :
+                    x.StatusName == "Completed" ? 3 :
+                    x.StatusName == "Cancelled" ? 4 :
+                    x.StatusName == "Rejected" ? 5 :
+                    x.StatusName == "Rescheduled" ? 6 : 99)
+                .ToList();
         }
 
         private int GetAppointmentStatusId(params string[] statusNames)
