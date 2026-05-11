@@ -130,13 +130,13 @@
 
                             @if (roleId == 1 || roleId == 2)
                             {
-                                    <a asp-action="Approve" asp-route-id="@item.Id" class="table-action-icon table-action-icon--approve" title="Confirm" aria-label="Confirm appointment">
+                                    <a asp-action="Approve" asp-route-id="@item.Id" class="table-action-icon table-action-icon--approve" title="Approve" aria-label="Approve appointment">
                                         <i class="fa-solid fa-thumbs-up"></i>
                                     </a>
                                     <a asp-action="Reject" asp-route-id="@item.Id" class="table-action-icon table-action-icon--reject" title="Reject" aria-label="Reject appointment">
                                         <i class="fa-solid fa-ban"></i>
                                     </a>
-                                    @if (item.StatusId != 3 && item.StatusId != 4)
+                                    @if (!new[] { "rejected", "declined", "completed", "complete", "done", "cancelled", "canceled" }.Contains((statusName ?? string.Empty).Trim().ToLowerInvariant()))
                                     {
                                         <a asp-action="Complete" asp-route-id="@item.Id" class="table-action-icon table-action-icon--approve" title="Complete" aria-label="Mark appointment completed">
                                             <i class="fa-solid fa-check-double"></i>

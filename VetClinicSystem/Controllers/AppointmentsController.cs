@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using VetClinicSystem.Helpers;
 using VetClinicSystem.Models;
@@ -58,14 +59,7 @@ namespace VetClinicSystem.Controllers
             ViewBag.StatusId = statusId;
             ViewBag.AppointmentDate = appointmentDate;
 
-            ViewBag.Statuses = new SelectList(new[]
-            {
-        new { Id = 0, Name = "All Statuses" },
-        new { Id = 1, Name = "Pending" },
-        new { Id = 2, Name = "Confirmed" },
-        new { Id = 3, Name = "Rejected" },
-        new { Id = 4, Name = "Completed" }
-    }, "Id", "Name", statusId ?? 0);
+            ViewBag.Statuses = BuildStatusFilterOptions(statusId);
 
             if (roleId == 3)
                 return View(_appointmentService.FilterByUser(userId.Value, search, statusId, appointmentDate));
@@ -277,6 +271,9 @@ namespace VetClinicSystem.Controllers
                 appointment.CreatedByUserId = userId.Value;
                 appointment.LastUpdated = DateTime.Now;
                 appointment.IsWalkIn = false;
+                if (appointment.StatusId <= 0)
+                    appointment.StatusId = GetAppointmentStatusId("Pending");
+
                 appointment.PreferredAppointmentDate = appointment.AppointmentDate;
                 appointment.PreferredAppointmentTime = appointment.AppointmentTime;
                 appointment.SurgeryCategory = NormalizeSurgeryCategory(appointment.SurgeryCategory);
@@ -405,7 +402,7 @@ namespace VetClinicSystem.Controllers
 
                 if (roleId == 3)
                 {
-                    appointment.StatusId = 1;
+                    appointment.StatusId = GetAppointmentStatusId("Pending");
                     appointment.PreferredAppointmentDate = appointment.AppointmentDate;
                     appointment.PreferredAppointmentTime = appointment.AppointmentTime;
                     appointment.IsScheduleFinalized = false;
@@ -416,10 +413,10 @@ namespace VetClinicSystem.Controllers
                     appointment.PreferredAppointmentDate = existingAppointment.PreferredAppointmentDate ?? existingAppointment.AppointmentDate;
                     appointment.PreferredAppointmentTime = existingAppointment.PreferredAppointmentTime ?? existingAppointment.AppointmentTime;
 
-                    if (appointment.StatusId == 2 || appointment.StatusId == 4)
-                        appointment.IsScheduleFinalized = true;
+                    var selectedStatusName = GetAppointmentStatusName(appointment.StatusId);
+                    appointment.IsScheduleFinalized = IsApprovedStatus(selectedStatusName) || IsCompletedStatus(selectedStatusName);
 
-                    if (appointment.StatusId == 3)
+                    if (IsRejectedStatus(selectedStatusName) || IsCancelledStatus(selectedStatusName))
                         appointment.IsScheduleFinalized = false;
                 }
 
@@ -535,10 +532,14 @@ namespace VetClinicSystem.Controllers
                 if (appointmentToDelete == null)
                     return NotFound();
 
-                if (roleId == 1 || roleId == 2)
-                    _notificationService.CreateClientNotification(appointmentToDelete, BuildClientCancellationNotificationMessage(appointmentToDelete));
+                appointmentToDelete.StatusId = GetAppointmentStatusId("Cancelled", "Canceled");
+                appointmentToDelete.IsScheduleFinalized = false;
+                _appointmentService.Update(appointmentToDelete);
 
-                _appointmentService.Delete(id);
+                var cancelledAppointment = _appointmentService.GetById(id);
+                if ((roleId == 1 || roleId == 2) && cancelledAppointment != null)
+                    _notificationService.CreateClientNotification(cancelledAppointment, BuildClientCancellationNotificationMessage(cancelledAppointment));
+
                 TempData["Success"] = "Appointment cancelled successfully.";
             }
             catch (Exception ex)
@@ -564,11 +565,7 @@ namespace VetClinicSystem.Controllers
             if (appointment == null)
                 return NotFound();
 
-            if (HasProperty(appointment, "StatusId"))
-                SetIntPropertyValue(appointment, "StatusId", 2);
-
-            if (HasProperty(appointment, "AppointmentStatusId"))
-                SetIntPropertyValue(appointment, "AppointmentStatusId", 2);
+            appointment.StatusId = GetAppointmentStatusId("Approved", "Confirmed");
 
             appointment.IsScheduleFinalized = true;
             _appointmentService.Update(appointment);
@@ -594,11 +591,7 @@ namespace VetClinicSystem.Controllers
             if (appointment == null)
                 return NotFound();
 
-            if (HasProperty(appointment, "StatusId"))
-                SetIntPropertyValue(appointment, "StatusId", 3);
-
-            if (HasProperty(appointment, "AppointmentStatusId"))
-                SetIntPropertyValue(appointment, "AppointmentStatusId", 3);
+            appointment.StatusId = GetAppointmentStatusId("Rejected", "Declined");
 
             appointment.IsScheduleFinalized = false;
             _appointmentService.Update(appointment);
@@ -624,7 +617,7 @@ namespace VetClinicSystem.Controllers
             if (appointment == null)
                 return NotFound();
 
-            appointment.StatusId = 4;
+            appointment.StatusId = GetAppointmentStatusId("Completed", "Complete", "Done");
             appointment.IsScheduleFinalized = true;
 
             _appointmentService.Update(appointment);
@@ -770,6 +763,7 @@ namespace VetClinicSystem.Controllers
                 CreatedByUserId = guestUser.Id,
                 IsWalkIn = false,
                 IsGuestBooking = true,
+                StatusId = GetAppointmentStatusId("Pending"),
                 LastUpdated = DateTime.Now
             };
 
@@ -841,6 +835,7 @@ namespace VetClinicSystem.Controllers
                 return;
 
             var selectedLoadPoints = GetSurgeryLoadPoints(normalizedCategory);
+            var inactiveStatusIds = GetAppointmentStatusIds("Rejected", "Declined", "Cancelled", "Canceled", "Completed", "Complete", "Done");
             var currentLoadPoints = _context.Appointments
                 .Where(x =>
                     x.Id == currentAppointmentId &&
@@ -853,7 +848,7 @@ namespace VetClinicSystem.Controllers
                     x.AppointmentDate == appointmentDate &&
                     x.Id != currentAppointmentId &&
                     x.Service.ServiceName.Contains("Surgery") &&
-                    x.StatusId != 3 &&
+                    !inactiveStatusIds.Contains(x.StatusId) &&
                     !x.IsEmergency)
                 .Sum(x => x.SurgeryLoadPoints > 0 ? x.SurgeryLoadPoints : 0);
 
@@ -979,9 +974,102 @@ namespace VetClinicSystem.Controllers
             return new DateOnly(year, month, day);
         }
 
-        private bool HasProperty(object obj, string propertyName)
+        private List<SelectListItem> BuildStatusFilterOptions(int? selectedStatusId)
         {
-            return obj.GetType().GetProperty(propertyName) != null;
+            var options = new List<SelectListItem>
+            {
+                new()
+                {
+                    Value = "0",
+                    Text = "All Statuses",
+                    Selected = !selectedStatusId.HasValue || selectedStatusId.Value == 0
+                }
+            };
+
+            options.AddRange(_context.AppointmentStatuses
+                .OrderBy(x => x.Id)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.StatusName,
+                    Selected = selectedStatusId.HasValue && selectedStatusId.Value == x.Id
+                })
+                .ToList());
+
+            return options;
+        }
+
+        private int GetAppointmentStatusId(params string[] statusNames)
+        {
+            var status = GetAppointmentStatus(statusNames);
+            if (status != null)
+                return status.Id;
+
+            throw new InvalidOperationException($"Appointment status is missing: {string.Join(" / ", statusNames)}.");
+        }
+
+        private List<int> GetAppointmentStatusIds(params string[] statusNames)
+        {
+            var normalizedNames = statusNames
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(NormalizeStatusName)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            return _context.AppointmentStatuses
+                .AsEnumerable()
+                .Where(x => normalizedNames.Contains(NormalizeStatusName(x.StatusName)))
+                .Select(x => x.Id)
+                .ToList();
+        }
+
+        private AppointmentStatus? GetAppointmentStatus(params string[] statusNames)
+        {
+            var normalizedNames = statusNames
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(NormalizeStatusName)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            return _context.AppointmentStatuses
+                .AsEnumerable()
+                .FirstOrDefault(x => normalizedNames.Contains(NormalizeStatusName(x.StatusName)));
+        }
+
+        private string GetAppointmentStatusName(int statusId)
+        {
+            return _context.AppointmentStatuses
+                .AsNoTracking()
+                .FirstOrDefault(x => x.Id == statusId)
+                ?.StatusName ?? string.Empty;
+        }
+
+        private static string NormalizeStatusName(string? statusName)
+        {
+            return string.IsNullOrWhiteSpace(statusName)
+                ? string.Empty
+                : statusName.Trim().Replace(" ", string.Empty).Replace("-", string.Empty).ToLowerInvariant();
+        }
+
+        private static bool IsApprovedStatus(string? statusName)
+        {
+            var normalized = NormalizeStatusName(statusName);
+            return normalized is "approved" or "confirmed";
+        }
+
+        private static bool IsRejectedStatus(string? statusName)
+        {
+            var normalized = NormalizeStatusName(statusName);
+            return normalized is "rejected" or "declined";
+        }
+
+        private static bool IsCancelledStatus(string? statusName)
+        {
+            var normalized = NormalizeStatusName(statusName);
+            return normalized is "cancelled" or "canceled";
+        }
+
+        private static bool IsCompletedStatus(string? statusName)
+        {
+            return NormalizeStatusName(statusName) is "completed" or "complete" or "done";
         }
 
         private string? BuildClientUpdateNotificationMessage(Appointment? previousAppointment, Appointment? updatedAppointment)
@@ -1012,13 +1100,19 @@ namespace VetClinicSystem.Controllers
 
             if (previousAppointment.StatusId != updatedAppointment.StatusId)
             {
-                return updatedAppointment.StatusId switch
-                {
-                    2 => BuildClientStatusNotificationMessage(updatedAppointment, "confirmed"),
-                    3 => BuildClientStatusNotificationMessage(updatedAppointment, "declined"),
-                    4 => BuildClientStatusNotificationMessage(updatedAppointment, "completed"),
-                    _ => null
-                };
+                var updatedStatusName = GetAppointmentStatusName(updatedAppointment.StatusId);
+
+                if (IsApprovedStatus(updatedStatusName))
+                    return BuildClientStatusNotificationMessage(updatedAppointment, "confirmed");
+
+                if (IsRejectedStatus(updatedStatusName))
+                    return BuildClientStatusNotificationMessage(updatedAppointment, "declined");
+
+                if (IsCancelledStatus(updatedStatusName))
+                    return BuildClientStatusNotificationMessage(updatedAppointment, "cancelled");
+
+                if (IsCompletedStatus(updatedStatusName))
+                    return BuildClientStatusNotificationMessage(updatedAppointment, "completed");
             }
 
             return null;
@@ -1119,13 +1213,6 @@ namespace VetClinicSystem.Controllers
                 Status = appointment.Status,
                 CreatedByUser = appointment.CreatedByUser
             };
-        }
-
-        private void SetIntPropertyValue(object obj, string propertyName, int value)
-        {
-            var prop = obj.GetType().GetProperty(propertyName);
-            if (prop != null && prop.CanWrite)
-                prop.SetValue(obj, value);
         }
 
         private static void NormalizeAppointmentFields(Appointment appointment)

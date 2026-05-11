@@ -201,20 +201,28 @@ namespace VetClinicSystem.Repositories.Appointments
 
         private static int GetStatusPriority(Appointment appointment)
         {
-            return appointment.StatusId switch
+            return NormalizeStatusName(appointment.Status?.StatusName) switch
             {
-                1 or 2 => 0,
-                4 or 3 => 1,
+                "pending" or "approved" or "confirmed" => 0,
+                "completed" or "complete" or "done" or "rejected" or "declined" or "cancelled" or "canceled" => 1,
                 _ => 2
             };
         }
 
         private static int IsPastActiveAppointment(Appointment appointment, DateTime now)
         {
-            if (appointment.StatusId != 1 && appointment.StatusId != 2)
+            var statusName = NormalizeStatusName(appointment.Status?.StatusName);
+            if (statusName is not ("pending" or "approved" or "confirmed"))
                 return 0;
 
             return appointment.AppointmentDate.ToDateTime(appointment.AppointmentTime) < now ? 1 : 0;
+        }
+
+        private static string NormalizeStatusName(string? statusName)
+        {
+            return string.IsNullOrWhiteSpace(statusName)
+                ? string.Empty
+                : statusName.Trim().Replace(" ", string.Empty).Replace("-", string.Empty).ToLowerInvariant();
         }
 
         private static long GetPrimaryScheduleSortKey(Appointment appointment, DateTime now)
